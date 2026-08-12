@@ -137,8 +137,10 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
   async function loadWorkspace(): Promise<WorkspaceSnapshot> {
     const { readClient, account, onStudionet = true } = await currentClients();
     const roundIds = await read<string[]>(readClient, contractAddress, "get_round_ids");
-    const roundId = roundIds[roundIds.length - 1];
-    const round = roundId ? await read<RoundRecord>(readClient, contractAddress, "get_round", [roundId]) : null;
+    const rounds = await Promise.all(
+      roundIds.map((roundId) => read<RoundRecord>(readClient, contractAddress, "get_round", [roundId])),
+    );
+    const round = [...rounds].reverse().find((item) => item.phase !== "CANCELLED") ?? rounds[rounds.length - 1] ?? null;
     const [creditWei, accounting] = await Promise.all([
       account ? read<string>(readClient, contractAddress, "get_credit", [account]) : Promise.resolve("0"),
       read<{ invariant_holds?: boolean }>(readClient, contractAddress, "get_accounting"),

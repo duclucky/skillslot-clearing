@@ -6,6 +6,7 @@ node_modules/
 dist/
 coverage/
 .local/
+.vercel/
 .pytest_cache/
 __pycache__/
 *.pyc

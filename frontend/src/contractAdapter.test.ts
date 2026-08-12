@@ -61,6 +61,37 @@ describe("GenLayer contract adapter", () => {
     expect(readClient.readContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "get_accounting" }));
   });
 
+  it("selects the newest non-cancelled round while preserving cancelled rounds onchain", async () => {
+    const { readClient, writeClient } = clients();
+    vi.mocked(readClient.readContract).mockImplementation(async ({ functionName, args }) => {
+      if (functionName === "get_round_ids") return ["round-1", "round-refund"];
+      if (functionName === "get_round") {
+        const id = String(args?.[0]);
+        return {
+          round_id: id,
+          creator: account,
+          title: id === "round-refund" ? "Balance recovery proof" : "Research access",
+          phase: id === "round-refund" ? "CANCELLED" : "CLEARED",
+          booking_fee_wei: ONE_GEN_WEI.toString(),
+          provider_bond_wei: ONE_GEN_WEI.toString(),
+          offer_ids_csv: "",
+          request_ids_csv: "",
+          offer_count: "0",
+          request_count: "0",
+        };
+      }
+      if (functionName === "get_credit") return "0";
+      if (functionName === "get_accounting") return { invariant_holds: true };
+      throw new Error(`Unexpected view ${functionName}`);
+    });
+    const adapter = createGenLayerAdapter({ contractAddress: address, clients: () => ({ readClient, writeClient, account }) });
+
+    const snapshot = await adapter.loadWorkspace();
+
+    expect(snapshot.round?.id).toBe("round-1");
+    expect(snapshot.round?.phase).toBe("CLEARED");
+  });
+
   it("maps all eight writes, exact GEN value, and submitted/accepted/finalized progress", async () => {
     const { readClient, writeClient } = clients();
     const progress = vi.fn();
