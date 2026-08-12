@@ -109,7 +109,10 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
     try {
       await action();
       const next = await refresh();
-      if (next && afterFinalized) afterFinalized(next);
+      if (next) {
+        setTransaction(null);
+        if (afterFinalized) afterFinalized(next);
+      }
     } catch (error) {
       setActionError(error instanceof Error ? error.message : "Transaction failed.");
       setFailedWrite({ action, afterFinalized });

@@ -89,13 +89,24 @@ type AdapterOptions = {
   onTransaction?: (progress: TransactionProgress) => void;
   pollIntervalMs?: number;
   maxPolls?: number;
+  readRetryDelayMs?: number;
+  maxReadAttempts?: number;
 };
 
 const terminalFailures = new Set(["UNDETERMINED", "CANCELED", "LEADER_TIMEOUT", "VALIDATORS_TIMEOUT"]);
 
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+}
+
+function isTransientReadError(error: unknown) {
+  const message = errorMessage(error);
+  return ["failed to fetch", "network", "timeout", "temporarily", "429", "502", "503", "504"].some((part) => message.includes(part));
+}
+
 function isTransientStatusError(error: unknown) {
-  const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
-  return ["not found", "index", "failed to fetch", "network", "timeout", "temporarily", "502", "503", "504"].some((part) => message.includes(part));
+  const message = errorMessage(error);
+  return isTransientReadError(error) || ["not found", "index"].some((part) => message.includes(part));
 }
 
 function splitCsv(value: string | undefined) {
@@ -114,7 +125,7 @@ export function formatGen(wei: string | bigint): string {
   return `${whole}.${remainder.toString().padStart(18, "0").replace(/0+$/, "")}`;
 }
 
-async function read<T>(client: GenLayerClientLike, address: `0x${string}`, functionName: string, args: unknown[] = []) {
+async function readOnce<T>(client: GenLayerClientLike, address: `0x${string}`, functionName: string, args: unknown[] = []) {
   return (await client.readContract({ address, functionName, args, jsonSafeReturn: true })) as T;
 }
 
@@ -124,12 +135,30 @@ function pause(milliseconds: number) {
 }
 
 export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter {
-  const { contractAddress, pollIntervalMs = 5_000, maxPolls = 240 } = options;
+  const {
+    contractAddress,
+    pollIntervalMs = 5_000,
+    maxPolls = 240,
+    readRetryDelayMs = 1_000,
+    maxReadAttempts = 7,
+  } = options;
   const transactionListeners = new Set<(progress: TransactionProgress) => void>();
   if (options.onTransaction) transactionListeners.add(options.onTransaction);
 
   function emitTransaction(progress: TransactionProgress) {
     transactionListeners.forEach((listener) => listener(progress));
+  }
+
+  async function read<T>(client: GenLayerClientLike, functionName: string, args: unknown[] = []) {
+    for (let attempt = 0; attempt < maxReadAttempts; attempt += 1) {
+      try {
+        return await readOnce<T>(client, contractAddress, functionName, args);
+      } catch (error) {
+        if (!isTransientReadError(error) || attempt === maxReadAttempts - 1) throw error;
+        await pause(Math.min(readRetryDelayMs * (2 ** attempt), 8_000));
+      }
+    }
+    throw new Error("Canonical state read exhausted its retry budget");
   }
 
   async function currentClients() {
@@ -143,26 +172,26 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
 
   async function loadWorkspace(): Promise<WorkspaceSnapshot> {
     const { readClient, account, onStudionet = true } = await currentClients();
-    const roundIds = await read<string[]>(readClient, contractAddress, "get_round_ids");
+    const roundIds = await read<string[]>(readClient, "get_round_ids");
     const rounds = await Promise.all(
-      roundIds.map((roundId) => read<RoundRecord>(readClient, contractAddress, "get_round", [roundId])),
+      roundIds.map((roundId) => read<RoundRecord>(readClient, "get_round", [roundId])),
     );
     const [creditWei, accounting] = await Promise.all([
-      account ? read<string>(readClient, contractAddress, "get_credit", [account]) : Promise.resolve("0"),
-      read<{ invariant_holds?: boolean }>(readClient, contractAddress, "get_accounting"),
+      account ? read<string>(readClient, "get_credit", [account]) : Promise.resolve("0"),
+      read<{ invariant_holds?: boolean }>(readClient, "get_accounting"),
     ]);
     const positions: PositionView[] = [];
 
     if (account) {
       for (const round of rounds) {
         const offers = await Promise.all(
-          splitCsv(round.offer_ids_csv).map((id) => read<OfferRecord>(readClient, contractAddress, "get_offer", [round.round_id, id])),
+          splitCsv(round.offer_ids_csv).map((id) => read<OfferRecord>(readClient, "get_offer", [round.round_id, id])),
         );
         const requests = await Promise.all(
-          splitCsv(round.request_ids_csv).map((id) => read<RequestRecord>(readClient, contractAddress, "get_request", [round.round_id, id])),
+          splitCsv(round.request_ids_csv).map((id) => read<RequestRecord>(readClient, "get_request", [round.round_id, id])),
         );
         const matches = await Promise.all(
-          requests.map((request) => read<MatchRecord>(readClient, contractAddress, "get_match", [round.round_id, request.request_id])),
+          requests.map((request) => read<MatchRecord>(readClient, "get_match", [round.round_id, request.request_id])),
         );
 
         offers.filter((offer) => sameAddress(offer.provider, account)).forEach((offer) => {
@@ -186,7 +215,7 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
         });
         for (const match of matches) {
           if (!match.request_id || !sameAddress(match.requester, account)) continue;
-          const canRoute = await read<boolean>(readClient, contractAddress, "can_route", [round.round_id, match.request_id, account]);
+          const canRoute = await read<boolean>(readClient, "can_route", [round.round_id, match.request_id, account]);
           positions.push({
             id: `${round.round_id}:${match.request_id}`,
             requestId: match.request_id,

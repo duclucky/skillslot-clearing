@@ -45,6 +45,40 @@ function clients() {
 }
 
 describe("GenLayer contract adapter", () => {
+  it("retries transient canonical reads before failing the workspace load", async () => {
+    const { readClient, writeClient } = clients();
+    const originalRead = vi.mocked(readClient.readContract).getMockImplementation()!;
+    vi.mocked(readClient.readContract)
+      .mockRejectedValueOnce(new Error("Failed to fetch"))
+      .mockRejectedValueOnce(new Error("503 Service Unavailable"))
+      .mockImplementation(originalRead);
+    const adapter = createGenLayerAdapter({
+      contractAddress: address,
+      clients: () => ({ readClient, writeClient, account }),
+      readRetryDelayMs: 0,
+      maxReadAttempts: 3,
+    });
+
+    await expect(adapter.loadWorkspace()).resolves.toEqual(expect.objectContaining({
+      rounds: [expect.objectContaining({ id: "round-1" })],
+    }));
+    expect(readClient.readContract).toHaveBeenCalledTimes(10);
+  });
+
+  it("does not retry deterministic canonical read failures", async () => {
+    const { readClient, writeClient } = clients();
+    vi.mocked(readClient.readContract).mockRejectedValue(new Error("Contract method not found"));
+    const adapter = createGenLayerAdapter({
+      contractAddress: address,
+      clients: () => ({ readClient, writeClient, account }),
+      readRetryDelayMs: 0,
+      maxReadAttempts: 3,
+    });
+
+    await expect(adapter.loadWorkspace()).rejects.toThrow("Contract method not found");
+    expect(readClient.readContract).toHaveBeenCalledTimes(1);
+  });
+
   it("reads every canonical view needed to rebuild the wallet workspace", async () => {
     const { readClient, writeClient } = clients();
     const adapter = createGenLayerAdapter({

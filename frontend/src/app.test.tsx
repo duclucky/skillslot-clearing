@@ -217,4 +217,23 @@ describe("SkillSlot Clearing marketplace", () => {
     act(() => emit?.({ stage: "finalized", hash: "0x1234567890abcdef", functionName: "submit_offer" }));
     expect(screen.getByText("Finalized and reloading canonical state")).toBeVisible();
   });
+
+  it("clears the finality notice after canonical state reload succeeds", async () => {
+    const adapter = adapterFor(ready);
+    let emit: ((progress: TransactionProgress) => void) | undefined;
+    vi.mocked(adapter.subscribeTransactions).mockImplementation((listener) => {
+      emit = listener;
+      return () => undefined;
+    });
+    vi.mocked(adapter.lockRound).mockImplementation(async () => {
+      emit?.({ stage: "finalized", hash: "0x1234567890abcdef", functionName: "lock_round" });
+      return { hash: "0x1234567890abcdef" };
+    });
+    render(<App adapter={adapter} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Lock round" }));
+
+    await waitFor(() => expect(adapter.loadWorkspace).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(screen.queryByText("Finalized and reloading canonical state")).not.toBeInTheDocument());
+  });
 });
