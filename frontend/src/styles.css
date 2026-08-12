@@ -392,6 +392,27 @@ h3 {
   color: var(--danger);
 }
 
+.transaction-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  color: var(--signal);
+  background: var(--signal-soft);
+  border: 1px solid #94bba8;
+  border-radius: 6px;
+  font-family: "IBM Plex Mono", "Cascadia Mono", monospace;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.transaction-failed {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-color: #d59b94;
+}
+
 .metric-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -539,6 +560,77 @@ h3 {
   line-height: 1.55;
 }
 
+.action-form {
+  display: grid;
+  gap: 14px;
+  margin: 14px 0 20px;
+}
+
+.action-disclosure {
+  margin-bottom: 14px;
+  border-bottom: 1px solid #3d4740;
+}
+
+.action-disclosure summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: var(--surface);
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+  color: #dfe3df;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 11px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid #7f8a82;
+  border-radius: 5px;
+}
+
+.field textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.field input:focus-visible,
+.field textarea:focus-visible {
+  outline: 3px solid #92d5b8;
+  outline-offset: 2px;
+}
+
+.field small {
+  color: #aeb7b0;
+  font-weight: 400;
+}
+
+.button-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.button-danger {
+  color: #ffe8e4;
+  background: transparent;
+  border: 1px solid #d6958d;
+}
+
+.button-danger:not(:disabled):hover {
+  background: #632f2b;
+}
+
 .positions-view {
   max-width: 900px;
 }
@@ -582,6 +674,49 @@ h3 {
   margin: 0 0 20px;
   color: var(--ink-muted);
   line-height: 1.6;
+}
+
+.position-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.position-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.position-card span {
+  color: var(--signal);
+  font-family: "IBM Plex Mono", "Cascadia Mono", monospace;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.position-card h2 {
+  margin: 4px 0;
+  font-family: "Public Sans", Aptos, sans-serif;
+  font-size: 17px;
+  letter-spacing: 0;
+}
+
+.position-card p,
+.scope-note {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+
+.scope-note {
+  margin-top: 16px;
 }
 
 .text-action {
@@ -677,6 +812,14 @@ h3 {
 
   .positions-summary {
     display: grid;
+  }
+
+  .position-card {
+    display: grid;
+  }
+
+  .button-row {
+    grid-template-columns: 1fr;
   }
 
   .positions-summary .button {
