@@ -137,6 +137,24 @@ describe("GenLayer contract adapter", () => {
     ]);
   });
 
+  it("publishes transaction progress to UI subscribers and supports cleanup", async () => {
+    const { readClient, writeClient } = clients();
+    const listener = vi.fn();
+    const adapter = createGenLayerAdapter({
+      contractAddress: address,
+      clients: () => ({ readClient, writeClient, account }),
+      pollIntervalMs: 0,
+    });
+
+    const unsubscribe = adapter.subscribeTransactions(listener);
+    await adapter.lockRound("round-1");
+    expect(listener.mock.calls.map(([event]) => event.stage)).toEqual(["wallet", "submitted", "accepted", "finalized"]);
+
+    unsubscribe();
+    await adapter.cancelRound("round-1");
+    expect(listener).toHaveBeenCalledTimes(4);
+  });
+
   it("retries a transient indexing miss without inventing finality", async () => {
     const { readClient, writeClient } = clients();
     const progress = vi.fn();

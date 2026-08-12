@@ -1,12 +1,13 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
 import { createUnconfiguredAdapter } from "./contractAdapter";
-import type { ContractAdapter, WorkspaceSnapshot } from "./domain";
+import type { ContractAdapter, TransactionProgress, WorkspaceSnapshot } from "./domain";
 
 function adapterFor(snapshot: WorkspaceSnapshot): ContractAdapter {
   return {
+    subscribeTransactions: vi.fn(() => () => undefined),
     loadWorkspace: vi.fn(async () => snapshot),
     connectWallet: vi.fn(async () => "0x0000000000000000000000000000000000000001"),
     openRound: vi.fn(async () => ({ hash: "0xopen" })),
@@ -99,6 +100,20 @@ describe("SkillSlot Clearing marketplace", () => {
     expect(await screen.findByRole("heading", { name: "New research access" })).toBeVisible();
   });
 
+  it("blocks invalid round identities with an inline, accessible error", async () => {
+    const adapter = adapterFor({ ...ready, rounds: [] });
+    render(<App adapter={adapter} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Create round" }));
+    fireEvent.change(screen.getByLabelText("Round ID"), { target: { value: "ab" } });
+    fireEvent.change(screen.getByLabelText("Round title"), { target: { value: "Valid title" } });
+    fireEvent.click(screen.getByRole("button", { name: "Open round" }));
+
+    expect(await screen.findByText("Round ID must be 3 to 80 characters and use only letters, numbers, periods, underscores, or hyphens.")).toBeVisible();
+    expect(adapter.openRound).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("Round ID")).toHaveAttribute("aria-invalid", "true");
+  });
+
   it("executes provider, requester, and creator actions in an open round", async () => {
     const adapter = adapterFor(ready);
     render(<App adapter={adapter} />);
@@ -120,6 +135,33 @@ describe("SkillSlot Clearing marketplace", () => {
 
     fireEvent.click(within(detail).getByRole("button", { name: "Lock round" }));
     await waitFor(() => expect(adapter.lockRound).toHaveBeenCalledWith("round-1"));
+  });
+
+  it("preserves form values and retries the same failed transaction", async () => {
+    const adapter = adapterFor(ready);
+    vi.mocked(adapter.submitOffer)
+      .mockRejectedValueOnce(new Error("Wallet rejected the first attempt"))
+      .mockResolvedValueOnce({ hash: "0xoffer" });
+    render(<App adapter={adapter} />);
+    const detail = await screen.findByRole("complementary", { name: "Research access" });
+
+    fireEvent.change(within(detail).getByLabelText("Offer ID"), { target: { value: "offer-2" } });
+    fireEvent.change(within(detail).getByLabelText("Offer label"), { target: { value: "Source finder" } });
+    fireEvent.change(within(detail).getByLabelText("Access promise"), { target: { value: "Find primary sources" } });
+    fireEvent.change(within(detail).getByLabelText("Capability IDs"), { target: { value: "web" } });
+    fireEvent.click(within(detail).getByRole("button", { name: /Submit offer for 1 GEN/i }));
+
+    expect(await screen.findByText("Wallet rejected the first attempt")).toBeVisible();
+    expect(within(detail).getByLabelText("Offer ID")).toHaveValue("offer-2");
+    fireEvent.click(screen.getByRole("button", { name: "Retry transaction" }));
+    await waitFor(() => expect(adapter.submitOffer).toHaveBeenCalledTimes(2));
+  });
+
+  it("prevents a creator from locking an empty round", async () => {
+    const adapter = adapterFor({ ...ready, rounds: [{ ...ready.rounds[0], offerCount: 0, requestCount: 0 }] });
+    render(<App adapter={adapter} />);
+
+    expect(await screen.findByRole("button", { name: "Lock round" })).toBeDisabled();
   });
 
   it("supports clear, grant consumption, and withdrawal from canonical activity", async () => {
@@ -158,5 +200,21 @@ describe("SkillSlot Clearing marketplace", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Connect wallet" }));
     await waitFor(() => expect(disconnected.connectWallet).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(disconnected.loadWorkspace).toHaveBeenCalledTimes(2));
+  });
+
+  it("renders lifecycle progress emitted by the supplied wallet adapter", async () => {
+    const adapter = adapterFor(ready);
+    let emit: ((progress: TransactionProgress) => void) | undefined;
+    vi.mocked(adapter.subscribeTransactions).mockImplementation((listener) => {
+      emit = listener;
+      return () => undefined;
+    });
+    render(<App adapter={adapter} />);
+    await screen.findByRole("heading", { name: "Find a clearing round" });
+
+    act(() => emit?.({ stage: "wallet", hash: "", functionName: "submit_offer" }));
+    expect(screen.getByText("Waiting for wallet confirmation")).toBeVisible();
+    act(() => emit?.({ stage: "finalized", hash: "0x1234567890abcdef", functionName: "submit_offer" }));
+    expect(screen.getByText("Finalized and reloading canonical state")).toBeVisible();
   });
 });

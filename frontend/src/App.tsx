@@ -1,7 +1,6 @@
 import {
   ArrowsClockwise,
   ArrowsLeftRight,
-  Coins,
   LockKey,
   Plus,
   ShieldWarning,
@@ -13,8 +12,8 @@ import {
   configuredContractAddress,
   createConfiguredAdapter,
   createUnconfiguredAdapter,
-  ONE_GEN_WEI,
 } from "./contractAdapter";
+import { Activity } from "./Activity";
 import type { ContractAdapter, TransactionProgress, WorkspaceSnapshot } from "./domain";
 import { CreateRound, Marketplace, type RunWrite } from "./Marketplace";
 import { defaultRoundId } from "./roundFilters";
@@ -24,6 +23,11 @@ type Destination = "rounds" | "create" | "activity";
 
 interface AppProps {
   adapter?: ContractAdapter;
+}
+
+interface FailedWrite {
+  action: () => Promise<unknown>;
+  afterFinalized?: (snapshot: WorkspaceSnapshot) => void;
 }
 
 const initialSnapshot: WorkspaceSnapshot = {
@@ -47,11 +51,6 @@ function shortAddress(address: string) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
-function genToWei(value: string) {
-  const [whole = "0", decimal = ""] = value.split(".");
-  return (BigInt(whole) * ONE_GEN_WEI + BigInt(decimal.padEnd(18, "0").slice(0, 18) || "0")).toString();
-}
-
 export function App({ adapter: suppliedAdapter }: AppProps) {
   const [destination, setDestination] = useState<Destination>("rounds");
   const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null);
@@ -59,13 +58,17 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [failedWrite, setFailedWrite] = useState<FailedWrite | null>(null);
   const [transaction, setTransaction] = useState<TransactionProgress | null>(null);
 
   const adapter = useMemo(() => {
     if (suppliedAdapter) return suppliedAdapter;
     const address = configuredContractAddress();
-    return address ? createConfiguredAdapter(address, setTransaction) : createUnconfiguredAdapter();
+    return address ? createConfiguredAdapter(address) : createUnconfiguredAdapter();
   }, [suppliedAdapter]);
+
+  useEffect(() => adapter.subscribeTransactions(setTransaction), [adapter]);
 
   const refresh = useCallback(async () => {
     setLoadError(null);
@@ -88,12 +91,12 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
 
   async function connect() {
     setBusy(true);
-    setLoadError(null);
+    setActionError(null);
     try {
       await adapter.connectWallet();
       await refresh();
     } catch (error) {
-      setLoadError(error instanceof Error ? error.message : "Wallet connection failed.");
+      setActionError(error instanceof Error ? error.message : "Wallet connection failed.");
     } finally {
       setBusy(false);
     }
@@ -101,13 +104,15 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
 
   const runWrite: RunWrite = async (action, afterFinalized) => {
     setBusy(true);
-    setLoadError(null);
+    setActionError(null);
+    setFailedWrite(null);
     try {
       await action();
       const next = await refresh();
       if (next && afterFinalized) afterFinalized(next);
     } catch (error) {
-      setLoadError(error instanceof Error ? error.message : "Transaction failed.");
+      setActionError(error instanceof Error ? error.message : "Transaction failed.");
+      setFailedWrite({ action, afterFinalized });
     } finally {
       setBusy(false);
     }
@@ -159,7 +164,13 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
         {loadError ? (
           <section className="notice notice-danger" role="alert">
             <ShieldWarning aria-hidden="true" />
-            <div><p className="notice-title">Action unavailable</p><p>{loadError}</p><button className="text-action" type="button" onClick={() => void refresh()}>Retry state read</button></div>
+            <div><p className="notice-title">Canonical state unavailable</p><p>{loadError}</p><button className="text-action" type="button" onClick={() => void refresh()}>Retry state read</button></div>
+          </section>
+        ) : null}
+        {actionError ? (
+          <section className="notice notice-danger" role="alert">
+            <ShieldWarning aria-hidden="true" />
+            <div><p className="notice-title">Transaction did not complete</p><p>{actionError}</p>{failedWrite ? <button className="text-action" type="button" disabled={busy} onClick={() => void runWrite(failedWrite.action, failedWrite.afterFinalized)}>Retry transaction</button> : null}</div>
           </section>
         ) : null}
         {unconfigured && !loading ? <ConfigurationNotice availability={snapshot.availability} /> : null}
@@ -196,18 +207,6 @@ function TransactionNotice({ transaction }: { transaction: TransactionProgress }
       <span><strong>{labels[transaction.stage]}</strong><small>{transaction.functionName}{transaction.hash ? ` ${shortAddress(transaction.hash)}` : ""}</small></span>
     </section>
   );
-}
-
-function Activity({ snapshot, adapter, busy, runWrite, onOpenRound }: { snapshot: WorkspaceSnapshot; adapter: ContractAdapter; busy: boolean; runWrite: RunWrite; onOpenRound: (roundId: string) => void }) {
-  return <section className="positions-view" aria-labelledby="activity-title">
-    <p className="eyebrow">Wallet-scoped canonical state</p>
-    <h1 id="activity-title">My activity</h1>
-    <p className="lede">Offers, requests, grants, and withdrawable GEN across every clearing round.</p>
-    <div className="positions-summary"><div><span>Withdrawable credit</span><strong>{snapshot.account ? `${snapshot.creditGen} GEN` : "- GEN"}</strong></div>
-      <button className="button button-primary" type="button" disabled={!snapshot.account || busy || snapshot.creditGen === "0"} onClick={() => void runWrite(() => adapter.withdrawCredit(genToWei(snapshot.creditGen)))}><Coins aria-hidden="true" />Withdraw {snapshot.creditGen} GEN</button>
-    </div>
-    {snapshot.positions.length ? <div className="position-list">{snapshot.positions.map((position) => <article className="position-card" key={`${position.kind}:${position.id}`}><button className="position-link" type="button" onClick={() => onOpenRound(position.roundId)}><span>{position.kind}</span><h2>{position.summary}</h2><p>{position.id} {position.status}</p></button>{position.kind === "grant" && position.status === "ACTIVE" && position.requestId ? <button className="button button-secondary" disabled={busy} onClick={() => void runWrite(() => adapter.consumeGrant({ roundId: position.roundId, requestId: position.requestId! }))}>Consume grant</button> : null}</article>)}</div> : <div className="empty-state"><LockKey aria-hidden="true" /><h2>No wallet activity yet</h2><p>Join an open round or create one to begin.</p></div>}
-  </section>;
 }
 
 function LoadingState() {

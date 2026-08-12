@@ -124,7 +124,13 @@ function pause(milliseconds: number) {
 }
 
 export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter {
-  const { contractAddress, onTransaction = () => undefined, pollIntervalMs = 5_000, maxPolls = 240 } = options;
+  const { contractAddress, pollIntervalMs = 5_000, maxPolls = 240 } = options;
+  const transactionListeners = new Set<(progress: TransactionProgress) => void>();
+  if (options.onTransaction) transactionListeners.add(options.onTransaction);
+
+  function emitTransaction(progress: TransactionProgress) {
+    transactionListeners.forEach((listener) => listener(progress));
+  }
 
   async function currentClients() {
     let result = options.clients();
@@ -219,9 +225,9 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
     if (!writeClient) throw new Error("Connect a Studionet wallet before sending a transaction");
     let hash = "";
     try {
-      onTransaction({ stage: "wallet", hash, functionName });
+      emitTransaction({ stage: "wallet", hash, functionName });
       hash = String(await writeClient.writeContract({ address: contractAddress, functionName, args, value }));
-      onTransaction({ stage: "submitted", hash, functionName });
+      emitTransaction({ stage: "submitted", hash, functionName });
       let accepted = false;
       for (let poll = 0; poll < maxPolls; poll += 1) {
         let status = "";
@@ -236,10 +242,10 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
         }
         if ((status === "ACCEPTED" || status === "FINALIZED") && !accepted) {
           accepted = true;
-          onTransaction({ stage: "accepted", hash, functionName });
+          emitTransaction({ stage: "accepted", hash, functionName });
         }
         if (status === "FINALIZED") {
-          onTransaction({ stage: "finalized", hash, functionName });
+          emitTransaction({ stage: "finalized", hash, functionName });
           return { hash };
         }
         if (terminalFailures.has(status)) throw new Error(`Transaction reached ${status}`);
@@ -247,7 +253,7 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
       }
       throw new Error("Transaction did not finalize before timeout");
     } catch (error) {
-      onTransaction({
+      emitTransaction({
         stage: "failed",
         hash,
         functionName,
@@ -258,6 +264,10 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
   }
 
   return {
+    subscribeTransactions: (listener) => {
+      transactionListeners.add(listener);
+      return () => transactionListeners.delete(listener);
+    },
     loadWorkspace,
     connectWallet: async () => {
       if (!options.connect) throw new Error("No browser wallet connector is configured");
@@ -297,6 +307,7 @@ function unavailable(): Promise<never> {
 
 export function createUnconfiguredAdapter(): ContractAdapter {
   return {
+    subscribeTransactions: () => () => undefined,
     loadWorkspace: async () => ({ ...unconfiguredWorkspace, positions: [] }),
     connectWallet: unavailable,
     openRound: unavailable,

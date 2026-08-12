@@ -8,9 +8,10 @@ import {
   ShieldWarning,
   UsersThree,
 } from "@phosphor-icons/react";
-import { type FormEvent, useMemo, useState } from "react";
+import { type ChangeEvent, type FormEvent, useMemo, useState } from "react";
 
 import type { ContractAdapter, RoundView, WorkspaceSnapshot } from "./domain";
+import { validateCapabilityCsv, validateIdentifier, validateText } from "./formValidation";
 import { filterRounds, type RoundFilter, roundFilter } from "./roundFilters";
 
 export type RunWrite = (
@@ -128,13 +129,22 @@ export function Marketplace({
 export function CreateRound({ snapshot, adapter, busy, runWrite, onCreated }: SharedProps & { onCreated: (roundId: string) => void }) {
   const [roundId, setRoundId] = useState("");
   const [title, setTitle] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const ready = snapshot.availability === "ready" && Boolean(snapshot.account);
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    const createdId = roundId.trim();
+    const checkedId = validateIdentifier(roundId, "Round ID");
+    const checkedTitle = validateText(title, "Round title", 3, 120);
+    const nextErrors = {
+      ...(checkedId.error ? { roundId: checkedId.error } : {}),
+      ...(checkedTitle.error ? { title: checkedTitle.error } : {}),
+    };
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) return;
+    const createdId = checkedId.value;
     void runWrite(
-      () => adapter.openRound({ roundId: createdId, title }),
+      () => adapter.openRound({ roundId: createdId, title: checkedTitle.value }),
       () => onCreated(createdId),
     );
   }
@@ -150,9 +160,9 @@ export function CreateRound({ snapshot, adapter, busy, runWrite, onCreated }: Sh
           <p>You become the round creator. Only your wallet can lock, clear, retry, or safely cancel it.</p>
         </div>
       </div>
-      <form className="create-form" onSubmit={submit}>
-        <Field id="create-round-id" label="Round ID" value={roundId} onChange={setRoundId} hint="3-80 characters. Letters, numbers, hyphen, underscore, or period." required />
-        <Field id="create-round-title" label="Round title" value={title} onChange={setTitle} hint="Describe the access window in plain language." required />
+      <form className="create-form" onSubmit={submit} noValidate>
+        <Field id="create-round-id" label="Round ID" value={roundId} onChange={setRoundId} hint="3-80 characters. Letters, numbers, hyphen, underscore, or period." error={errors.roundId} maxLength={80} required />
+        <Field id="create-round-title" label="Round title" value={title} onChange={setTitle} hint="Describe the access window in plain language." error={errors.title} maxLength={120} required />
         <button className="button button-primary button-full" disabled={!ready || busy} type="submit">
           <Plus aria-hidden="true" /> {busy ? "Waiting for finality" : "Open round"}
         </button>
@@ -236,15 +246,34 @@ function OfferForm({ roundId, adapter, busy, runWrite }: Pick<SharedProps, "adap
   const [label, setLabel] = useState("");
   const [promise, setPromise] = useState("");
   const [capabilityIds, setCapabilityIds] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
   function submit(event: FormEvent) {
     event.preventDefault();
-    void runWrite(() => adapter.submitOffer({ roundId, offerId, label, promise, capabilityIds }));
+    const checkedId = validateIdentifier(offerId, "Offer ID");
+    const checkedLabel = validateText(label, "Offer label", 3, 120);
+    const checkedPromise = validateText(promise, "Access promise", 1, 600);
+    const checkedCapabilities = validateCapabilityCsv(capabilityIds, "Capability IDs");
+    const nextErrors = {
+      ...(checkedId.error ? { offerId: checkedId.error } : {}),
+      ...(checkedLabel.error ? { label: checkedLabel.error } : {}),
+      ...(checkedPromise.error ? { promise: checkedPromise.error } : {}),
+      ...(checkedCapabilities.error ? { capabilityIds: checkedCapabilities.error } : {}),
+    };
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) return;
+    void runWrite(() => adapter.submitOffer({
+      roundId,
+      offerId: checkedId.value,
+      label: checkedLabel.value,
+      promise: checkedPromise.value,
+      capabilityIds: checkedCapabilities.value,
+    }));
   }
-  return <details className="action-disclosure" open><summary>Offer an agent</summary><form className="action-form" onSubmit={submit}>
-    <Field id="offer-id" label="Offer ID" value={offerId} onChange={setOfferId} required />
-    <Field id="offer-label" label="Offer label" value={label} onChange={setLabel} required />
-    <Field id="offer-promise" label="Access promise" value={promise} onChange={setPromise} multiline required />
-    <Field id="offer-capabilities" label="Capability IDs" value={capabilityIds} onChange={setCapabilityIds} hint="Example: scheduling,flight-search" />
+  return <details className="action-disclosure" open><summary>Offer an agent</summary><form className="action-form" onSubmit={submit} noValidate>
+    <Field id="offer-id" label="Offer ID" value={offerId} onChange={setOfferId} error={errors.offerId} maxLength={80} required />
+    <Field id="offer-label" label="Offer label" value={label} onChange={setLabel} error={errors.label} maxLength={120} required />
+    <Field id="offer-promise" label="Access promise" value={promise} onChange={setPromise} error={errors.promise} maxLength={600} multiline required />
+    <Field id="offer-capabilities" label="Capability IDs" value={capabilityIds} onChange={setCapabilityIds} error={errors.capabilityIds} maxLength={600} hint="Example: scheduling,flight-search" />
     <button className="button button-primary button-full" disabled={busy} type="submit"><PaperPlaneTilt aria-hidden="true" />Submit offer for 1 GEN</button>
   </form></details>;
 }
@@ -255,23 +284,57 @@ function RequestForm({ roundId, adapter, busy, runWrite }: Pick<SharedProps, "ad
   const [need, setNeed] = useState("");
   const [requiredIds, setRequiredIds] = useState("");
   const [excludedIds, setExcludedIds] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
   function submit(event: FormEvent) {
     event.preventDefault();
-    void runWrite(() => adapter.submitRequest({ roundId, requestId, label, need, requiredIds, excludedIds }));
+    const checkedId = validateIdentifier(requestId, "Request ID");
+    const checkedLabel = validateText(label, "Request label", 3, 120);
+    const checkedNeed = validateText(need, "Access need", 1, 600);
+    const checkedRequired = validateCapabilityCsv(requiredIds, "Required capability IDs");
+    const checkedExcluded = validateCapabilityCsv(excludedIds, "Excluded capability IDs");
+    const nextErrors = {
+      ...(checkedId.error ? { requestId: checkedId.error } : {}),
+      ...(checkedLabel.error ? { label: checkedLabel.error } : {}),
+      ...(checkedNeed.error ? { need: checkedNeed.error } : {}),
+      ...(checkedRequired.error ? { requiredIds: checkedRequired.error } : {}),
+      ...(checkedExcluded.error ? { excludedIds: checkedExcluded.error } : {}),
+    };
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) return;
+    void runWrite(() => adapter.submitRequest({
+      roundId,
+      requestId: checkedId.value,
+      label: checkedLabel.value,
+      need: checkedNeed.value,
+      requiredIds: checkedRequired.value,
+      excludedIds: checkedExcluded.value,
+    }));
   }
-  return <details className="action-disclosure"><summary>Request access</summary><form className="action-form" onSubmit={submit}>
-    <Field id="request-id" label="Request ID" value={requestId} onChange={setRequestId} required />
-    <Field id="request-label" label="Request label" value={label} onChange={setLabel} required />
-    <Field id="request-need" label="Access need" value={need} onChange={setNeed} multiline required />
-    <Field id="required-capabilities" label="Required capability IDs" value={requiredIds} onChange={setRequiredIds} hint="Example: scheduling,flight-search" />
-    <Field id="excluded-capabilities" label="Excluded capability IDs" value={excludedIds} onChange={setExcludedIds} hint="Optional. Example: ticket-purchase" />
+  return <details className="action-disclosure"><summary>Request access</summary><form className="action-form" onSubmit={submit} noValidate>
+    <Field id="request-id" label="Request ID" value={requestId} onChange={setRequestId} error={errors.requestId} maxLength={80} required />
+    <Field id="request-label" label="Request label" value={label} onChange={setLabel} error={errors.label} maxLength={120} required />
+    <Field id="request-need" label="Access need" value={need} onChange={setNeed} error={errors.need} maxLength={600} multiline required />
+    <Field id="required-capabilities" label="Required capability IDs" value={requiredIds} onChange={setRequiredIds} error={errors.requiredIds} maxLength={600} hint="Example: scheduling,flight-search" />
+    <Field id="excluded-capabilities" label="Excluded capability IDs" value={excludedIds} onChange={setExcludedIds} error={errors.excludedIds} maxLength={600} hint="Optional. Example: ticket-purchase" />
     <button className="button button-primary button-full" disabled={busy} type="submit"><PaperPlaneTilt aria-hidden="true" />Submit request for 1 GEN</button>
   </form></details>;
 }
 
-function Field({ id, label, value, onChange, required = false, multiline = false, hint }: { id: string; label: string; value: string; onChange: (value: string) => void; required?: boolean; multiline?: boolean; hint?: string }) {
-  const descriptionId = hint ? `${id}-hint` : undefined;
-  return <label className="field" htmlFor={id}><span>{label}</span>{multiline ? <textarea id={id} aria-label={label} aria-describedby={descriptionId} value={value} required={required} onChange={(event) => onChange(event.target.value)} /> : <input id={id} aria-label={label} aria-describedby={descriptionId} value={value} required={required} onChange={(event) => onChange(event.target.value)} />}{hint ? <small id={descriptionId}>{hint}</small> : null}</label>;
+function Field({ id, label, value, onChange, required = false, multiline = false, hint, error, maxLength }: { id: string; label: string; value: string; onChange: (value: string) => void; required?: boolean; multiline?: boolean; hint?: string; error?: string; maxLength?: number }) {
+  const hintId = hint ? `${id}-hint` : undefined;
+  const errorId = error ? `${id}-error` : undefined;
+  const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
+  const shared = {
+    id,
+    "aria-label": label,
+    "aria-describedby": describedBy,
+    "aria-invalid": error ? true : undefined,
+    value,
+    required,
+    maxLength,
+    onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(event.target.value),
+  };
+  return <label className="field" htmlFor={id}><span>{label}</span>{multiline ? <textarea {...shared} /> : <input {...shared} />}{hint ? <small id={hintId}>{hint}</small> : null}{error ? <small className="field-error" id={errorId} role="alert">{error}</small> : null}</label>;
 }
 
 function Metric({ label, value }: { label: string; value: string }) {

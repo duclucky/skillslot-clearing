@@ -75,6 +75,7 @@ export interface TransactionProgress {
 }
 
 export interface ContractAdapter {
+  subscribeTransactions(listener: (progress: TransactionProgress) => void): () => void;
   loadWorkspace(): Promise<WorkspaceSnapshot>;
   connectWallet(): Promise<string>;
   openRound(input: OpenRoundInput): Promise<TransactionReceipt>;
