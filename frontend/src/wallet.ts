@@ -1,4 +1,5 @@
 export const STUDIONET_CHAIN_ID = "0xf22f" as const;
+const STUDIONET_WALLET_GAS_PRICE = "0x3b9aca00";
 
 const STUDIONET_CONFIGURATION = {
   chainId: STUDIONET_CHAIN_ID,
@@ -16,6 +17,30 @@ const storageKeys = {
 export interface WalletProvider {
   request(args: { method: string; params?: unknown[] }): Promise<unknown>;
   providers?: WalletProvider[];
+}
+
+function isZeroFee(value: unknown) {
+  if (value === undefined || value === null) return true;
+  if (typeof value === "bigint" || typeof value === "number") return value === 0;
+  return typeof value === "string" && (/^0x0*$/i.test(value) || /^0+$/.test(value));
+}
+
+export function withStudionetFeeCompatibility(provider: WalletProvider): WalletProvider {
+  return {
+    request: async (args) => {
+      if (args.method !== "eth_sendTransaction" || !Array.isArray(args.params)) {
+        return provider.request(args);
+      }
+      const [transaction, ...rest] = args.params;
+      if (!transaction || typeof transaction !== "object") return provider.request(args);
+      const gasPrice = (transaction as { gasPrice?: unknown }).gasPrice;
+      if (!isZeroFee(gasPrice)) return provider.request(args);
+      return provider.request({
+        ...args,
+        params: [{ ...transaction, gasPrice: STUDIONET_WALLET_GAS_PRICE }, ...rest],
+      });
+    },
+  };
 }
 
 export interface WalletOption {

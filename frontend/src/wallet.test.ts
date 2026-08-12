@@ -6,6 +6,7 @@ import {
   discoverWallets,
   restoreStudionetWallet,
   STUDIONET_CHAIN_ID,
+  withStudionetFeeCompatibility,
   type WalletProvider,
 } from "./wallet";
 
@@ -84,5 +85,43 @@ describe("browser wallet integration", () => {
       "wallet_addEthereumChain",
       "wallet_switchEthereumChain",
     ]);
+  });
+
+  it.each([undefined, "0x0", "0x00"])(
+    "adds a one-gwei compatibility price when a Studionet wallet receives gasPrice %s",
+    async (gasPrice) => {
+      const request = vi.fn(async () => "0xhash");
+      const compatible = withStudionetFeeCompatibility({ request });
+      const transaction = {
+        from: "0x0000000000000000000000000000000000000001",
+        to: "0x0000000000000000000000000000000000000002",
+        gas: "0x30d40",
+        nonce: "0x182",
+        ...(gasPrice === undefined ? {} : { gasPrice }),
+      };
+
+      await compatible.request({ method: "eth_sendTransaction", params: [transaction] });
+
+      expect(request).toHaveBeenCalledWith({
+        method: "eth_sendTransaction",
+        params: [{ ...transaction, gasPrice: "0x3b9aca00" }],
+      });
+      expect(transaction.gasPrice).toBe(gasPrice);
+    },
+  );
+
+  it("preserves positive fees and forwards non-send methods unchanged", async () => {
+    const request = vi.fn(async () => "ok");
+    const compatible = withStudionetFeeCompatibility({ request });
+    const transaction = { gasPrice: "0x2", gas: "0x30d40" };
+
+    await compatible.request({ method: "eth_sendTransaction", params: [transaction] });
+    await compatible.request({ method: "eth_accounts" });
+
+    expect(request).toHaveBeenNthCalledWith(1, {
+      method: "eth_sendTransaction",
+      params: [transaction],
+    });
+    expect(request).toHaveBeenNthCalledWith(2, { method: "eth_accounts" });
   });
 });

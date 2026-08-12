@@ -16,6 +16,7 @@ import {
   connectStudionetWallet,
   getActiveWalletSession,
   restoreStudionetWallet,
+  withStudionetFeeCompatibility,
   type WalletSession,
 } from "./wallet";
 import {
@@ -383,7 +384,7 @@ export function createConfiguredAdapter(
           ? (createClient({
               chain: studionet,
               account: session.account,
-              provider: session.provider,
+              provider: withStudionetFeeCompatibility(session.provider),
             }) as unknown as GenLayerClientLike)
           : null,
         account: session?.account ?? null,

@@ -15,6 +15,7 @@ The eight covered actions are `open_round`, `submit_offer`, `submit_request`, `l
 ## Constraints
 
 - The browser wallet remains the only signer. The app never signs, auto-approves, or repeatedly opens wallet confirmation prompts.
+- Studionet is gasless and its RPC can return a zero or missing legacy `gasPrice`; immediately before `eth_sendTransaction`, the wallet-provider boundary replaces only that zero/missing value with a `1 gwei` compatibility price so wallets can calculate, validate, and present the transaction. Positive fees and every other transaction field pass through unchanged.
 - A write is never submitted twice merely because the frontend lost connectivity.
 - Canonical contract views remain the source of truth. Cached UI state may remain visible during an outage but cannot be presented as newly confirmed state.
 - The frontend must continue to expose submitted, accepted, finalized, failed, and recovery states honestly.
@@ -125,6 +126,7 @@ Manual `Retry transaction` is removed. Manual `Retry state read` may remain only
 - Post-finality navigation occurs only after canonical reload succeeds.
 - Existing forms retain values after wallet cancellation or uncertain submission.
 - Value-bearing inputs remain unchanged: offer and request each send exactly 1 GEN; every other existing action preserves its current value.
+- The Studionet compatibility price is part of the real transaction request, not a simulated fee. At the current 500,000-gas compatibility estimate the wallet-visible maximum is `0.0005 GEN`; Studio remains gasless and reports an effective gas price of zero.
 - No local-storage value is treated as canonical contract state.
 
 ## Testing strategy
@@ -136,6 +138,11 @@ Manual `Retry transaction` is removed. Manual `Retry state read` may remain only
 - Explicit denial messages without a usable code map to `wallet_cancelled`.
 - Network, timeout, 429, and 5xx messages map to transient categories.
 - Contract reverts remain deterministic failures.
+
+### Wallet fee compatibility
+
+- Missing, `0x0`, and zero-padded hexadecimal `gasPrice` values become `0x3b9aca00` (`1 gwei`) only for `eth_sendTransaction`.
+- Positive `gasPrice` values, non-send provider calls, and the caller-owned transaction object remain unchanged.
 
 ### Adapter tests
 
