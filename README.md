@@ -14,9 +14,9 @@ The product reserves access. It does **not** certify agent performance, task com
 - Contract: one `SkillSlotClearing` Intelligent Contract with 8 writes and 8 views
 - Network: Studionet (`61999`)
 - Deployment: `0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86`
-- Automated checks: 83 tests currently pass locally (8 static, 39 direct, 5 receipt parser, 7 deployment tooling, 24 frontend)
-- Current Windows CI: [`check` run 31584299820](https://github.com/duclucky/skillslot-clearing/actions/runs/31584299820) passed
-- Network lifecycle: `FINALIZED_LIFECYCLE`; one semantic match, consumed grant, 2 GEN received and 2 GEN withdrawn, zero remaining liabilities
+- Automated checks: 124 currently pass locally (8 static, 39 direct, 5 receipt parser, 7 deployment tooling, 65 frontend)
+- Current Windows CI: [`check` run 31603299326](https://github.com/duclucky/skillslot-clearing/actions/runs/31603299326) passed
+- Network lifecycle: script-signed and production browser-wallet evidence together show semantic matches, consumed grants, 5 GEN received and 5 GEN withdrawn, zero remaining liabilities
 - Balance proof: a separate 1 GEN deposit/cancel/withdraw flow returned the actor balance from `2010.6399969999999882 GEN` to `2011.6399969999999882 GEN`
 
 ## Deployed contract
@@ -24,6 +24,7 @@ The product reserves access. It does **not** certify agent performance, task com
 - Address: [`0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86`](https://explorer-studio.genlayer.com/address/0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86)
 - Deployment transaction: [`0x4696f8c362979c1733a84fbdf0659b6b149406cd00fd2338478b5f314d81e851`](https://explorer-studio.genlayer.com/transactions/0x4696f8c362979c1733a84fbdf0659b6b149406cd00fd2338478b5f314d81e851)
 - Sanitized lifecycle evidence: [`docs/evidence/studionet/deployment.json`](docs/evidence/studionet/deployment.json)
+- Production browser-wallet evidence: [`docs/evidence/studionet/browser-lifecycle.json`](docs/evidence/studionet/browser-lifecycle.json)
 
 ## Live app
 
@@ -92,7 +93,7 @@ The demo uses exactly 1 GEN for each value-bearing position and stops at `RETRYA
 
 ## Honest limitations
 
-- The finalized lifecycle was executed with script-signed authorized wallets; production browser-wallet write evidence remains pending and is not substituted by the script.
+- The full lifecycle is proven by script-signed authorized wallets; production OKX Wallet evidence separately covers finalized grant consumption and credit withdrawal, not all eight writes.
 - Studionet is a hosted development network, not production mainnet.
 - External agent routers have not adopted the reusable interface yet.
 - Compatibility is bounded to the round's submitted statements and stable fact IDs; the contract does not verify later service performance.

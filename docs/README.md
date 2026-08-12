@@ -424,21 +424,21 @@ authenticity gate.
 | unavailable judgment cannot penalize | `CLEARING -> RETRYABLE` | `get_round`, `get_accounting` | `test_semantic_clearing.py::test_unverifiable_attempt_preserves_funds_and_can_retry_successfully` | `PENDING_REAL_EVIDENCE`; local adversarial proof only, not needed for the successful lifecycle claim |
 | unmatched fees and all bonds are recoverable | clear/cancel credit moves | `get_credit`, `get_accounting` | `test_accounting.py`, `test_recovery_and_grants.py` | Separate 1 GEN balance proof finalized `CANCELLED`, credited, withdrawn, and returned the actor balance exactly |
 | route permission is one-time | `consume_grant` | `get_match`, `can_route` | `test_recovery_and_grants.py::test_matched_requester_consumes_active_grant_once` | Finalized consume transaction; canonical grant is `CONSUMED` |
-| withdrawals preserve exact accounting | `withdraw_credit` | `get_credit`, `get_accounting` | `test_recovery_and_grants.py::test_withdrawal_debits_before_external_send_and_preserves_invariant` | Aggregate canonical accounting is 3 GEN received/withdrawn, zero locked/credited, invariant true |
+| withdrawals preserve exact accounting | `withdraw_credit` | `get_credit`, `get_accounting` | `test_recovery_and_grants.py::test_withdrawal_debits_before_external_send_and_preserves_invariant` | Aggregate canonical accounting is 5 GEN received/withdrawn, zero locked/credited, invariant true |
 
 ## Browser lifecycle coverage matrix
 
 | Claimed browser action | Adapter wrapper | UI control/state | Frontend test | Finality and reload | Live evidence |
 | --- | --- | --- | --- | --- | --- |
-| connect/switch Studionet wallet | `connectWallet` | top-bar wallet control | `wallet.test.ts` | account/network read after permission | `PENDING_REAL_EVIDENCE` |
+| connect/switch Studionet wallet | `connectWallet` | top-bar wallet control | `wallet.test.ts` | account/network read after permission | Production OKX Wallet connected as `0xC495...8272` on Studionet before browser writes |
 | open round | `openRound` | permanent Create round destination | `app.test.tsx` | finalized then `loadWorkspace` | Production control/build verified; browser-wallet write pending |
 | submit bonded offer | `submitOffer` | provider form in `OPEN` | `contractAdapter.test.ts` and `app.test.tsx` | 1 GEN write, finalized, offer/accounting reload | Production control/build verified; browser-wallet write pending |
 | submit paid request | `submitRequest` | requester form in `OPEN` | `contractAdapter.test.ts` and `app.test.tsx` | 1 GEN write, finalized, request/accounting reload | Production control/build verified; browser-wallet write pending |
 | lock round | `lockRound` | creator action when both sides exist | `app.test.tsx` | finalized round reload | Production control/build verified; browser-wallet write pending |
 | clear or retry | `clearRound` | creator action in `LOCKED`/`RETRYABLE` | `contractAdapter.test.ts` and `app.test.tsx` | submitted/accepted/finalized or retryable, then full reload | Production control/build verified; browser-wallet write pending |
 | safe cancel | `cancelRound` | separated creator recovery action in `OPEN` | `contractAdapter.test.ts` and `app.test.tsx` | finalized round/credit/accounting reload | Production control/build verified; browser-wallet write pending |
-| consume route grant | `consumeGrant` | matched requester action | `contractAdapter.test.ts` and `app.test.tsx` | finalized match/route reload | Production control/build verified; browser-wallet write pending |
-| withdraw canonical credit | `withdrawCredit` | credit action for positive balance | `contractAdapter.test.ts` and `app.test.tsx` | finalized receipt plus credit/accounting reload | Production control/build verified; browser-wallet write pending |
+| consume route grant | `consumeGrant` | matched requester action | `contractAdapter.test.ts` and `app.test.tsx` | finalized match/route reload | Production OKX Wallet transaction `0x00b61d...22ace` finalized; canonical grant reloaded as `CONSUMED` |
+| withdraw canonical credit | `withdrawCredit` | credit action for positive balance | `contractAdapter.test.ts` and `app.test.tsx` | finalized receipt plus credit/accounting reload | Production OKX Wallet transaction `0x44f212...0de0b` finalized; canonical credit reloaded as `0 GEN` |
 
 ## Deployment and evidence plan
 
@@ -513,8 +513,8 @@ absence of fixture-as-live behavior.
   balance evidence; the real `genlayer-js` frontend adapter; the three-destination
   self-service marketplace; public GitHub and Windows CI; Vercel production; and
   desktop/mobile browser inspection.
-- Pending: production browser-wallet write evidence, Portal submission, and
-  external adoption.
+- Pending: Portal submission, browser-wallet evidence for the other six writes,
+  and external adoption.
 
 ## Kill criteria
 

@@ -1,0 +1,45 @@
+{
+  "network": "studionet",
+  "chainId": 61999,
+  "capturedAt": "2026-08-12T13:46:30Z",
+  "evidenceType": "production-browser-wallet",
+  "frontend": {
+    "url": "https://skillslot-clearing.vercel.app",
+    "deploymentId": "dpl_EsXM4jAyRQfw9XxLBFws1UPvLQ9E",
+    "sourceCommit": "9b649b420ade5eb8ffea8029340c0a755c9fdb95"
+  },
+  "wallet": {
+    "provider": "OKX Wallet",
+    "address": "0xC495ef51618D03267A1f227aFe5b27B38c748272"
+  },
+  "contractAddress": "0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86",
+  "roundId": "qa-browser-20260812-01",
+  "transactions": {
+    "consumeGrant": {
+      "transactionHash": "0x00b61dcbc6035d63a7610d0bee418095a72c29047c21c2e3ec4d3a86e1d22ace",
+      "status": "FINALIZED",
+      "nonce": 385,
+      "submittedAt": "2026-08-12T13:17:57.595649Z"
+    },
+    "withdrawCredit": {
+      "transactionHash": "0x44f21203db08e1648aa43a84b57036d30bb39d9fd403f592f0b6cb1b28c0de0b",
+      "status": "FINALIZED",
+      "nonce": 387,
+      "submittedAt": "2026-08-12T13:45:54.978822Z"
+    }
+  },
+  "finalCanonicalState": {
+    "roundPhase": "CLEARED",
+    "grantId": "qa-browser-20260812-01:request-browser-qa",
+    "grantStatus": "CONSUMED",
+    "walletCreditWei": "0",
+    "accounting": {
+      "invariant_holds": true,
+      "total_credited_wei": "0",
+      "total_locked_wei": "0",
+      "total_received_wei": "5000000000000000000",
+      "total_withdrawn_wei": "5000000000000000000"
+    }
+  },
+  "scope": "This evidence covers production-browser consume_grant and withdraw_credit actions. The earlier script-signed lifecycle remains separate evidence for the other write methods."
+}
