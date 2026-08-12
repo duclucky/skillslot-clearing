@@ -8,7 +8,7 @@ import {
   ShieldWarning,
   UsersThree,
 } from "@phosphor-icons/react";
-import { type ChangeEvent, type FormEvent, useMemo, useState } from "react";
+import { type ChangeEvent, type FormEvent, useState } from "react";
 
 import type { ContractAdapter, RoundView, WorkspaceSnapshot } from "./domain";
 import { validateCapabilityCsv, validateIdentifier, validateText } from "./formValidation";

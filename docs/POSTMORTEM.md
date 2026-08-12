@@ -2,7 +2,7 @@
 
 ## Outcome
 
-The project passed all 14 ideation gates, shipped one `SkillSlotClearing` contract, and completed a consequential two-wallet Studionet lifecycle. Validators cleared a bounded semantic pair graph; deterministic code created one match; the requester consumed the grant; and all 2 GEN of semantic-lifecycle liability were withdrawn. A separate recovery flow proved a 1 GEN deposit, safe cancellation, credit, withdrawal, and exact EOA balance restoration. The public React app reads the deployed contract, the Windows CI run passed, and Vercel production passed desktop/mobile browser QA.
+The project passed all 14 ideation gates, shipped one `SkillSlotClearing` contract, and completed a consequential two-wallet Studionet lifecycle. Validators cleared a bounded semantic pair graph; deterministic code created one match; the requester consumed the grant; and all 2 GEN of semantic-lifecycle liability were withdrawn. A separate recovery flow proved a 1 GEN deposit, safe cancellation, credit, withdrawal, and exact EOA balance restoration. The public React marketplace reconstructs all deployed rounds, exposes every role-legal write, aggregates wallet activity, and passed desktop/mobile browser QA on Vercel production.
 
 ## What held up
 
@@ -15,7 +15,7 @@ The project passed all 14 ideation gates, shipped one `SkillSlotClearing` contra
 
 Studionet enforced a 30-request-per-minute quota during receipt polling. The first offer transaction finalized even though the local process exited on rate limiting. Canonical reads recovered it without replay. Tooling now honors the nested RPC `retry_after_seconds`, polls more slowly, and keeps exact transaction evidence through recovery.
 
-The balance-proof round was created after the semantic round, so a naive “last round ID” UI briefly surfaced the cancelled diagnostic round. The frontend now selects the newest non-cancelled round and falls back to the newest round only when all are cancelled. The lesson is general: diagnostic/evidence rounds are valid canonical entities, but product selectors must not confuse append order with user relevance.
+The balance-proof round was created after the semantic round, so a naive “last round ID” UI briefly surfaced the cancelled diagnostic round. The frontend now prefers the newest open round, then a round in decision, then useful cleared history before a cancelled diagnostic round. The lesson is general: diagnostic/evidence rounds are valid canonical entities, but product selectors must not confuse append order with user relevance.
 
 ## Validated versus pending
 

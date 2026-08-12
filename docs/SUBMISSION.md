@@ -10,7 +10,7 @@ SkillSlot Clearing — Validator-Cleared Agent Access
 
 ## Notes / description
 
-SkillSlot Clearing is a wallet-enabled GenLayer dApp for capacity-constrained agent access. Providers bond 1 GEN around a natural-language service promise; requesters escrow a 1 GEN booking fee with exact needs, required capability IDs, and exclusions. Validators inspect the complete bounded set of canonical, wallet-authenticated statements and independently decide every compatibility edge. Semantic equivalence compares the normalized pair graph and matched, missing, and prohibited IDs while ignoring prose wording. Deterministic code then applies unit capacity and insertion order, creates one-time route grants, credits matched fees, and refunds unused positions. The reusable 8-write/8-view interface serves A2A routers, MCP marketplaces, and DAO schedulers. One contract, 75 tests, Windows CI, a finalized 3 GEN accounting/balance proof, and a production Vercel app are verified. Browser-wallet writes and external adoption remain pending.
+SkillSlot Clearing is a wallet-enabled GenLayer dApp for capacity-constrained agent access. Providers bond 1 GEN around a natural-language service promise; requesters escrow a 1 GEN booking fee with exact needs, required capability IDs, and exclusions. Validators inspect the complete bounded set of canonical, wallet-authenticated statements and independently decide every compatibility edge. Semantic equivalence compares the normalized pair graph and matched, missing, and prohibited IDs while ignoring prose wording. Deterministic code then applies unit capacity and insertion order, creates one-time route grants, credits matched fees, and refunds unused positions. The reusable 8-write/8-view interface serves A2A routers, MCP marketplaces, and DAO schedulers. One contract, 83 tests, Windows CI, a finalized 3 GEN accounting/balance proof, and a production Vercel app are verified. Browser-wallet writes and external adoption remain pending.
 
 Character count: 948
 
@@ -26,7 +26,7 @@ Character count: 948
 ## Verified facts
 
 - Contracts: 1 (`SkillSlotClearing`), with 8 public writes and 8 public views
-- Tests: 75 passing; 8 static, 39 direct, 5 receipt parser, 7 deployment tooling, 16 frontend
+- Tests: 83 passing; 8 static, 39 direct, 5 receipt parser, 7 deployment tooling, 24 frontend
 - Network: GenLayer Studionet, chain ID 61999
 - Deployment: `0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86`, finalized with successful execution
 - Lifecycle: one offer and one opposing request produced a validator-cleared match; the requester consumed the one-time grant; 2 GEN were received and withdrawn with zero locked/credited liability

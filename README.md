@@ -14,7 +14,7 @@ The product reserves access. It does **not** certify agent performance, task com
 - Contract: one `SkillSlotClearing` Intelligent Contract with 8 writes and 8 views
 - Network: Studionet (`61999`)
 - Deployment: `0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86`
-- Automated checks: 75 tests currently pass locally (8 static, 39 direct, 5 receipt parser, 7 deployment tooling, 16 frontend)
+- Automated checks: 83 tests currently pass locally (8 static, 39 direct, 5 receipt parser, 7 deployment tooling, 24 frontend)
 - Current Windows CI: [`check` run 31568488263](https://github.com/duclucky/skillslot-clearing/actions/runs/31568488263) passed
 - Network lifecycle: `FINALIZED_LIFECYCLE`; one semantic match, consumed grant, 2 GEN received and 2 GEN withdrawn, zero remaining liabilities
 - Balance proof: a separate 1 GEN deposit/cancel/withdraw flow returned the actor balance from `2010.6399969999999882 GEN` to `2011.6399969999999882 GEN`
@@ -50,7 +50,7 @@ Browser wallet (EIP-6963 / EIP-1193)
   <- canonical round, position, grant, credit, and invariant views
 ```
 
-The frontend discovers injected wallets, restores authorization with `eth_accounts` without forcing a permission prompt, switches/adds Studionet on an explicit connect action, tracks submitted/accepted/finalized/failed states, and reloads canonical contract state only after finalization. Local storage remembers only harmless wallet selection metadata.
+The frontend reconstructs every canonical round, provides permanent Rounds, Create round, and My activity destinations, and exposes all eight legal writes only to the relevant wallet and lifecycle state. It discovers injected wallets, restores authorization with `eth_accounts` without forcing a permission prompt, switches/adds Studionet on an explicit connect action, tracks wallet/submitted/accepted/finalized/failed states, preserves form data for transaction retry, and reloads canonical contract state only after finalization. Local storage remembers only harmless wallet selection metadata.
 
 ## Run locally
 

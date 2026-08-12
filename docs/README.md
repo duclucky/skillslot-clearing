@@ -99,15 +99,16 @@ creator-only before clearing and credits each recorded deposit exactly once.
 
 ## Information architecture
 
-The app is a focused two-view workspace, not a contract explorer.
+The app is a focused three-destination marketplace, not a contract explorer.
 
-| Screen/view | User purpose | Primary action | Required states | Mobile behavior |
+| Destination | User purpose | Primary action | Required states | Mobile behavior |
 | --- | --- | --- | --- | --- |
-| Clearing floor | Understand the active round and place the one position relevant to the connected role | Submit offer/request, or lock/clear when creator | no wallet, loading, open empty/active, submitted, locked, clearing, retryable, cleared, failed | Single-column flow; sticky primary action; order summary collapses below form |
-| My access & credits | See canonical matches, consume a grant, and withdraw available GEN | Use access or withdraw credit | no positions, matched active, consumed, unmatched refunded, credit ready, finalizing, failed | Compact cards; actions remain full-width and state-gated |
+| Rounds | Browse every canonical round by lifecycle and inspect one selected market | Join as provider/requester, or operate a creator-owned round | no wallet, loading, open, locked, clearing, retryable, cleared, cancelled, failed | Browser and detail stack into one column; lifecycle controls stay full-width |
+| Create round | Start a self-service market from any connected Studionet wallet | Open a bounded round | no wallet, ready, validation error, wallet confirmation, finality, failed/retry | Editorial brief stacks above a compact creation form |
+| My activity | Aggregate wallet offers, requests, grants, and credits across all rounds | Consume a grant or withdraw credit | disconnected, empty, active/consumed/unmatched positions, credit ready, failed/retry | Compact cards and full-width actions |
 
-Round creation is a contextual creator panel reached from the empty/no-active
-round state, not a permanent admin dashboard.
+Round creation is permanently available and is a first-class product job, while
+creator-only lifecycle controls remain contextual to the selected round.
 
 ## Visibility matrix
 
@@ -430,7 +431,7 @@ authenticity gate.
 | Claimed browser action | Adapter wrapper | UI control/state | Frontend test | Finality and reload | Live evidence |
 | --- | --- | --- | --- | --- | --- |
 | connect/switch Studionet wallet | `connectWallet` | top-bar wallet control | `wallet.test.ts` | account/network read after permission | `PENDING_REAL_EVIDENCE` |
-| open round | `openRound` | contextual empty-state creator form | `app.test.tsx` | finalized then `loadWorkspace` | Production control/build verified; browser-wallet write pending |
+| open round | `openRound` | permanent Create round destination | `app.test.tsx` | finalized then `loadWorkspace` | Production control/build verified; browser-wallet write pending |
 | submit bonded offer | `submitOffer` | provider form in `OPEN` | `contractAdapter.test.ts` and `app.test.tsx` | 1 GEN write, finalized, offer/accounting reload | Production control/build verified; browser-wallet write pending |
 | submit paid request | `submitRequest` | requester form in `OPEN` | `contractAdapter.test.ts` and `app.test.tsx` | 1 GEN write, finalized, request/accounting reload | Production control/build verified; browser-wallet write pending |
 | lock round | `lockRound` | creator action when both sides exist | `app.test.tsx` | finalized round reload | Production control/build verified; browser-wallet write pending |
@@ -479,24 +480,23 @@ recorded source of truth is `design-system/skillslot-clearing/MASTER.md`: warm
 cream surfaces, ink foreground, one accessible green signal, Newsreader/Public
 Sans/IBM Plex Mono, flat borders, Phosphor icons, and no decorative motion.
 
-After Phase 3A the design tokens, typography, navigation, component shape,
-spacing rhythm, and two-view arrangement are locked. Later work may only add or
+The design tokens, typography, navigation, component shape, spacing rhythm, and
+three-destination marketplace arrangement are locked. Later work may only add or
 correct the smallest state, control, disclosure, responsive, or accessibility
 detail needed by the finalized contract interface.
 
 ## Design architecture, error handling, and test boundary
 
-The frontend will use four independent units: a typed contract adapter; injected
+The frontend uses four independent units: a typed contract adapter; injected
 wallet/network discovery; a transaction lifecycle state machine; and presentational
-views that consume canonical domain models. The adapter can start with an honest
-unconfigured implementation and later be replaced by `genlayer-js` without
-restyling the UI.
+views that consume canonical domain models. The live adapter uses `genlayer-js`;
+an honest unconfigured implementation remains available when no public contract
+address is supplied.
 
-Frontend tests must cover status translation, role/state action visibility,
+Frontend tests cover status translation, role/state action visibility,
 wallet discovery and chain switching, submitted-to-finalized handling, failure
 and retry, canonical reload after finality, one-time grant visibility, and the
-absence of fixture-as-live behavior. Contract and deployment test matrices will
-be finalized in Phase 4 before source code.
+absence of fixture-as-live behavior.
 
 ## Three concrete downstream consumers
 
@@ -507,16 +507,14 @@ be finalized in Phase 4 before source code.
 
 ## Honest evidence status
 
-- Completed: registry collision analysis, official-source landscape, pinned A2A
-  source fetch, semantic separability probe, product/UX brief, offline design
-  engine and anti-default override, typed frontend boundary, 7-test baseline,
-  production frontend build, desktop/mobile visual inspection, this locked
-  contract specification, the one-contract 8-write/8-view schema, direct/static
-  suites, safe receipt parser, resumable Studionet command surface, and local
-  accounting/recovery/validator replay coverage.
-- Pending: bounded Studionet smoke/lifecycle, real frontend adapter and wallet
-  lifecycle, browser-wallet evidence, public GitHub, CI, Vercel, Portal
-  submission, and external adoption.
+- Completed: all 14 idea gates; the one-contract 8-write/8-view schema; direct,
+  static, deployment, and frontend suites; safe receipt parsing; resumable
+  Studionet deployment; finalized semantic, grant, accounting, recovery, and
+  balance evidence; the real `genlayer-js` frontend adapter; the three-destination
+  self-service marketplace; public GitHub and Windows CI; Vercel production; and
+  desktop/mobile browser inspection.
+- Pending: production browser-wallet write evidence, Portal submission, and
+  external adoption.
 
 ## Kill criteria
 
