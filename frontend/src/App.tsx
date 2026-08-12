@@ -32,7 +32,7 @@ const initialSnapshot: WorkspaceSnapshot = {
   account: null,
   networkName: null,
   contractAddress: null,
-  round: null,
+  rounds: [],
   positions: [],
   creditGen: "0",
   accountingInvariant: null,
@@ -172,6 +172,7 @@ type ActionProps = {
 
 function ClearingFloor(props: ActionProps) {
   const { snapshot, loading } = props;
+  const round = snapshot.rounds[0] ?? null;
   const unavailable = snapshot.availability !== "ready";
   return (
     <div className="workspace-grid">
@@ -179,17 +180,17 @@ function ClearingFloor(props: ActionProps) {
         <p className="eyebrow">Canonical round state</p>
         <div className="title-row">
           <div>
-            <h1 id="round-title">{snapshot.round?.title ?? "No clearing round loaded"}</h1>
+            <h1 id="round-title">{round?.title ?? "No clearing round loaded"}</h1>
             <p className="lede">Bounded offers and needs are judged by meaning. Matching, access rights, and GEN accounting stay deterministic onchain.</p>
           </div>
-          <span className="phase-badge"><span className="status-dot" aria-hidden="true" />{loading ? "Loading" : snapshot.round?.phase ?? "Unavailable"}</span>
+          <span className="phase-badge"><span className="status-dot" aria-hidden="true" />{loading ? "Loading" : round?.phase ?? "Unavailable"}</span>
         </div>
         {unavailable && !loading ? <ConfigurationNotice availability={snapshot.availability} /> : null}
         <div className="metric-strip" aria-label="Round limits and economics">
-          <Metric label="Offer slots" value={snapshot.round ? `${snapshot.round.offerCount}/4` : "—/4"} />
-          <Metric label="Request slots" value={snapshot.round ? `${snapshot.round.requestCount}/4` : "—/4"} />
-          <Metric label="Provider bond" value={snapshot.round ? `${snapshot.round.providerBondGen} GEN` : "1 GEN"} />
-          <Metric label="Booking fee" value={snapshot.round ? `${snapshot.round.feeGen} GEN` : "1 GEN"} />
+          <Metric label="Offer slots" value={round ? `${round.offerCount}/4` : "-/4"} />
+          <Metric label="Request slots" value={round ? `${round.requestCount}/4` : "-/4"} />
+          <Metric label="Provider bond" value={round ? `${round.providerBondGen} GEN` : "1 GEN"} />
+          <Metric label="Booking fee" value={round ? `${round.feeGen} GEN` : "1 GEN"} />
         </div>
         <section className="process-panel" aria-labelledby="process-title">
           <p className="eyebrow">What the contract owns</p><h2 id="process-title">One bounded clearing lifecycle</h2>
@@ -206,7 +207,7 @@ function ClearingFloor(props: ActionProps) {
 }
 
 function ActionRail({ snapshot, adapter, busy, runWrite }: ActionProps) {
-  const round = snapshot.round;
+  const round = snapshot.rounds[0] ?? null;
   const account = snapshot.account;
   const creator = Boolean(account && round && account.toLowerCase() === round.creator.toLowerCase());
   if (snapshot.availability !== "ready" || !account) {

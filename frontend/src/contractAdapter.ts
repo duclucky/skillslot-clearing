@@ -7,6 +7,7 @@ import type {
   OpenRoundInput,
   PositionView,
   RequestInput,
+  RoundPhase,
   TransactionProgress,
   TransactionReceipt,
   WorkspaceSnapshot,
@@ -40,7 +41,7 @@ interface RoundRecord {
   round_id: string;
   creator: string;
   title: string;
-  phase: WorkspaceSnapshot["round"] extends infer _ ? string : never;
+  phase: string;
   booking_fee_wei: string;
   provider_bond_wei: string;
   offer_ids_csv: string;
@@ -140,25 +141,25 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
     const rounds = await Promise.all(
       roundIds.map((roundId) => read<RoundRecord>(readClient, contractAddress, "get_round", [roundId])),
     );
-    const round = [...rounds].reverse().find((item) => item.phase !== "CANCELLED") ?? rounds[rounds.length - 1] ?? null;
     const [creditWei, accounting] = await Promise.all([
       account ? read<string>(readClient, contractAddress, "get_credit", [account]) : Promise.resolve("0"),
       read<{ invariant_holds?: boolean }>(readClient, contractAddress, "get_accounting"),
     ]);
     const positions: PositionView[] = [];
 
-    if (round) {
-      const offers = await Promise.all(
-        splitCsv(round.offer_ids_csv).map((id) => read<OfferRecord>(readClient, contractAddress, "get_offer", [round.round_id, id])),
-      );
-      const requests = await Promise.all(
-        splitCsv(round.request_ids_csv).map((id) => read<RequestRecord>(readClient, contractAddress, "get_request", [round.round_id, id])),
-      );
-      const matches = await Promise.all(
-        requests.map((request) => read<MatchRecord>(readClient, contractAddress, "get_match", [round.round_id, request.request_id])),
-      );
+    if (account) {
+      for (const round of rounds) {
+        const offers = await Promise.all(
+          splitCsv(round.offer_ids_csv).map((id) => read<OfferRecord>(readClient, contractAddress, "get_offer", [round.round_id, id])),
+        );
+        const requests = await Promise.all(
+          splitCsv(round.request_ids_csv).map((id) => read<RequestRecord>(readClient, contractAddress, "get_request", [round.round_id, id])),
+        );
+        const matches = await Promise.all(
+          requests.map((request) => read<MatchRecord>(readClient, contractAddress, "get_match", [round.round_id, request.request_id])),
+        );
 
-      offers.filter((offer) => sameAddress(offer.provider, account)).forEach((offer) => {
+        offers.filter((offer) => sameAddress(offer.provider, account)).forEach((offer) => {
         positions.push({
           id: offer.offer_id,
           roundId: round.round_id,
@@ -166,8 +167,8 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
           status: offer.active ? "ACTIVE" : offer.matched_request_id ? "MATCHED" : "CLOSED",
           summary: offer.label,
         });
-      });
-      requests.filter((request) => sameAddress(request.requester, account)).forEach((request) => {
+        });
+        requests.filter((request) => sameAddress(request.requester, account)).forEach((request) => {
         positions.push({
           id: request.request_id,
           requestId: request.request_id,
@@ -176,18 +177,19 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
           status: request.outcome,
           summary: request.label,
         });
-      });
-      for (const match of matches) {
-        if (!match.request_id || !sameAddress(match.requester, account)) continue;
-        const canRoute = await read<boolean>(readClient, contractAddress, "can_route", [round.round_id, match.request_id, account]);
-        positions.push({
-          id: `${round.round_id}:${match.request_id}`,
-          requestId: match.request_id,
-          roundId: round.round_id,
-          kind: "grant",
-          status: canRoute ? "ACTIVE" : match.grant_status || "INACTIVE",
-          summary: `Route to ${match.offer_id || "matched provider"}`,
         });
+        for (const match of matches) {
+          if (!match.request_id || !sameAddress(match.requester, account)) continue;
+          const canRoute = await read<boolean>(readClient, contractAddress, "can_route", [round.round_id, match.request_id, account]);
+          positions.push({
+            id: `${round.round_id}:${match.request_id}`,
+            requestId: match.request_id,
+            roundId: round.round_id,
+            kind: "grant",
+            status: canRoute ? "ACTIVE" : match.grant_status || "INACTIVE",
+            summary: `Route to ${match.offer_id || "matched provider"}`,
+          });
+        }
       }
     }
 
@@ -196,18 +198,16 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
       account,
       networkName: "GenLayer Studionet",
       contractAddress,
-      round: round
-        ? {
+      rounds: rounds.map((round) => ({
             id: round.round_id,
             creator: round.creator,
             title: round.title,
-            phase: round.phase as NonNullable<WorkspaceSnapshot["round"]>["phase"],
+            phase: round.phase as RoundPhase,
             offerCount: Number(round.offer_count),
             requestCount: Number(round.request_count),
             feeGen: formatGen(round.booking_fee_wei),
             providerBondGen: formatGen(round.provider_bond_wei),
-          }
-        : null,
+          })),
       positions,
       creditGen: formatGen(creditWei),
       accountingInvariant: Boolean(accounting.invariant_holds),
@@ -219,6 +219,7 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
     if (!writeClient) throw new Error("Connect a Studionet wallet before sending a transaction");
     let hash = "";
     try {
+      onTransaction({ stage: "wallet", hash, functionName });
       hash = String(await writeClient.writeContract({ address: contractAddress, functionName, args, value }));
       onTransaction({ stage: "submitted", hash, functionName });
       let accepted = false;
@@ -284,7 +285,7 @@ const unconfiguredWorkspace: WorkspaceSnapshot = {
   account: null,
   networkName: null,
   contractAddress: null,
-  round: null,
+  rounds: [],
   positions: [],
   creditGen: "0",
   accountingInvariant: null,

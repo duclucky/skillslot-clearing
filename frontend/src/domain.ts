@@ -33,7 +33,7 @@ export interface WorkspaceSnapshot {
   account: string | null;
   networkName: string | null;
   contractAddress: string | null;
-  round: RoundView | null;
+  rounds: RoundView[];
   positions: PositionView[];
   creditGen: string;
   accountingInvariant: boolean | null;
@@ -65,7 +65,7 @@ export interface TransactionReceipt {
   hash: string;
 }
 
-export type TransactionStage = "submitted" | "accepted" | "finalized" | "failed";
+export type TransactionStage = "wallet" | "submitted" | "accepted" | "finalized" | "failed";
 
 export interface TransactionProgress {
   stage: TransactionStage;

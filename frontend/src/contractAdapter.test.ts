@@ -54,32 +54,42 @@ describe("GenLayer contract adapter", () => {
 
     const snapshot = await adapter.loadWorkspace();
 
-    expect(snapshot.round?.id).toBe("round-1");
+    expect(snapshot.rounds.map((round) => round.id)).toEqual(["round-1"]);
     expect(snapshot.creditGen).toBe("1");
     expect(snapshot.positions.map((item) => item.kind)).toEqual(["offer", "request", "grant"]);
     expect(readClient.readContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "can_route" }));
     expect(readClient.readContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "get_accounting" }));
   });
 
-  it("selects the newest non-cancelled round while preserving cancelled rounds onchain", async () => {
+  it("loads every round and aggregates wallet positions across their canonical state", async () => {
     const { readClient, writeClient } = clients();
     vi.mocked(readClient.readContract).mockImplementation(async ({ functionName, args }) => {
-      if (functionName === "get_round_ids") return ["round-1", "round-refund"];
+      if (functionName === "get_round_ids") return ["round-open", "round-cleared", "round-cancelled"];
       if (functionName === "get_round") {
         const id = String(args?.[0]);
         return {
           round_id: id,
           creator: account,
-          title: id === "round-refund" ? "Balance recovery proof" : "Research access",
-          phase: id === "round-refund" ? "CANCELLED" : "CLEARED",
+          title: id,
+          phase: id === "round-open" ? "OPEN" : id === "round-cleared" ? "CLEARED" : "CANCELLED",
           booking_fee_wei: ONE_GEN_WEI.toString(),
           provider_bond_wei: ONE_GEN_WEI.toString(),
-          offer_ids_csv: "",
-          request_ids_csv: "",
-          offer_count: "0",
-          request_count: "0",
+          offer_ids_csv: id === "round-cancelled" ? "" : `offer-${id}`,
+          request_ids_csv: id === "round-cleared" ? `request-${id}` : "",
+          offer_count: id === "round-cancelled" ? "0" : "1",
+          request_count: id === "round-cleared" ? "1" : "0",
         };
       }
+      if (functionName === "get_offer") {
+        return { offer_id: args?.[1], provider: account, label: String(args?.[1]), matched_request_id: "", active: true };
+      }
+      if (functionName === "get_request") {
+        return { request_id: args?.[1], requester: account, label: String(args?.[1]), matched_offer_id: "offer-round-cleared", outcome: "MATCHED" };
+      }
+      if (functionName === "get_match") {
+        return { request_id: args?.[1], requester: account, provider: account, offer_id: "offer-round-cleared", grant_status: "CONSUMED" };
+      }
+      if (functionName === "can_route") return false;
       if (functionName === "get_credit") return "0";
       if (functionName === "get_accounting") return { invariant_holds: true };
       throw new Error(`Unexpected view ${functionName}`);
@@ -88,8 +98,13 @@ describe("GenLayer contract adapter", () => {
 
     const snapshot = await adapter.loadWorkspace();
 
-    expect(snapshot.round?.id).toBe("round-1");
-    expect(snapshot.round?.phase).toBe("CLEARED");
+    expect(snapshot.rounds.map((round) => round.id)).toEqual(["round-open", "round-cleared", "round-cancelled"]);
+    expect(snapshot.positions.map((position) => position.roundId)).toEqual([
+      "round-open",
+      "round-cleared",
+      "round-cleared",
+      "round-cleared",
+    ]);
   });
 
   it("maps all eight writes, exact GEN value, and submitted/accepted/finalized progress", async () => {
@@ -114,9 +129,12 @@ describe("GenLayer contract adapter", () => {
     expect(writeClient.writeContract).toHaveBeenCalledTimes(8);
     expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "submit_offer", value: ONE_GEN_WEI }));
     expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "submit_request", value: ONE_GEN_WEI }));
-    expect(progress.mock.calls.map(([event]) => event.stage)).toContain("submitted");
-    expect(progress.mock.calls.map(([event]) => event.stage)).toContain("accepted");
-    expect(progress.mock.calls.map(([event]) => event.stage)).toContain("finalized");
+    expect(progress.mock.calls.slice(0, 4).map(([event]) => event.stage)).toEqual([
+      "wallet",
+      "submitted",
+      "accepted",
+      "finalized",
+    ]);
   });
 
   it("retries a transient indexing miss without inventing finality", async () => {
@@ -134,6 +152,6 @@ describe("GenLayer contract adapter", () => {
     });
 
     await expect(adapter.lockRound("round-1")).resolves.toEqual({ hash: "0xhash" });
-    expect(progress.mock.calls.map(([event]) => event.stage)).toEqual(["submitted", "accepted", "finalized"]);
+    expect(progress.mock.calls.map(([event]) => event.stage)).toEqual(["wallet", "submitted", "accepted", "finalized"]);
   });
 });

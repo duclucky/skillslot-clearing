@@ -25,7 +25,7 @@ const ready: WorkspaceSnapshot = {
   account: "0x0000000000000000000000000000000000000001",
   networkName: "GenLayer Studionet",
   contractAddress: "0x00000000000000000000000000000000000000aa",
-  round: {
+  rounds: [{
     id: "round-1",
     creator: "0x0000000000000000000000000000000000000001",
     title: "Research access",
@@ -34,7 +34,7 @@ const ready: WorkspaceSnapshot = {
     requestCount: 1,
     feeGen: "1",
     providerBondGen: "1",
-  },
+  }],
   positions: [],
   creditGen: "0",
   accountingInvariant: true,
@@ -89,7 +89,7 @@ describe("SkillSlot Clearing workspace", () => {
   });
 
   it("supports clear/retry, grant consumption, and withdrawal", async () => {
-    const lockedAdapter = adapterFor({ ...ready, round: { ...ready.round!, phase: "RETRYABLE" } });
+    const lockedAdapter = adapterFor({ ...ready, rounds: [{ ...ready.rounds[0], phase: "RETRYABLE" }] });
     const { unmount } = render(<App adapter={lockedAdapter} />);
     fireEvent.click(await screen.findByRole("button", { name: /Retry semantic clearing/i }));
     await waitFor(() => expect(lockedAdapter.clearRound).toHaveBeenCalledWith("round-1"));
@@ -97,7 +97,7 @@ describe("SkillSlot Clearing workspace", () => {
 
     const clearedAdapter = adapterFor({
       ...ready,
-      round: { ...ready.round!, phase: "CLEARED" },
+      rounds: [{ ...ready.rounds[0], phase: "CLEARED" }],
       creditGen: "1",
       positions: [{ id: "round-1:request-1", roundId: "round-1", requestId: "request-1", kind: "grant", status: "ACTIVE", summary: "Route to offer-1" }],
     });
@@ -110,7 +110,7 @@ describe("SkillSlot Clearing workspace", () => {
   });
 
   it("opens the first round and submits a requester need through browser controls", async () => {
-    const emptyAdapter = adapterFor({ ...ready, round: null });
+    const emptyAdapter = adapterFor({ ...ready, rounds: [] });
     const { unmount } = render(<App adapter={emptyAdapter} />);
     fireEvent.change(await screen.findByLabelText("Round ID"), { target: { value: "round-2" } });
     fireEvent.change(screen.getByLabelText("Round title"), { target: { value: "New research access" } });
