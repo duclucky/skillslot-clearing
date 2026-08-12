@@ -70,17 +70,23 @@ def test_position_public_surface_and_nondeterminism_boundary_are_locked():
         "submit_offer",
         "submit_request",
         "lock_round",
+        "clear_round",
         "get_round",
         "get_offer",
         "get_request",
+        "get_match",
+        "can_route",
+        "get_credit",
         "get_accounting",
         "get_round_ids",
     }.issubset(methods)
     assert "TODO" not in source
     assert "placeholder" not in source.lower()
 
-    for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef) and node.name not in {"clear_round", "_run_clearing_consensus"}:
+    top_level_functions = [node for node in tree.body if isinstance(node, ast.FunctionDef)]
+    contract_methods = [node for node in contract_class.body if isinstance(node, ast.FunctionDef)]
+    for node in top_level_functions + contract_methods:
+        if node.name != "clear_round":
             rendered = ast.unparse(node)
             assert "gl.nondet" not in rendered
             assert "gl.vm.run_nondet" not in rendered
@@ -103,3 +109,14 @@ def test_only_value_receiving_position_methods_are_payable():
         decorators = {ast.unparse(item) for item in methods[method_name].decorator_list}
         assert "gl.public.write" in decorators
         assert "gl.public.write.payable" not in decorators
+
+
+def test_clear_round_uses_bounded_custom_semantic_consensus():
+    source = _source()
+    assert "gl.vm.run_nondet(" in source
+    assert "gl.nondet.exec_prompt(" in source
+    assert 'response_format="json"' in source
+    assert "isinstance(leader_result, gl.vm.Return)" in source
+    assert "_normalize_clearing" in source
+    assert "_critical_fingerprint" in source
+    assert "attempt_fingerprints: TreeMap[str, str]" in source

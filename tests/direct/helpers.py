@@ -1,3 +1,6 @@
+import json
+
+
 CONTRACT_PATH = "contracts/skill_slot_clearing.py"
 UNIT_GEN = 10**18
 
@@ -55,3 +58,45 @@ def submit_request(
         excluded_ids_csv,
     )
     fund_contract(vm, value)
+
+
+def lock_round(contract, vm, creator, round_id="round-alpha"):
+    vm.sender = creator
+    vm.value = 0
+    contract.lock_round(round_id)
+
+
+def mock_clearing(vm, result):
+    vm.clear_mocks()
+    vm.mock_llm(
+        r"(?s).*SkillSlot Clearing semantic batch adjudicator.*",
+        result if isinstance(result, str) else json.dumps(result),
+    )
+
+
+def pair_result(offer_id, request_id, decision, required_ids_csv="", prohibited_ids_csv=""):
+    required = [item for item in required_ids_csv.split(",") if item]
+    if decision == "MATCH":
+        matched = ",".join(required)
+        missing = ""
+        prohibited = ""
+    else:
+        matched = ""
+        missing = ",".join(required)
+        prohibited = prohibited_ids_csv
+    return {
+        "offer_id": offer_id,
+        "request_id": request_id,
+        "decision": decision,
+        "matched_ids_csv": matched,
+        "missing_ids_csv": missing,
+        "prohibited_ids_csv": prohibited,
+    }
+
+
+def clearable_result(pairs, reason="The bounded compatibility graph is complete."):
+    return {"verdict": "CLEARABLE", "pairs": pairs, "reason": reason}
+
+
+def unverifiable_result(reason="The semantic evidence could not be resolved consistently."):
+    return {"verdict": "UNVERIFIABLE", "pairs": [], "reason": reason}
