@@ -2,17 +2,17 @@
 
 **Date:** 2026-08-12
 
-**Status:** Approved direction, written specification pending final user review
+**Status:** Approved for implementation
 
 ## Objective
 
 Turn the existing result-oriented frontend into a self-service marketplace where any Studionet wallet can create a clearing round, join as a provider or requester, operate rounds it created, and manage grants and credits across all rounds.
 
-The webapp must preserve the deployed contract as the only source of canonical round, position, grant, credit, and accounting state. No browser database, fixture, or Sites storage may simulate onchain state or finality.
+The webapp must preserve the deployed contract as the only source of canonical round, position, grant, credit, and accounting state. No browser database, fixture, or hosting storage may simulate onchain state or finality.
 
 ## Product boundary
 
-This increment changes the frontend, its typed adapter, frontend tests, public documentation, and hosting configuration. It does not change or redeploy the Intelligent Contract.
+This increment changes the frontend, its typed adapter, frontend tests, and public documentation. It does not change or redeploy the Intelligent Contract.
 
 The product reserves a one-time access route after semantic compatibility clearing. It does not certify provider identity, agent performance, fulfillment, or service quality. This limitation remains visible near every grant or consumption action.
 
@@ -241,19 +241,19 @@ Implementation follows red-green-refactor.
 ### End-to-end verification
 
 - run the project-wide `npm run check` gate;
-- run a production build compatible with Sites packaging;
+- run the production Vite build used by Vercel;
 - inspect desktop and 375 px mobile layouts in a real browser;
 - verify keyboard navigation, minimum target sizes, document overflow, visible canonical values, and browser console cleanliness;
-- deploy with Sites after a successful build;
+- deploy to the existing Vercel project after a successful build;
 - keep any browser-wallet write evidence distinct from existing script-signed Studionet evidence.
 
-## Sites delivery
+## Vercel delivery
 
-Sites is an additional frontend hosting target. The implementation preserves the existing source repository and creates only the minimal hosting manifest and Cloudflare-compatible output required by Sites.
+The implementation preserves the existing Vite application and linked Vercel project. The root directory remains `frontend`, and the only hosted application configuration is the public Studionet contract address.
 
-No D1, R2, app-owned authentication, or Sites persistence is required. Contract state remains public Studionet state. Hosted configuration contains only the public contract address. Private keys and wallet material never enter Sites configuration.
+No database, app-owned authentication, or hosting persistence is required. Contract state remains public Studionet state. Private keys and wallet material never enter Vercel configuration.
 
-The first Sites publish should use owner-only access when available. A later public access change requires explicit action-time approval. The existing public Vercel deployment remains intact until the Sites build and browser QA succeed.
+Publish only after the full project check passes. Keep the existing production alias and verify the deployed application with Chrome at desktop and mobile widths.
 
 ## Acceptance criteria
 
@@ -265,8 +265,8 @@ The first Sites publish should use owner-only access when available. A later pub
 - Every write presents actual wallet, submitted, accepted, finalized, failed, and retry behavior, then reloads canonical state.
 - Empty, loading, error, wrong-network, disconnected, active, and terminal states remain useful.
 - Desktop and mobile pass the UI pre-flight and browser QA.
-- Project checks and Sites build pass before deployment.
-- The deployed Sites URL runs against the existing Studionet contract without simulated state.
+- Project checks and the Vercel production build pass before deployment.
+- The deployed Vercel URL runs against the existing Studionet contract without simulated state.
 
 ## Explicit non-goals
 
