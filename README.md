@@ -15,7 +15,7 @@ The product reserves access. It does **not** certify agent performance, task com
 - Network: Studionet (`61999`)
 - Deployment: `0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86`
 - Automated checks: 83 tests currently pass locally (8 static, 39 direct, 5 receipt parser, 7 deployment tooling, 24 frontend)
-- Current Windows CI: [`check` run 31568488263](https://github.com/duclucky/skillslot-clearing/actions/runs/31568488263) passed
+- Current Windows CI: [`check` run 31584299820](https://github.com/duclucky/skillslot-clearing/actions/runs/31584299820) passed
 - Network lifecycle: `FINALIZED_LIFECYCLE`; one semantic match, consumed grant, 2 GEN received and 2 GEN withdrawn, zero remaining liabilities
 - Balance proof: a separate 1 GEN deposit/cancel/withdraw flow returned the actor balance from `2010.6399969999999882 GEN` to `2011.6399969999999882 GEN`
 

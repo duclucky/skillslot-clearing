@@ -20,7 +20,7 @@ Character count: 948
 - Primary contract explorer: https://explorer-studio.genlayer.com/address/0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86
 - Consumer/integration explorer: N/A — one contract owns the complete trust boundary
 - Lifecycle evidence: https://github.com/duclucky/skillslot-clearing/blob/main/docs/evidence/studionet/deployment.json
-- Successful CI: https://github.com/duclucky/skillslot-clearing/actions/runs/31568488263
+- Successful CI: https://github.com/duclucky/skillslot-clearing/actions/runs/31584299820
 - Demo/frontend: https://skillslot-clearing.vercel.app — production canonical read verified; browser-wallet write proof remains pending
 
 ## Verified facts
