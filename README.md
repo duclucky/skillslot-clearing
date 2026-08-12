@@ -15,8 +15,8 @@ The product reserves access. It does **not** certify agent performance, task com
 - Network: Studionet (`61999`)
 - Deployment: `0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86`
 - Automated checks: 124 currently pass locally (8 static, 39 direct, 5 receipt parser, 7 deployment tooling, 65 frontend)
-- Current Windows CI: [`check` run 31603299326](https://github.com/duclucky/skillslot-clearing/actions/runs/31603299326) passed
-- Network lifecycle: script-signed and production browser-wallet evidence together show semantic matches, consumed grants, 5 GEN received and 5 GEN withdrawn, zero remaining liabilities
+- Verified Windows CI: [`check` run 31604345353](https://github.com/duclucky/skillslot-clearing/actions/runs/31604345353) passed
+- Network lifecycle: across the script-signed and production browser-wallet lifecycles, canonical accounting records semantic matches, consumed grants, 5 GEN received, 5 GEN withdrawn, zero locked or credited liability, and invariant true
 - Balance proof: a separate 1 GEN deposit/cancel/withdraw flow returned the actor balance from `2010.6399969999999882 GEN` to `2011.6399969999999882 GEN`
 
 ## Deployed contract
@@ -28,7 +28,7 @@ The product reserves access. It does **not** certify agent performance, task com
 
 ## Live app
 
-[`https://skillslot-clearing.vercel.app`](https://skillslot-clearing.vercel.app) is the verified production deployment. It returned HTTP 200, contained the project title and React root, and loaded the canonical `CLEARED` Studionet round on desktop and mobile browser QA.
+[`https://skillslot-clearing.vercel.app`](https://skillslot-clearing.vercel.app) is the verified production deployment. It returned HTTP 200, contained the project title and React root, and loaded the canonical `CLEARED` Studionet round on desktop and mobile browser QA. Production OKX Wallet testing finalized `consume_grant` and `withdraw_credit` through the webapp. The UI retained one transaction hash per action, recovered transient status reads without resubmission, and reloaded canonical grant `CONSUMED`, credit `0 GEN`, and accounting invariant true.
 
 ## Product flow
 
@@ -51,7 +51,7 @@ Browser wallet (EIP-6963 / EIP-1193)
   <- canonical round, position, grant, credit, and invariant views
 ```
 
-The frontend reconstructs every canonical round, provides permanent Rounds, Create round, and My activity destinations, and exposes all eight legal writes only to the relevant wallet and lifecycle state. It discovers injected wallets, restores authorization with `eth_accounts` without forcing a permission prompt, switches/adds Studionet on an explicit connect action, tracks wallet/submitted/accepted/finalized/failed states, preserves form data for transaction retry, and reloads canonical contract state only after finalization. Local storage remembers only harmless wallet selection metadata.
+The frontend reconstructs every canonical round, provides permanent Rounds, Create round, and My activity destinations, and exposes all eight legal writes only to the relevant wallet and lifecycle state. It discovers injected wallets, restores authorization with `eth_accounts` without forcing a permission prompt, switches/adds Studionet on an explicit connect action, tracks wallet/submitted/accepted/finalized/failed states, preserves form data across wallet cancellation and uncertain submission, retries only transaction-status and canonical-state reads, never resubmits a known transaction, and reloads canonical contract state only after finalization. Local storage remembers only harmless wallet selection metadata.
 
 ## Run locally
 
