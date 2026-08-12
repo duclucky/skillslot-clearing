@@ -65,12 +65,22 @@ export interface TransactionReceipt {
   hash: string;
 }
 
-export type TransactionStage = "wallet" | "submitted" | "accepted" | "finalized" | "failed";
+export type TransactionRecoveryReason = "submission_uncertain" | "status_poll" | "canonical_sync";
+
+export type TransactionStage =
+  | "wallet"
+  | "submitted"
+  | "accepted"
+  | "recovering"
+  | "finalized"
+  | "cancelled"
+  | "failed";
 
 export interface TransactionProgress {
   stage: TransactionStage;
   hash: string;
   functionName: string;
+  reason?: TransactionRecoveryReason;
   error?: string;
 }
 

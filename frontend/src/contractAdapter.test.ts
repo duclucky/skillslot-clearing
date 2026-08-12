@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { createGenLayerAdapter, ONE_GEN_WEI, type GenLayerClientLike } from "./contractAdapter";
+import type { ContractAdapter } from "./domain";
 
 const address = "0x00000000000000000000000000000000000000aa" as const;
 const account = "0x00000000000000000000000000000000000000bb" as const;
@@ -189,6 +190,148 @@ describe("GenLayer contract adapter", () => {
     expect(listener).toHaveBeenCalledTimes(4);
   });
 
+  it("treats wallet rejection as cancellation without polling or retrying the write", async () => {
+    const { readClient, writeClient } = clients();
+    vi.mocked(writeClient.writeContract).mockRejectedValue(
+      Object.assign(new Error("User rejected"), { code: 4001 }),
+    );
+    const progress = vi.fn();
+    const adapter = createGenLayerAdapter({
+      contractAddress: address,
+      clients: () => ({ readClient, writeClient, account }),
+      onTransaction: progress,
+      pollIntervalMs: 0,
+    });
+
+    await expect(
+      adapter.consumeGrant({ roundId: "round-1", requestId: "request-1" }),
+    ).rejects.toMatchObject({ name: "TransactionCancelledError" });
+    expect(writeClient.writeContract).toHaveBeenCalledTimes(1);
+    expect(readClient.request).not.toHaveBeenCalled();
+    expect(progress.mock.calls.map(([event]) => event.stage)).toEqual(["wallet", "cancelled"]);
+  });
+
+  it.each([
+    ["open_round", (adapter: ContractAdapter) => adapter.openRound({ roundId: "round-2", title: "Round" })],
+    ["submit_offer", (adapter: ContractAdapter) => adapter.submitOffer({ roundId: "round-1", offerId: "offer-2", label: "Agent", promise: "Find sources", capabilityIds: "web" })],
+    ["submit_request", (adapter: ContractAdapter) => adapter.submitRequest({ roundId: "round-1", requestId: "request-2", label: "Need", need: "Find sources", requiredIds: "web", excludedIds: "" })],
+    ["lock_round", (adapter: ContractAdapter) => adapter.lockRound("round-1")],
+    ["clear_round", (adapter: ContractAdapter) => adapter.clearRound("round-1")],
+    ["cancel_round", (adapter: ContractAdapter) => adapter.cancelRound("round-1")],
+    ["consume_grant", (adapter: ContractAdapter) => adapter.consumeGrant({ roundId: "round-1", requestId: "request-1" })],
+    ["withdraw_credit", (adapter: ContractAdapter) => adapter.withdrawCredit(ONE_GEN_WEI.toString())],
+  ])("routes %s through the shared cancellation policy", async (functionName, invoke) => {
+    const { readClient, writeClient } = clients();
+    vi.mocked(writeClient.writeContract).mockRejectedValue(
+      Object.assign(new Error("User denied"), { code: 4001 }),
+    );
+    const adapter = createGenLayerAdapter({
+      contractAddress: address,
+      clients: () => ({ readClient, writeClient, account }),
+      pollIntervalMs: 0,
+    });
+
+    await expect(invoke(adapter)).rejects.toMatchObject({ name: "TransactionCancelledError" });
+    expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({ functionName }));
+    expect(writeClient.writeContract).toHaveBeenCalledTimes(1);
+  });
+
+  it("marks a transient pre-hash write failure uncertain and never resubmits", async () => {
+    const { readClient, writeClient } = clients();
+    vi.mocked(writeClient.writeContract).mockRejectedValue(new Error("Failed to fetch"));
+    const progress = vi.fn();
+    const adapter = createGenLayerAdapter({
+      contractAddress: address,
+      clients: () => ({ readClient, writeClient, account }),
+      onTransaction: progress,
+      pollIntervalMs: 0,
+    });
+
+    await expect(adapter.withdrawCredit(ONE_GEN_WEI.toString())).rejects.toMatchObject({
+      name: "TransactionSubmissionUncertainError",
+      kind: "submission_uncertain",
+      message: expect.stringContaining("Transaction submission could not be confirmed"),
+    });
+    expect(writeClient.writeContract).toHaveBeenCalledTimes(1);
+    expect(readClient.request).not.toHaveBeenCalled();
+    expect(progress.mock.calls.map(([event]) => [event.stage, event.reason])).toEqual([
+      ["wallet", undefined],
+      ["recovering", "submission_uncertain"],
+    ]);
+  });
+
+  it("keeps one known hash through transient status failures", async () => {
+    const { readClient, writeClient } = clients();
+    vi.mocked(readClient.request)
+      .mockRejectedValueOnce(new Error("503 Service Unavailable"))
+      .mockResolvedValueOnce("ACCEPTED")
+      .mockResolvedValueOnce("FINALIZED");
+    const progress = vi.fn();
+    const adapter = createGenLayerAdapter({
+      contractAddress: address,
+      clients: () => ({ readClient, writeClient, account }),
+      onTransaction: progress,
+      pollIntervalMs: 0,
+      maxPolls: 3,
+    });
+
+    await expect(adapter.lockRound("round-1")).resolves.toEqual({ hash: "0xhash" });
+    expect(writeClient.writeContract).toHaveBeenCalledTimes(1);
+    expect(progress.mock.calls.map(([event]) => event.stage)).toEqual([
+      "wallet",
+      "submitted",
+      "recovering",
+      "accepted",
+      "finalized",
+    ]);
+  });
+
+  it("emits accepted once while following one hash to finality", async () => {
+    const { readClient, writeClient } = clients();
+    vi.mocked(readClient.request)
+      .mockResolvedValueOnce("ACCEPTED")
+      .mockResolvedValueOnce("ACCEPTED")
+      .mockResolvedValueOnce("FINALIZED");
+    const progress = vi.fn();
+    const adapter = createGenLayerAdapter({
+      contractAddress: address,
+      clients: () => ({ readClient, writeClient, account }),
+      onTransaction: progress,
+      pollIntervalMs: 0,
+      maxPolls: 3,
+    });
+
+    await adapter.lockRound("round-1");
+
+    expect(progress.mock.calls.filter(([event]) => event.stage === "accepted")).toHaveLength(1);
+    expect(readClient.request).toHaveBeenNthCalledWith(3, {
+      method: "gen_getTransactionStatus",
+      params: ["0xhash"],
+    });
+  });
+
+  it.each(["UNDETERMINED", "CANCELED", "LEADER_TIMEOUT", "VALIDATORS_TIMEOUT"])(
+    "reports terminal status %s as failure without finality",
+    async (status) => {
+      const { readClient, writeClient } = clients();
+      vi.mocked(readClient.request).mockResolvedValue(status);
+      const progress = vi.fn();
+      const adapter = createGenLayerAdapter({
+        contractAddress: address,
+        clients: () => ({ readClient, writeClient, account }),
+        onTransaction: progress,
+        pollIntervalMs: 0,
+      });
+
+      await expect(adapter.lockRound("round-1")).rejects.toThrow(`Transaction reached ${status}`);
+      expect(progress.mock.calls.map(([event]) => event.stage)).toEqual([
+        "wallet",
+        "submitted",
+        "failed",
+      ]);
+    },
+  );
+
   it("retries a transient indexing miss without inventing finality", async () => {
     const { readClient, writeClient } = clients();
     const progress = vi.fn();
@@ -204,6 +347,12 @@ describe("GenLayer contract adapter", () => {
     });
 
     await expect(adapter.lockRound("round-1")).resolves.toEqual({ hash: "0xhash" });
-    expect(progress.mock.calls.map(([event]) => event.stage)).toEqual(["wallet", "submitted", "accepted", "finalized"]);
+    expect(progress.mock.calls.map(([event]) => event.stage)).toEqual([
+      "wallet",
+      "submitted",
+      "recovering",
+      "accepted",
+      "finalized",
+    ]);
   });
 });

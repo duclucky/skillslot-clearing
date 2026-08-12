@@ -13,6 +13,7 @@ describe("transaction recovery classification", () => {
     Object.assign(new Error("User rejected the request"), { code: 4001 }),
     { cause: { code: 4001, message: "denied" } },
     { data: { cause: new Error("Request Signature: User denied request signature") } },
+    { shortMessage: "User rejected the request" },
   ])("maps wallet rejection to cancellation", (error) => {
     expect(classifyTransactionError(error)).toBe("wallet_cancelled");
     expect(isTransactionCancelled(new TransactionCancelledError(error))).toBe(true);
@@ -23,6 +24,7 @@ describe("transaction recovery classification", () => {
     new Error("429 Too Many Requests"),
     new Error("503 Service Unavailable"),
     { cause: new Error("network timeout") },
+    { details: "Network request failed", error: { status: 503 } },
   ])("maps transient read failures", (error) => {
     expect(isTransientReadError(error)).toBe(true);
   });
@@ -38,5 +40,11 @@ describe("transaction recovery classification", () => {
     expect(classifyTransactionError(error)).toBe("deterministic_failure");
     expect(isTransientReadError(error)).toBe(false);
     expect(isTransientStatusError(error)).toBe(false);
+  });
+
+  it("does not treat a wallet network mismatch as a transient RPC outage", () => {
+    const error = { message: "Wrong network selected. Switch to GenLayer Studionet." };
+    expect(classifyTransactionError(error)).toBe("deterministic_failure");
+    expect(isTransientReadError(error)).toBe(false);
   });
 });

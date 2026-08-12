@@ -1,6 +1,5 @@
 export type TransactionErrorKind =
   | "wallet_cancelled"
-  | "submission_uncertain"
   | "rpc_transient"
   | "deterministic_failure";
 
@@ -16,7 +15,15 @@ function nestedValues(error: unknown, seen = new Set<unknown>()): unknown[] {
 
 function messages(error: unknown) {
   return nestedValues(error)
-    .map((item) => (item instanceof Error ? item.message : typeof item === "string" ? item : ""))
+    .flatMap((item) => {
+      if (item instanceof Error) return [item.message];
+      if (typeof item === "string") return [item];
+      if (!item || typeof item !== "object") return [];
+      const value = item as Record<string, unknown>;
+      return [value.message, value.shortMessage, value.details].filter(
+        (part): part is string => typeof part === "string",
+      );
+    })
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
@@ -24,9 +31,11 @@ function messages(error: unknown) {
 
 function codes(error: unknown) {
   return nestedValues(error)
-    .map((item) =>
-      item && typeof item === "object" ? Number((item as { code?: unknown }).code) : Number.NaN,
-    )
+    .flatMap((item) => {
+      if (!item || typeof item !== "object") return [];
+      const value = item as { code?: unknown; status?: unknown };
+      return [Number(value.code), Number(value.status)];
+    })
     .filter(Number.isFinite);
 }
 
@@ -46,11 +55,29 @@ export function classifyTransactionError(error: unknown): TransactionErrorKind {
   ) {
     return "wallet_cancelled";
   }
-  if (
-    ["failed to fetch", "network", "timeout", "temporarily", "429", "502", "503", "504"].some(
-      (part) => message.includes(part),
-    )
-  ) {
+  if ([429, 502, 503, 504].some((status) => codes(error).includes(status))) {
+    return "rpc_transient";
+  }
+  if ([
+    "failed to fetch",
+    "network request",
+    "network error",
+    "network timeout",
+    "network connection",
+    "connection reset",
+    "connection refused",
+    "timeout",
+    "temporarily",
+    "too many requests",
+    "rate limit",
+    "service unavailable",
+    "bad gateway",
+    "gateway timeout",
+    "429",
+    "502",
+    "503",
+    "504",
+  ].some((part) => message.includes(part))) {
     return "rpc_transient";
   }
   return "deterministic_failure";
@@ -65,8 +92,32 @@ export class TransactionCancelledError extends Error {
   }
 }
 
+export class TransactionSubmissionUncertainError extends Error {
+  readonly kind = "submission_uncertain";
+
+  constructor(readonly originalError: unknown) {
+    super(
+      "Transaction submission could not be confirmed. Canonical state will be checked before another action is allowed.",
+    );
+    this.name = "TransactionSubmissionUncertainError";
+  }
+}
+
 export function isTransactionCancelled(error: unknown): error is TransactionCancelledError {
   return error instanceof TransactionCancelledError || classifyTransactionError(error) === "wallet_cancelled";
+}
+
+export function isTransactionSubmissionUncertain(
+  error: unknown,
+): error is TransactionSubmissionUncertainError {
+  return (
+    error instanceof TransactionSubmissionUncertainError ||
+    Boolean(
+      error &&
+        typeof error === "object" &&
+        (error as { kind?: unknown }).kind === "submission_uncertain",
+    )
+  );
 }
 
 export function isTransientReadError(error: unknown) {

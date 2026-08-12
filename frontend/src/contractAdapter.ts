@@ -18,6 +18,15 @@ import {
   restoreStudionetWallet,
   type WalletSession,
 } from "./wallet";
+import {
+  classifyTransactionError,
+  isTransactionCancelled,
+  isTransactionSubmissionUncertain,
+  isTransientReadError,
+  isTransientStatusError,
+  TransactionCancelledError,
+  TransactionSubmissionUncertainError,
+} from "./transactionRecovery";
 
 export const ONE_GEN_WEI = 10n ** 18n;
 
@@ -94,20 +103,6 @@ type AdapterOptions = {
 };
 
 const terminalFailures = new Set(["UNDETERMINED", "CANCELED", "LEADER_TIMEOUT", "VALIDATORS_TIMEOUT"]);
-
-function errorMessage(error: unknown) {
-  return error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
-}
-
-function isTransientReadError(error: unknown) {
-  const message = errorMessage(error);
-  return ["failed to fetch", "network", "timeout", "temporarily", "429", "502", "503", "504"].some((part) => message.includes(part));
-}
-
-function isTransientStatusError(error: unknown) {
-  const message = errorMessage(error);
-  return isTransientReadError(error) || ["not found", "index"].some((part) => message.includes(part));
-}
 
 function splitCsv(value: string | undefined) {
   return value ? value.split(",").map((item) => item.trim()).filter(Boolean) : [];
@@ -255,7 +250,20 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
     let hash = "";
     try {
       emitTransaction({ stage: "wallet", hash, functionName });
-      hash = String(await writeClient.writeContract({ address: contractAddress, functionName, args, value }));
+      try {
+        hash = String(await writeClient.writeContract({ address: contractAddress, functionName, args, value }));
+      } catch (error) {
+        const kind = classifyTransactionError(error);
+        if (kind === "wallet_cancelled") {
+          emitTransaction({ stage: "cancelled", hash, functionName });
+          throw new TransactionCancelledError(error);
+        }
+        if (kind === "rpc_transient") {
+          emitTransaction({ stage: "recovering", hash, functionName, reason: "submission_uncertain" });
+          throw new TransactionSubmissionUncertainError(error);
+        }
+        throw error;
+      }
       emitTransaction({ stage: "submitted", hash, functionName });
       let accepted = false;
       for (let poll = 0; poll < maxPolls; poll += 1) {
@@ -266,7 +274,8 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
           ).toUpperCase();
         } catch (error) {
           if (!isTransientStatusError(error) || poll === maxPolls - 1) throw error;
-          await pause(pollIntervalMs);
+          emitTransaction({ stage: "recovering", hash, functionName, reason: "status_poll" });
+          await pause(Math.min(pollIntervalMs * (2 ** Math.min(poll, 4)), 20_000));
           continue;
         }
         if ((status === "ACCEPTED" || status === "FINALIZED") && !accepted) {
@@ -282,6 +291,12 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
       }
       throw new Error("Transaction did not finalize before timeout");
     } catch (error) {
+      if (
+        isTransactionCancelled(error) ||
+        isTransactionSubmissionUncertain(error)
+      ) {
+        throw error;
+      }
       emitTransaction({
         stage: "failed",
         hash,
