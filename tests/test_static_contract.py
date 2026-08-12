@@ -60,12 +60,22 @@ def test_all_treemap_keys_are_str_and_records_are_storage_dataclasses():
         assert decorators == {"allow_storage", "dataclass"}
 
 
-def test_initial_public_surface_and_nondeterminism_boundary_are_locked():
+def test_position_public_surface_and_nondeterminism_boundary_are_locked():
     source = _source()
     tree = _tree()
     contract_class = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "Contract")
     methods = {node.name for node in contract_class.body if isinstance(node, ast.FunctionDef)}
-    assert {"open_round", "get_round", "get_accounting", "get_round_ids"}.issubset(methods)
+    assert {
+        "open_round",
+        "submit_offer",
+        "submit_request",
+        "lock_round",
+        "get_round",
+        "get_offer",
+        "get_request",
+        "get_accounting",
+        "get_round_ids",
+    }.issubset(methods)
     assert "TODO" not in source
     assert "placeholder" not in source.lower()
 
@@ -74,3 +84,22 @@ def test_initial_public_surface_and_nondeterminism_boundary_are_locked():
             rendered = ast.unparse(node)
             assert "gl.nondet" not in rendered
             assert "gl.vm.run_nondet" not in rendered
+
+
+def test_only_value_receiving_position_methods_are_payable():
+    tree = _tree()
+    contract_class = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "Contract")
+    methods = {
+        node.name: node
+        for node in contract_class.body
+        if isinstance(node, ast.FunctionDef)
+    }
+    for method_name in ("submit_offer", "submit_request"):
+        decorators = {ast.unparse(item) for item in methods[method_name].decorator_list}
+        assert "gl.public.write.payable" in decorators
+        assert "gl.message.value" in ast.unparse(methods[method_name])
+
+    for method_name in ("open_round", "lock_round"):
+        decorators = {ast.unparse(item) for item in methods[method_name].decorator_list}
+        assert "gl.public.write" in decorators
+        assert "gl.public.write.payable" not in decorators
