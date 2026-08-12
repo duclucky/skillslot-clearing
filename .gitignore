@@ -5,10 +5,10 @@
 node_modules/
 dist/
 coverage/
+.local/
 .pytest_cache/
 __pycache__/
 *.pyc
 *.log
 docs/evidence/**/deployment.local.json
 docs/evidence/**/*.local.json
-
