@@ -6,7 +6,7 @@ import {
   ShieldWarning,
   Wallet,
 } from "@phosphor-icons/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   configuredContractAddress,
@@ -17,17 +17,16 @@ import { Activity } from "./Activity";
 import type { ContractAdapter, TransactionProgress, WorkspaceSnapshot } from "./domain";
 import { CreateRound, Marketplace, type RunWrite } from "./Marketplace";
 import { defaultRoundId } from "./roundFilters";
+import {
+  isTransactionCancelled,
+  isTransactionSubmissionUncertain,
+} from "./transactionRecovery";
 import "./styles.css";
 
 type Destination = "rounds" | "create" | "activity";
 
 interface AppProps {
   adapter?: ContractAdapter;
-}
-
-interface FailedWrite {
-  action: () => Promise<unknown>;
-  afterFinalized?: (snapshot: WorkspaceSnapshot) => void;
 }
 
 const initialSnapshot: WorkspaceSnapshot = {
@@ -59,8 +58,13 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
   const [busy, setBusy] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [failedWrite, setFailedWrite] = useState<FailedWrite | null>(null);
+  const [recoveryMessage, setRecoveryMessage] = useState<string | null>(null);
   const [transaction, setTransaction] = useState<TransactionProgress | null>(null);
+  const transactionRef = useRef<TransactionProgress | null>(null);
+  const updateTransaction = useCallback((next: TransactionProgress | null) => {
+    transactionRef.current = next;
+    setTransaction(next);
+  }, []);
 
   const adapter = useMemo(() => {
     if (suppliedAdapter) return suppliedAdapter;
@@ -68,7 +72,11 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
     return address ? createConfiguredAdapter(address) : createUnconfiguredAdapter();
   }, [suppliedAdapter]);
 
-  useEffect(() => adapter.subscribeTransactions(setTransaction), [adapter]);
+  useEffect(
+    () =>
+      adapter.subscribeTransactions(updateTransaction),
+    [adapter, updateTransaction],
+  );
 
   const refresh = useCallback(async () => {
     setLoadError(null);
@@ -89,13 +97,35 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
     void refresh();
   }, [refresh]);
 
+  useEffect(() => {
+    const recoverCanonicalState = async () => {
+      const next = await refresh();
+      if (
+        next &&
+        (transactionRef.current?.reason === "canonical_sync" ||
+          transactionRef.current?.reason === "submission_uncertain")
+      ) {
+        updateTransaction(null);
+      }
+    };
+    const recover = () => void recoverCanonicalState();
+    window.addEventListener("online", recover);
+    window.addEventListener("focus", recover);
+    return () => {
+      window.removeEventListener("online", recover);
+      window.removeEventListener("focus", recover);
+    };
+  }, [refresh, updateTransaction]);
+
   async function connect() {
     setBusy(true);
     setActionError(null);
+    setRecoveryMessage(null);
     try {
       await adapter.connectWallet();
       await refresh();
     } catch (error) {
+      if (isTransactionCancelled(error)) return;
       setActionError(error instanceof Error ? error.message : "Wallet connection failed.");
     } finally {
       setBusy(false);
@@ -105,17 +135,32 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
   const runWrite: RunWrite = async (action, afterFinalized) => {
     setBusy(true);
     setActionError(null);
-    setFailedWrite(null);
+    setRecoveryMessage(null);
     try {
       await action();
+      const current = transactionRef.current;
+      if (current) {
+        updateTransaction({ ...current, stage: "recovering", reason: "canonical_sync" });
+      }
       const next = await refresh();
       if (next) {
-        setTransaction(null);
+        updateTransaction(null);
         if (afterFinalized) afterFinalized(next);
       }
     } catch (error) {
+      if (isTransactionCancelled(error)) {
+        updateTransaction(null);
+        return;
+      }
+      const next = await refresh();
+      if (transactionRef.current?.reason === "submission_uncertain" && next) {
+        updateTransaction(null);
+      }
+      if (isTransactionSubmissionUncertain(error)) {
+        setRecoveryMessage(error.message);
+        return;
+      }
       setActionError(error instanceof Error ? error.message : "Transaction failed.");
-      setFailedWrite({ action, afterFinalized });
     } finally {
       setBusy(false);
     }
@@ -173,7 +218,13 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
         {actionError ? (
           <section className="notice notice-danger" role="alert">
             <ShieldWarning aria-hidden="true" />
-            <div><p className="notice-title">Transaction did not complete</p><p>{actionError}</p>{failedWrite ? <button className="text-action" type="button" disabled={busy} onClick={() => void runWrite(failedWrite.action, failedWrite.afterFinalized)}>Retry transaction</button> : null}</div>
+            <div><p className="notice-title">Transaction did not complete</p><p>{actionError}</p></div>
+          </section>
+        ) : null}
+        {recoveryMessage ? (
+          <section className="notice" role="status" aria-live="polite">
+            <ArrowsClockwise aria-hidden="true" />
+            <div><p className="notice-title">Submission status uncertain</p><p>{recoveryMessage}</p></div>
           </section>
         ) : null}
         {unconfigured && !loading ? <ConfigurationNotice availability={snapshot.availability} /> : null}
@@ -198,12 +249,15 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
 
 function TransactionNotice({ transaction }: { transaction: TransactionProgress }) {
   const labels: Record<TransactionProgress["stage"], string> = {
-    wallet: "Waiting for wallet confirmation",
+    wallet: "Confirm in wallet",
     submitted: "Submitted to Studionet",
     accepted: "Accepted by the network",
-    finalized: "Finalized and reloading canonical state",
+    recovering: transaction.reason === "canonical_sync" ? "Syncing canonical state" : "Checking network status",
+    finalized: "Finalized",
+    cancelled: "Cancelled",
     failed: "Transaction failed",
   };
+  if (transaction.stage === "cancelled") return null;
   return (
     <section className={transaction.stage === "failed" ? "transaction-strip transaction-failed" : "transaction-strip"} aria-live="polite">
       <ArrowsClockwise aria-hidden="true" />

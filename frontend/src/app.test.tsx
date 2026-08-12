@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import { createUnconfiguredAdapter } from "./contractAdapter";
 import type { ContractAdapter, TransactionProgress, WorkspaceSnapshot } from "./domain";
+import { TransactionSubmissionUncertainError } from "./transactionRecovery";
 
 function adapterFor(snapshot: WorkspaceSnapshot): ContractAdapter {
   return {
@@ -137,11 +138,21 @@ describe("SkillSlot Clearing marketplace", () => {
     await waitFor(() => expect(adapter.lockRound).toHaveBeenCalledWith("round-1"));
   });
 
-  it("preserves form values and retries the same failed transaction", async () => {
+  it("returns to the original action after wallet cancellation without an error or retry control", async () => {
     const adapter = adapterFor(ready);
-    vi.mocked(adapter.submitOffer)
-      .mockRejectedValueOnce(new Error("Wallet rejected the first attempt"))
-      .mockResolvedValueOnce({ hash: "0xoffer" });
+    let emit: ((progress: TransactionProgress) => void) | undefined;
+    vi.mocked(adapter.subscribeTransactions).mockImplementation((listener) => {
+      emit = listener;
+      return () => undefined;
+    });
+    vi.mocked(adapter.submitOffer).mockImplementation(async () => {
+      emit?.({ stage: "wallet", hash: "", functionName: "submit_offer" });
+      emit?.({ stage: "cancelled", hash: "", functionName: "submit_offer" });
+      throw Object.assign(new Error("Wallet confirmation was cancelled"), {
+        name: "TransactionCancelledError",
+        kind: "wallet_cancelled",
+      });
+    });
     render(<App adapter={adapter} />);
     const detail = await screen.findByRole("complementary", { name: "Research access" });
 
@@ -151,10 +162,43 @@ describe("SkillSlot Clearing marketplace", () => {
     fireEvent.change(within(detail).getByLabelText("Capability IDs"), { target: { value: "web" } });
     fireEvent.click(within(detail).getByRole("button", { name: /Submit offer for 1 GEN/i }));
 
-    expect(await screen.findByText("Wallet rejected the first attempt")).toBeVisible();
+    await waitFor(() =>
+      expect(within(detail).getByRole("button", { name: /Submit offer for 1 GEN/i })).toBeEnabled(),
+    );
     expect(within(detail).getByLabelText("Offer ID")).toHaveValue("offer-2");
-    fireEvent.click(screen.getByRole("button", { name: "Retry transaction" }));
-    await waitFor(() => expect(adapter.submitOffer).toHaveBeenCalledTimes(2));
+    expect(screen.queryByText("Transaction did not complete")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Retry transaction" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Confirm in wallet")).not.toBeInTheDocument();
+  });
+
+  it("never renders a write replay control after a deterministic failure", async () => {
+    const adapter = adapterFor(ready);
+    vi.mocked(adapter.lockRound).mockRejectedValue(new Error("Only the creator can lock this round"));
+    render(<App adapter={adapter} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Lock round" }));
+
+    expect(await screen.findByText("Only the creator can lock this round")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Retry transaction" })).not.toBeInTheDocument();
+    expect(adapter.lockRound).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows an uncertain submission as neutral recovery while keeping canonical state", async () => {
+    const adapter = adapterFor(ready);
+    vi.mocked(adapter.lockRound).mockRejectedValue(
+      new TransactionSubmissionUncertainError(new Error("Failed to fetch")),
+    );
+    render(<App adapter={adapter} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Lock round" }));
+
+    const status = await screen.findByRole("status");
+    expect(status).toHaveTextContent("Submission status uncertain");
+    expect(status).toHaveTextContent("Transaction submission could not be confirmed");
+    expect(screen.getByRole("button", { name: "Open round Research access" })).toBeVisible();
+    expect(screen.queryByText("Transaction did not complete")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Retry transaction" })).not.toBeInTheDocument();
+    expect(adapter.lockRound).toHaveBeenCalledTimes(1);
   });
 
   it("prevents a creator from locking an empty round", async () => {
@@ -202,6 +246,22 @@ describe("SkillSlot Clearing marketplace", () => {
     await waitFor(() => expect(disconnected.loadWorkspace).toHaveBeenCalledTimes(2));
   });
 
+  it("returns to connect wallet silently when the connection request is cancelled", async () => {
+    const disconnected = adapterFor({ ...ready, account: null });
+    vi.mocked(disconnected.connectWallet).mockRejectedValue(
+      Object.assign(new Error("User rejected the request"), { code: 4001 }),
+    );
+    render(<App adapter={disconnected} />);
+
+    const connectButton = await screen.findByRole("button", { name: "Connect wallet" });
+    fireEvent.click(connectButton);
+
+    await waitFor(() => expect(connectButton).toBeEnabled());
+    expect(disconnected.connectWallet).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("Transaction did not complete")).not.toBeInTheDocument();
+    expect(screen.queryByText("User rejected the request")).not.toBeInTheDocument();
+  });
+
   it("renders lifecycle progress emitted by the supplied wallet adapter", async () => {
     const adapter = adapterFor(ready);
     let emit: ((progress: TransactionProgress) => void) | undefined;
@@ -213,9 +273,79 @@ describe("SkillSlot Clearing marketplace", () => {
     await screen.findByRole("heading", { name: "Find a clearing round" });
 
     act(() => emit?.({ stage: "wallet", hash: "", functionName: "submit_offer" }));
-    expect(screen.getByText("Waiting for wallet confirmation")).toBeVisible();
+    expect(screen.getByText("Confirm in wallet")).toBeVisible();
     act(() => emit?.({ stage: "finalized", hash: "0x1234567890abcdef", functionName: "submit_offer" }));
-    expect(screen.getByText("Finalized and reloading canonical state")).toBeVisible();
+    expect(screen.getByText("Finalized")).toBeVisible();
+  });
+
+  it("shows recovery feedback without discarding the confirmed marketplace", async () => {
+    const adapter = adapterFor(ready);
+    let emit: ((progress: TransactionProgress) => void) | undefined;
+    vi.mocked(adapter.subscribeTransactions).mockImplementation((listener) => {
+      emit = listener;
+      return () => undefined;
+    });
+    render(<App adapter={adapter} />);
+    await screen.findByRole("heading", { name: "Find a clearing round" });
+
+    act(() =>
+      emit?.({
+        stage: "recovering",
+        hash: "0x1234567890abcdef",
+        functionName: "clear_round",
+        reason: "status_poll",
+      }),
+    );
+
+    expect(screen.getByText("Checking network status")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Open round Research access" })).toBeVisible();
+  });
+
+  it("refreshes canonical state on online and focus without replaying a write", async () => {
+    const adapter = adapterFor(ready);
+    render(<App adapter={adapter} />);
+    await waitFor(() => expect(adapter.loadWorkspace).toHaveBeenCalledTimes(1));
+
+    window.dispatchEvent(new Event("online"));
+    window.dispatchEvent(new Event("focus"));
+
+    await waitFor(() => expect(adapter.loadWorkspace).toHaveBeenCalledTimes(3));
+    expect(adapter.openRound).not.toHaveBeenCalled();
+    expect(adapter.submitOffer).not.toHaveBeenCalled();
+    expect(adapter.submitRequest).not.toHaveBeenCalled();
+    expect(adapter.lockRound).not.toHaveBeenCalled();
+    expect(adapter.clearRound).not.toHaveBeenCalled();
+    expect(adapter.cancelRound).not.toHaveBeenCalled();
+    expect(adapter.consumeGrant).not.toHaveBeenCalled();
+    expect(adapter.withdrawCredit).not.toHaveBeenCalled();
+  });
+
+  it("finishes canonical sync on reconnect without replaying the finalized write", async () => {
+    const adapter = adapterFor(ready);
+    let emit: ((progress: TransactionProgress) => void) | undefined;
+    vi.mocked(adapter.subscribeTransactions).mockImplementation((listener) => {
+      emit = listener;
+      return () => undefined;
+    });
+    vi.mocked(adapter.loadWorkspace)
+      .mockResolvedValueOnce(ready)
+      .mockRejectedValueOnce(new Error("503 Service Unavailable"))
+      .mockResolvedValueOnce({ ...ready, rounds: [{ ...ready.rounds[0], phase: "LOCKED" }] });
+    vi.mocked(adapter.lockRound).mockImplementation(async () => {
+      emit?.({ stage: "finalized", hash: "0x1234567890abcdef", functionName: "lock_round" });
+      return { hash: "0x1234567890abcdef" };
+    });
+    render(<App adapter={adapter} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Lock round" }));
+
+    expect(await screen.findByText("Syncing canonical state")).toBeVisible();
+    expect(await screen.findByText("503 Service Unavailable")).toBeVisible();
+    window.dispatchEvent(new Event("online"));
+
+    await waitFor(() => expect(adapter.loadWorkspace).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(screen.queryByText("Syncing canonical state")).not.toBeInTheDocument());
+    expect(adapter.lockRound).toHaveBeenCalledTimes(1);
   });
 
   it("clears the finality notice after canonical state reload succeeds", async () => {
@@ -234,6 +364,6 @@ describe("SkillSlot Clearing marketplace", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Lock round" }));
 
     await waitFor(() => expect(adapter.loadWorkspace).toHaveBeenCalledTimes(2));
-    await waitFor(() => expect(screen.queryByText("Finalized and reloading canonical state")).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByText("Finalized")).not.toBeInTheDocument());
   });
 });
