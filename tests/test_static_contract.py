@@ -71,6 +71,9 @@ def test_position_public_surface_and_nondeterminism_boundary_are_locked():
         "submit_request",
         "lock_round",
         "clear_round",
+        "cancel_round",
+        "consume_grant",
+        "withdraw_credit",
         "get_round",
         "get_offer",
         "get_request",
@@ -120,3 +123,13 @@ def test_clear_round_uses_bounded_custom_semantic_consensus():
     assert "_normalize_clearing" in source
     assert "_critical_fingerprint" in source
     assert "attempt_fingerprints: TreeMap[str, str]" in source
+
+
+def test_withdrawal_uses_external_recipient_and_debits_before_transfer():
+    tree = _tree()
+    contract_class = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "Contract")
+    method = next(node for node in contract_class.body if isinstance(node, ast.FunctionDef) and node.name == "withdraw_credit")
+    rendered = ast.unparse(method)
+    assert rendered.index("self.credits[account]") < rendered.index("_ExternalRecipient(sender).emit_transfer")
+    assert "_ExternalRecipient(sender).emit_transfer(value=u256(requested))" in rendered
+    assert "gl.eth" not in rendered

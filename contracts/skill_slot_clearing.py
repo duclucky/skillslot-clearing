@@ -18,10 +18,13 @@ PHASE_LOCKED = "LOCKED"
 PHASE_CLEARING = "CLEARING"
 PHASE_RETRYABLE = "RETRYABLE"
 PHASE_CLEARED = "CLEARED"
+PHASE_CANCELLED = "CANCELLED"
 OUTCOME_PENDING = "PENDING"
 OUTCOME_MATCHED = "MATCHED"
 OUTCOME_UNMATCHED = "UNMATCHED"
+OUTCOME_CANCELLED = "CANCELLED"
 GRANT_ACTIVE = "ACTIVE"
+GRANT_CONSUMED = "CONSUMED"
 
 VERDICT_CLEARABLE = "CLEARABLE"
 VERDICT_UNVERIFIABLE = "UNVERIFIABLE"
@@ -85,6 +88,15 @@ class Match:
     provider: Address
     requester: Address
     grant_status: str
+
+
+@gl.evm.contract_interface
+class _ExternalRecipient:
+    class View:
+        pass
+
+    class Write:
+        pass
 
 
 def _addr_str(address: Address) -> str:
@@ -717,6 +729,60 @@ class Contract(gl.Contract):
         round_record.locked_liability_wei = bigint(int(round_record.locked_liability_wei) - amount)
         self.total_locked_wei = bigint(int(self.total_locked_wei) - amount)
         self.total_credited_wei = bigint(int(self.total_credited_wei) + amount)
+
+    @gl.public.write
+    def cancel_round(self, round_id: str) -> None:
+        if round_id not in self.rounds:
+            raise gl.vm.UserError("Round does not exist")
+        round_record = self.rounds[round_id]
+        if not _is_same_address(gl.message.sender_address, round_record.creator):
+            raise gl.vm.UserError("Only round creator can cancel")
+        if round_record.phase == PHASE_CANCELLED:
+            return
+        if round_record.phase != PHASE_OPEN:
+            raise gl.vm.UserError("Round cannot be cancelled")
+
+        for offer_id in _split_csv(round_record.offer_ids_csv):
+            offer = self.offers[_position_key(round_id, offer_id)]
+            offer.active = False
+            self._credit_locked(round_record, offer.provider, int(offer.deposit_wei))
+        for request_id in _split_csv(round_record.request_ids_csv):
+            request = self.requests[_position_key(round_id, request_id)]
+            request.outcome = OUTCOME_CANCELLED
+            self._credit_locked(round_record, request.requester, int(request.deposit_wei))
+        round_record.phase = PHASE_CANCELLED
+
+    @gl.public.write
+    def consume_grant(self, round_id: str, request_id: str) -> None:
+        key = _position_key(round_id, request_id)
+        if key not in self.matches:
+            raise gl.vm.UserError("Grant does not exist")
+        match_record = self.matches[key]
+        if not _is_same_address(gl.message.sender_address, match_record.requester):
+            raise gl.vm.UserError("Only matched requester can consume")
+        if match_record.grant_status != GRANT_ACTIVE:
+            raise gl.vm.UserError("Grant is not active")
+        if round_id not in self.rounds or self.rounds[round_id].phase != PHASE_CLEARED:
+            raise gl.vm.UserError("Round is not cleared")
+        match_record.grant_status = GRANT_CONSUMED
+
+    @gl.public.write
+    def withdraw_credit(self, amount_wei: int) -> None:
+        requested = int(amount_wei)
+        if requested <= 0:
+            raise gl.vm.UserError("Withdrawal amount must be positive")
+        sender = gl.message.sender_address
+        account = _addr_key(sender)
+        available = self.credits.get(account, bigint(0))
+        if requested > int(available):
+            raise gl.vm.UserError("Insufficient credit")
+        if requested > int(self.total_credited_wei):
+            raise gl.vm.UserError("Withdrawal exceeds credited liability")
+
+        self.credits[account] = bigint(int(available) - requested)
+        self.total_credited_wei = bigint(int(self.total_credited_wei) - requested)
+        self.total_withdrawn_wei = bigint(int(self.total_withdrawn_wei) + requested)
+        _ExternalRecipient(sender).emit_transfer(value=u256(requested))
 
     @gl.public.view
     def get_round(self, round_id: str) -> dict:
