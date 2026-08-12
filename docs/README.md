@@ -6,8 +6,9 @@
 - Project name: SkillSlot Clearing
 - Project slug: `skillslot-clearing`
 - Category: Projects
-- Status: `DEPLOYED_STUDIONET`
-- Repository: local child repository; public remote pending
+- Status: `SUBMISSION_READY`
+- Repository: `https://github.com/duclucky/skillslot-clearing`
+- Live app: `https://skillslot-clearing.vercel.app`
 - Target network: `studionet`
 
 ## One-sentence product hook

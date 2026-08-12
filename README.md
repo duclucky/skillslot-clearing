@@ -14,7 +14,8 @@ The product reserves access. It does **not** certify agent performance, task com
 - Contract: one `SkillSlotClearing` Intelligent Contract with 8 writes and 8 views
 - Network: Studionet (`61999`)
 - Deployment: `0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86`
-- Automated checks: 74 tests currently pass locally (8 static, 39 direct, 5 receipt parser, 7 deployment tooling, 15 frontend)
+- Automated checks: 75 tests currently pass locally (8 static, 39 direct, 5 receipt parser, 7 deployment tooling, 16 frontend)
+- Current Windows CI: [`check` run 31568488263](https://github.com/duclucky/skillslot-clearing/actions/runs/31568488263) passed
 - Network lifecycle: `FINALIZED_LIFECYCLE`; one semantic match, consumed grant, 2 GEN received and 2 GEN withdrawn, zero remaining liabilities
 - Balance proof: a separate 1 GEN deposit/cancel/withdraw flow returned the actor balance from `2010.6399969999999882 GEN` to `2011.6399969999999882 GEN`
 
@@ -26,7 +27,7 @@ The product reserves access. It does **not** certify agent performance, task com
 
 ## Live app
 
-Production deployment is pending. The frontend already uses the deployed address in its public build configuration and has no private-key path.
+[`https://skillslot-clearing.vercel.app`](https://skillslot-clearing.vercel.app) is the verified production deployment. It returned HTTP 200, contained the project title and React root, and loaded the canonical `CLEARED` Studionet round on desktop and mobile browser QA.
 
 ## Product flow
 
