@@ -416,28 +416,28 @@ authenticity gate.
 
 | Public claim | Write/state transition | Canonical view | Local verification | Studionet evidence |
 | --- | --- | --- | --- | --- |
-| bounded isolated rounds | `open_round`, per-round keys | `get_round`, `get_round_ids` | `test_round_state.py::test_two_round_isolation` | `PENDING_REAL_EVIDENCE` |
-| exact bonded offers and paid requests | payable submissions | `get_offer`, `get_request`, `get_accounting` | `test_positions.py`, `test_accounting.py` | `PENDING_REAL_EVIDENCE` |
-| validators judge semantic compatibility | `clear_round` nondeterministic boundary | `get_round`, `get_match` | `test_semantic_clearing.py::test_complete_pair_consensus` | `PENDING_REAL_EVIDENCE` |
-| capacity clears deterministically | `CLEARING -> CLEARED` | `get_match`, `can_route` | `test_semantic_clearing.py::test_insertion_order_capacity` | `PENDING_REAL_EVIDENCE` |
-| unavailable judgment cannot penalize | `CLEARING -> RETRYABLE` | `get_round`, `get_accounting` | `test_semantic_clearing.py::test_unverifiable_preserves_liability` | `PENDING_REAL_EVIDENCE` |
-| unmatched fees and all bonds are recoverable | clear/cancel credit moves | `get_credit`, `get_accounting` | `test_accounting.py`, `test_recovery_and_grants.py` | `PENDING_REAL_EVIDENCE` |
-| route permission is one-time | `consume_grant` | `get_match`, `can_route` | `test_recovery_and_grants.py::test_grant_consumes_once` | `PENDING_REAL_EVIDENCE` |
-| withdrawals preserve exact accounting | `withdraw_credit` | `get_credit`, `get_accounting` | `test_recovery_and_grants.py::test_withdraw_debit_before_transfer` | `PENDING_REAL_EVIDENCE` |
+| bounded isolated rounds | `open_round`, per-round keys | `get_round`, `get_round_ids` | `test_round_state.py::test_two_rounds_remain_isolated_and_discoverable` | Semantic round plus isolated balance-proof round in `docs/evidence/studionet/deployment.json` |
+| exact bonded offers and paid requests | payable submissions | `get_offer`, `get_request`, `get_accounting` | `test_positions.py`, `test_accounting.py` | Finalized 1 GEN offer and 1 GEN request; canonical reads show exact deposits |
+| validators judge semantic compatibility | `clear_round` nondeterministic boundary | `get_round`, `get_match` | `test_semantic_clearing.py::test_complete_two_by_two_graph_creates_two_grants_and_exact_credits` | Finalized `clear` transaction; canonical round `CLEARED` with one match |
+| capacity clears deterministically | `CLEARING -> CLEARED` | `get_match`, `can_route` | `test_semantic_clearing.py::test_request_order_consumes_unit_capacity_once_and_refunds_unmatched` | Canonical match binds `offer-flight` to `request-flight` exactly once |
+| unavailable judgment cannot penalize | `CLEARING -> RETRYABLE` | `get_round`, `get_accounting` | `test_semantic_clearing.py::test_unverifiable_attempt_preserves_funds_and_can_retry_successfully` | `PENDING_REAL_EVIDENCE`; local adversarial proof only, not needed for the successful lifecycle claim |
+| unmatched fees and all bonds are recoverable | clear/cancel credit moves | `get_credit`, `get_accounting` | `test_accounting.py`, `test_recovery_and_grants.py` | Separate 1 GEN balance proof finalized `CANCELLED`, credited, withdrawn, and returned the actor balance exactly |
+| route permission is one-time | `consume_grant` | `get_match`, `can_route` | `test_recovery_and_grants.py::test_matched_requester_consumes_active_grant_once` | Finalized consume transaction; canonical grant is `CONSUMED` |
+| withdrawals preserve exact accounting | `withdraw_credit` | `get_credit`, `get_accounting` | `test_recovery_and_grants.py::test_withdrawal_debits_before_external_send_and_preserves_invariant` | Aggregate canonical accounting is 3 GEN received/withdrawn, zero locked/credited, invariant true |
 
 ## Browser lifecycle coverage matrix
 
 | Claimed browser action | Adapter wrapper | UI control/state | Frontend test | Finality and reload | Live evidence |
 | --- | --- | --- | --- | --- | --- |
 | connect/switch Studionet wallet | `connectWallet` | top-bar wallet control | `wallet.test.ts` | account/network read after permission | `PENDING_REAL_EVIDENCE` |
-| open round | `openRound` | contextual empty-state creator form | `app.lifecycle.test.tsx` | finalized then `loadWorkspace` | `PENDING_REAL_EVIDENCE` |
-| submit bonded offer | `submitOffer` | provider form in `OPEN` | `genlayerAdapter.test.ts` and lifecycle test | 1 GEN write, finalized, offer/accounting reload | `PENDING_REAL_EVIDENCE` |
-| submit paid request | `submitRequest` | requester form in `OPEN` | `genlayerAdapter.test.ts` and lifecycle test | 1 GEN write, finalized, request/accounting reload | `PENDING_REAL_EVIDENCE` |
-| lock round | `lockRound` | creator action when both sides exist | `app.lifecycle.test.tsx` | finalized round reload | `PENDING_REAL_EVIDENCE` |
-| clear or retry | `clearRound` | creator action in `LOCKED`/`RETRYABLE` | adapter and retry lifecycle tests | submitted/accepted/finalized or retryable, then full reload | `PENDING_REAL_EVIDENCE` |
-| safe cancel | `cancelRound` | separated creator recovery action in `OPEN` | adapter and cancellation lifecycle tests | finalized round/credit/accounting reload | `PENDING_REAL_EVIDENCE` |
-| consume route grant | `consumeGrant` | matched requester action | adapter and one-time lifecycle tests | finalized match/route reload | `PENDING_REAL_EVIDENCE` |
-| withdraw canonical credit | `withdrawCredit` | credit action for positive balance | adapter and withdrawal lifecycle tests | finalized receipt plus credit/accounting reload | `PENDING_REAL_EVIDENCE` |
+| open round | `openRound` | contextual empty-state creator form | `app.test.tsx` | finalized then `loadWorkspace` | Production control/build verified; browser-wallet write pending |
+| submit bonded offer | `submitOffer` | provider form in `OPEN` | `contractAdapter.test.ts` and `app.test.tsx` | 1 GEN write, finalized, offer/accounting reload | Production control/build verified; browser-wallet write pending |
+| submit paid request | `submitRequest` | requester form in `OPEN` | `contractAdapter.test.ts` and `app.test.tsx` | 1 GEN write, finalized, request/accounting reload | Production control/build verified; browser-wallet write pending |
+| lock round | `lockRound` | creator action when both sides exist | `app.test.tsx` | finalized round reload | Production control/build verified; browser-wallet write pending |
+| clear or retry | `clearRound` | creator action in `LOCKED`/`RETRYABLE` | `contractAdapter.test.ts` and `app.test.tsx` | submitted/accepted/finalized or retryable, then full reload | Production control/build verified; browser-wallet write pending |
+| safe cancel | `cancelRound` | separated creator recovery action in `OPEN` | `contractAdapter.test.ts` and `app.test.tsx` | finalized round/credit/accounting reload | Production control/build verified; browser-wallet write pending |
+| consume route grant | `consumeGrant` | matched requester action | `contractAdapter.test.ts` and `app.test.tsx` | finalized match/route reload | Production control/build verified; browser-wallet write pending |
+| withdraw canonical credit | `withdrawCredit` | credit action for positive balance | `contractAdapter.test.ts` and `app.test.tsx` | finalized receipt plus credit/accounting reload | Production control/build verified; browser-wallet write pending |
 
 ## Deployment and evidence plan
 
