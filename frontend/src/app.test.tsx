@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
+import { createUnconfiguredAdapter } from "./contractAdapter";
 import type { ContractAdapter, WorkspaceSnapshot } from "./domain";
 
 function adapterFor(snapshot: WorkspaceSnapshot): ContractAdapter {
@@ -41,7 +42,7 @@ const ready: WorkspaceSnapshot = {
 
 describe("SkillSlot Clearing workspace", () => {
   it("shows an honest unconfigured state and both top-level destinations", async () => {
-    render(<App />);
+    render(<App adapter={createUnconfiguredAdapter()} />);
 
     expect(await screen.findByText("Contract not configured")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Clearing floor/i })).toBeInTheDocument();
@@ -50,7 +51,7 @@ describe("SkillSlot Clearing workspace", () => {
   });
 
   it("does not expose reviewer internals or invented market state", async () => {
-    const { container } = render(<App />);
+    const { container } = render(<App adapter={createUnconfiguredAdapter()} />);
 
     await screen.findByText("Contract not configured");
     expect(container).not.toHaveTextContent(/compatibility matrix/i);

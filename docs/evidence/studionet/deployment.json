@@ -1,0 +1,189 @@
+{
+  "network": "studionet",
+  "chainId": 61999,
+  "explorer": "https://explorer-studio.genlayer.com",
+  "updatedAt": "2026-08-12T05:54:26.106Z",
+  "identity": {
+    "network": "studionet",
+    "sourceCommit": "55133c14919a97027fe1a08a0dd188e2d5903dc8",
+    "contractSha256": "cad5328a7e2edb8da81a97152b692e649d3009084d62a5376a42bd0f7977bcd5",
+    "runner": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6"
+  },
+  "actors": {
+    "creatorProvider": "0xC495ef51618D03267A1f227aFe5b27B38c748272"
+  },
+  "deployment": {
+    "transactionHash": "0x4696f8c362979c1733a84fbdf0659b6b149406cd00fd2338478b5f314d81e851",
+    "status": "FINALIZED",
+    "execution": "FINISHED_WITH_RETURN",
+    "finalizedAt": "2026-08-12T05:40:18.144Z",
+    "contractAddress": "0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86"
+  },
+  "status": "DEPLOYED",
+  "demo": {
+    "contractAddress": "0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86",
+    "roundId": "slot-mspnuuza",
+    "actors": {
+      "creatorProvider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "requester": "0x45aD397c438397A702B53a7499a78D08961D39Db"
+    },
+    "transactions": {
+      "openRound": {
+        "transactionHash": "0x624792d8a326d52bc6fce07ad533c936264871f4ec343b249f086ed767cb8394",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-08-12T05:41:21.371Z"
+      },
+      "submitOffer": {
+        "transactionHash": "0x72aa03459fb1962fafc853e43b5a5de3b630b1f70eb6bf6c67cc9db10fc7941e",
+        "status": "FINALIZED",
+        "recoveredFromCanonicalStateAfterRateLimit": true
+      },
+      "submitRequest": {
+        "transactionHash": "0x14ae453d3a2a739b3d4866e6e5d9928132965fe71e866b0f2fb0882e7c5b4a27",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-08-12T05:44:32.697Z"
+      },
+      "lock": {
+        "transactionHash": "0x47b2b3c4c6ebbe0377d4aa8ff8b8045e3b0c0ec528fbfdfa16c57bf2c23bba42",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-08-12T05:45:29.537Z"
+      },
+      "clear": {
+        "transactionHash": "0x2e22e360bd2b6997184fee5fad3071fc6b0fa8016fd42d07604c9ccf85d96cda",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-08-12T05:46:45.237Z"
+      },
+      "consume": {
+        "transactionHash": "0x75ccfddd196d0c29331ebeaa19aa41c6534fb1371b80eea53b01367fd95523a1",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-08-12T05:47:42.278Z"
+      },
+      "withdrawPrimary": {
+        "transactionHash": "0xced36cb6fc5f2300d52036d873714b5b33fb73f625d8b0fc2eef83c531ae235a",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-08-12T05:48:58.399Z"
+      }
+    },
+    "status": "FINALIZED_LIFECYCLE",
+    "finalReads": {
+      "round": {
+        "attempt_count": "1",
+        "booking_fee_wei": "1000000000000000000",
+        "creator": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+        "locked_liability_wei": "0",
+        "match_count": "1",
+        "offer_count": "1",
+        "offer_ids_csv": "offer-flight",
+        "phase": "CLEARED",
+        "provider_bond_wei": "1000000000000000000",
+        "request_count": "1",
+        "request_ids_csv": "request-flight",
+        "round_id": "slot-mspnuuza",
+        "title": "Studionet agent access window"
+      },
+      "offer": {
+        "active": false,
+        "capability_ids_csv": "FLIGHT.BOOK,CALENDAR.WRITE",
+        "deposit_wei": "1000000000000000000",
+        "label": "Flight scheduling agent",
+        "matched_request_id": "request-flight",
+        "offer_id": "offer-flight",
+        "promise_text": "Books air tickets and writes confirmed itineraries to a calendar.",
+        "provider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+        "round_id": "slot-mspnuuza"
+      },
+      "request": {
+        "deposit_wei": "1000000000000000000",
+        "excluded_ids_csv": "HOTEL.BOOK",
+        "label": "Flight reservation need",
+        "matched_offer_id": "offer-flight",
+        "need_text": "Reserve an air ticket and add it to the calendar without hotel booking.",
+        "outcome": "MATCHED",
+        "request_id": "request-flight",
+        "requester": "0x45aD397c438397A702B53a7499a78D08961D39Db",
+        "required_ids_csv": "FLIGHT.BOOK,CALENDAR.WRITE",
+        "round_id": "slot-mspnuuza"
+      },
+      "match": {
+        "grant_status": "CONSUMED",
+        "offer_id": "offer-flight",
+        "provider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+        "request_id": "request-flight",
+        "requester": "0x45aD397c438397A702B53a7499a78D08961D39Db",
+        "round_id": "slot-mspnuuza"
+      },
+      "primaryCreditWei": "0",
+      "requesterCreditWei": "0",
+      "accounting": {
+        "invariant_holds": true,
+        "total_credited_wei": "0",
+        "total_locked_wei": "0",
+        "total_received_wei": "2000000000000000000",
+        "total_withdrawn_wei": "2000000000000000000"
+      }
+    }
+  },
+  "balanceProof": {
+    "roundId": "slot-mspnuuza-refund",
+    "actor": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+    "transactions": {
+      "openRound": {
+        "transactionHash": "0x3f3b88c2a1c84f855f38ffde19d1eecbbe48facba69e962b32fe3272a64f704a",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-08-12T05:52:18.159Z"
+      },
+      "submitOffer": {
+        "transactionHash": "0xe24fd22a748cf11c317dc777f3b98f19554d2409ce538a1fb132d78fe6e2ace2",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-08-12T05:52:58.090Z"
+      },
+      "cancelRound": {
+        "transactionHash": "0x8bdee30b3053f7b2b60e558fb1e001e8e3420908947d27b2d0ba6967611d2d16",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-08-12T05:53:45.407Z"
+      },
+      "withdrawCredit": {
+        "transactionHash": "0x5c6def2e8f80f3b764742a931aab0a491d35d445286d0a30ae280c5eee9569dc",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-08-12T05:54:23.164Z"
+      }
+    },
+    "status": "FINALIZED_BALANCE_PROOF",
+    "beforeDeposit": "2011.6399969999999882 GEN",
+    "afterDeposit": "2010.6399969999999882 GEN",
+    "beforeWithdraw": "2010.6399969999999882 GEN",
+    "afterWithdraw": "2011.6399969999999882 GEN",
+    "finalRound": {
+      "attempt_count": "0",
+      "booking_fee_wei": "1000000000000000000",
+      "creator": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "locked_liability_wei": "0",
+      "match_count": "0",
+      "offer_count": "1",
+      "offer_ids_csv": "offer-refund",
+      "phase": "CANCELLED",
+      "provider_bond_wei": "1000000000000000000",
+      "request_count": "0",
+      "request_ids_csv": "",
+      "round_id": "slot-mspnuuza-refund",
+      "title": "Balance recovery proof"
+    },
+    "finalAccounting": {
+      "invariant_holds": true,
+      "total_credited_wei": "0",
+      "total_locked_wei": "0",
+      "total_received_wei": "3000000000000000000",
+      "total_withdrawn_wei": "3000000000000000000"
+    }
+  }
+}

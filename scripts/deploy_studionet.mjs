@@ -51,7 +51,9 @@ export function shouldReuseDeployment(evidence, identity) {
   return (
     evidence?.deployment?.status === "FINALIZED" &&
     Boolean(evidence?.deployment?.contractAddress) &&
-    JSON.stringify(evidence?.identity) === JSON.stringify(identity)
+    evidence?.identity?.network === identity.network &&
+    evidence?.identity?.contractSha256 === identity.contractSha256 &&
+    evidence?.identity?.runner === identity.runner
   );
 }
 
@@ -77,6 +79,46 @@ export function sanitizeEvidence(value) {
     "errorCode",
   ];
   return Object.fromEntries(allowed.filter((key) => key in value).map((key) => [key, value[key]]));
+}
+
+export function rpcRetryDelayMs(error, seen = new Set()) {
+  if (!error || (typeof error !== "object" && typeof error !== "string")) return null;
+  if (typeof error === "object") {
+    if (seen.has(error)) return null;
+    seen.add(error);
+    const code = Number(error.code);
+    const retrySeconds = Number(error.data?.retry_after_seconds);
+    if (code === -32029) {
+      return Number.isFinite(retrySeconds) && retrySeconds >= 0 ? (retrySeconds + 1) * 1000 : 65_000;
+    }
+    for (const nested of [error.cause, error.data, error.error, error.originalError]) {
+      const delay = rpcRetryDelayMs(nested, seen);
+      if (delay !== null) return delay;
+    }
+  }
+  const message = String(typeof error === "object" ? error.message ?? "" : error).toLowerCase();
+  return message.includes("rate limit") ? 65_000 : null;
+}
+
+async function withRpcBackoff(operation, retries = 4) {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      const delay = rpcRetryDelayMs(error);
+      if (delay === null || attempt >= retries) throw error;
+      console.log(JSON.stringify({ action: "rpc-backoff", status: "RETRYING", retryAfterSeconds: Math.ceil(delay / 1000) }));
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
+
+export function formatGenBalance(value) {
+  const wei = BigInt(value);
+  const whole = wei / ONE_GEN;
+  const remainder = wei % ONE_GEN;
+  const amount = remainder === 0n ? whole.toString() : `${whole}.${remainder.toString().padStart(18, "0").replace(/0+$/, "")}`;
+  return `${amount} GEN`;
 }
 
 function jsonSafe(value) {
@@ -166,7 +208,7 @@ function publicClient(env) {
 }
 
 async function assertStudionet(client) {
-  const raw = await client.request({ method: "eth_chainId", params: [] });
+  const raw = await withRpcBackoff(() => client.request({ method: "eth_chainId", params: [] }));
   const connected = Number(BigInt(raw));
   if (connected !== studionet.id) throw new Error(`Connected chain ${connected} is not Studionet ${studionet.id}`);
 }
@@ -196,22 +238,24 @@ function contractAddressFromReceipt(receipt) {
 
 async function waitForFinality(client, hash, retries = 240) {
   for (let attempt = 0; attempt < retries; attempt += 1) {
-    const status = await client.request({ method: "gen_getTransactionStatus", params: [hash] });
+    const status = await withRpcBackoff(() => client.request({ method: "gen_getTransactionStatus", params: [hash] }));
     if (status === "FINALIZED") return status;
     if (TERMINAL_FAILURES.has(status)) throw new Error(`Transaction ${hash} reached ${status}`);
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 8000));
   }
   throw new Error(`Transaction ${hash} did not finalize before timeout`);
 }
 
 async function waitForReceipt(client, hash, label) {
-  const accepted = await client.waitForTransactionReceipt({
-    hash,
-    status: TransactionStatus.ACCEPTED,
-    interval: 5000,
-    retries: 120,
-    fullTransaction: false,
-  });
+  const accepted = await withRpcBackoff(() =>
+    client.waitForTransactionReceipt({
+      hash,
+      status: TransactionStatus.ACCEPTED,
+      interval: 8000,
+      retries: 120,
+      fullTransaction: false,
+    }),
+  );
   const status = await waitForFinality(client, hash);
   const execution = executionName(accepted);
   if (status !== "FINALIZED") throw new Error(`${label} did not finalize`);
@@ -223,14 +267,21 @@ async function waitForReceipt(client, hash, label) {
 
 async function readView(client, address, functionName, args = []) {
   return jsonSafe(
-    await client.readContract({
-      address,
-      functionName,
-      args,
-      jsonSafeReturn: true,
-      stateStatus: "finalized",
-    }),
+    await withRpcBackoff(() =>
+      client.readContract({
+        address,
+        functionName,
+        args,
+        jsonSafeReturn: true,
+        stateStatus: "finalized",
+      }),
+    ),
   );
+}
+
+async function readBalance(client, address) {
+  const raw = await withRpcBackoff(() => client.request({ method: "eth_getBalance", params: [address, "latest"] }));
+  return BigInt(raw);
 }
 
 async function writeContractFinalized(client, address, functionName, args = [], value = 0n) {
@@ -410,6 +461,73 @@ async function demo(env) {
   console.log(JSON.stringify({ action: "demo", status: state.status, finalReads: state.finalReads }, null, 2));
 }
 
+async function balanceProof(env) {
+  const evidence = readEvidence();
+  const address = requireDeployment(evidence);
+  const primary = signingClient(env, PRIMARY_KEYS);
+  await assertStudionet(primary.client);
+  const proof = evidence.balanceProof ?? {
+    roundId: `${evidence.demo?.roundId ?? "skillslot"}-refund`,
+    actor: primary.account.address,
+    transactions: {},
+    status: "STARTED",
+  };
+  const persist = () => mergeEvidence({ balanceProof: proof });
+  persist();
+
+  let round = await readView(primary.client, address, "get_round", [proof.roundId]);
+  if (!round?.round_id) {
+    proof.beforeDeposit = formatGenBalance(await readBalance(primary.client, primary.account.address));
+    proof.transactions.openRound = await writeContractFinalized(
+      primary.client,
+      address,
+      "open_round",
+      [proof.roundId, "Balance recovery proof", ONE_GEN, ONE_GEN],
+    );
+    persist();
+    round = await readView(primary.client, address, "get_round", [proof.roundId]);
+  }
+
+  const offer = await readView(primary.client, address, "get_offer", [proof.roundId, "offer-refund"]);
+  if (!offer?.offer_id && round?.phase === "OPEN") {
+    proof.transactions.submitOffer = await writeContractFinalized(
+      primary.client,
+      address,
+      "submit_offer",
+      [proof.roundId, "offer-refund", "Refund proof agent", "Provides one bounded diagnostic access slot.", "DIAGNOSTIC.ACCESS"],
+      ONE_GEN,
+    );
+    persist();
+  }
+  if (!proof.afterDeposit) {
+    proof.afterDeposit = formatGenBalance(await readBalance(primary.client, primary.account.address));
+    persist();
+  }
+
+  round = await readView(primary.client, address, "get_round", [proof.roundId]);
+  if (round?.phase === "OPEN") {
+    proof.transactions.cancelRound = await writeContractFinalized(primary.client, address, "cancel_round", [proof.roundId]);
+    persist();
+  }
+  const credit = BigInt(await readView(primary.client, address, "get_credit", [primary.account.address]));
+  if (credit > 0n) {
+    proof.beforeWithdraw = formatGenBalance(await readBalance(primary.client, primary.account.address));
+    proof.transactions.withdrawCredit = await writeContractFinalized(primary.client, address, "withdraw_credit", [credit]);
+    proof.afterWithdraw = formatGenBalance(await readBalance(primary.client, primary.account.address));
+    persist();
+  }
+  proof.finalRound = await readView(primary.client, address, "get_round", [proof.roundId]);
+  proof.finalAccounting = await readView(primary.client, address, "get_accounting", []);
+  proof.status =
+    proof.finalRound?.phase === "CANCELLED" &&
+    proof.finalAccounting?.total_locked_wei === "0" &&
+    proof.finalAccounting?.total_credited_wei === "0"
+      ? "FINALIZED_BALANCE_PROOF"
+      : "FINALIZED_INCOMPLETE";
+  persist();
+  console.log(JSON.stringify({ action: "balance-proof", status: proof.status, beforeDeposit: proof.beforeDeposit, afterDeposit: proof.afterDeposit, beforeWithdraw: proof.beforeWithdraw, afterWithdraw: proof.afterWithdraw }, null, 2));
+}
+
 async function inspect(env) {
   const evidence = readEvidence();
   const report = {
@@ -437,6 +555,7 @@ async function main() {
   if (command === "inspect") await inspect(env);
   else if (command === "deploy") await deploy(env);
   else if (command === "demo") await demo(env);
+  else if (command === "balance-proof") await balanceProof(env);
   else if (["open-round", "submit-demo-positions", "lock", "clear", "consume", "withdraw"].includes(command)) {
     await runStep(env, command);
   } else {

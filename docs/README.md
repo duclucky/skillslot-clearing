@@ -6,7 +6,7 @@
 - Project name: SkillSlot Clearing
 - Project slug: `skillslot-clearing`
 - Category: Projects
-- Status: `BUILDING`
+- Status: `DEPLOYED_STUDIONET`
 - Repository: local child repository; public remote pending
 - Target network: `studionet`
 

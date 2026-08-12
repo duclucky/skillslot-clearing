@@ -7,7 +7,9 @@ import test from "node:test";
 import {
   currentAttemptId,
   deploymentIdentity,
+  formatGenBalance,
   loadEnvironment,
+  rpcRetryDelayMs,
   sanitizeEvidence,
   shouldReuseDeployment,
 } from "../scripts/deploy_studionet.mjs";
@@ -38,13 +40,14 @@ test("deployment identity binds network source runner and exact contract hash", 
   );
 });
 
-test("only an exact finalized revision can be reused", () => {
+test("only an exact finalized contract/API revision can be reused across later evidence commits", () => {
   const identity = deploymentIdentity({ sourceCommit: "abc", contractSha256: "def", runner: "runner" });
   const evidence = { identity, deployment: { status: "FINALIZED", contractAddress: "0x111" } };
 
   assert.equal(shouldReuseDeployment(evidence, identity), true);
   assert.equal(shouldReuseDeployment({ ...evidence, deployment: { status: "SUBMITTED" } }, identity), false);
   assert.equal(shouldReuseDeployment(evidence, { ...identity, contractSha256: "changed" }), false);
+  assert.equal(shouldReuseDeployment(evidence, { ...identity, sourceCommit: "later-evidence-commit" }), true);
 });
 
 test("retry reads the current canonical attempt count and never hardcodes minus one", () => {
@@ -74,4 +77,20 @@ test("evidence projection drops unknown receipt validator and secret fields", ()
     contractAddress: "0x111",
     errorCode: null,
   });
+});
+
+test("Studionet rate limits honor the server retry window through nested RPC causes", () => {
+  const error = {
+    cause: {
+      code: -32029,
+      data: { retry_after_seconds: 60 },
+    },
+  };
+  assert.equal(rpcRetryDelayMs(error), 61_000);
+  assert.equal(rpcRetryDelayMs(new Error("ordinary contract failure")), null);
+});
+
+test("balance evidence is reported in GEN rather than base-unit integers", () => {
+  assert.equal(formatGenBalance(2n * 10n ** 18n), "2 GEN");
+  assert.equal(formatGenBalance(15n * 10n ** 17n), "1.5 GEN");
 });
