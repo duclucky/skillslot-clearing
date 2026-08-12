@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
@@ -40,92 +40,123 @@ const ready: WorkspaceSnapshot = {
   accountingInvariant: true,
 };
 
-describe("SkillSlot Clearing workspace", () => {
-  it("shows an honest unconfigured state and both top-level destinations", async () => {
-    render(<App adapter={createUnconfiguredAdapter()} />);
+describe("SkillSlot Clearing marketplace", () => {
+  it("provides permanent Rounds, Create round, and My activity destinations", async () => {
+    render(<App adapter={adapterFor(ready)} />);
 
-    expect(await screen.findByText("Contract not configured")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Clearing floor/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /My access & credits/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Connect wallet/i })).toBeDisabled();
+    expect(await screen.findByRole("button", { name: "Rounds" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Create round" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "My activity" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Create round" }));
+    expect(screen.getByRole("heading", { name: "Start a clearing round" })).toBeVisible();
   });
 
-  it("does not expose reviewer internals or invented market state", async () => {
-    const { container } = render(<App adapter={createUnconfiguredAdapter()} />);
+  it("keeps creation available when every canonical round is terminal", async () => {
+    const terminalAdapter = adapterFor({
+      ...ready,
+      rounds: [{ ...ready.rounds[0], id: "round-finished", title: "Completed allocation", phase: "CLEARED" }],
+    });
+    render(<App adapter={terminalAdapter} />);
 
-    await screen.findByText("Contract not configured");
-    expect(container).not.toHaveTextContent(/compatibility matrix/i);
-    expect(container).not.toHaveTextContent(/attempt id/i);
-    expect(container).not.toHaveTextContent(/sample round/i);
+    await screen.findByRole("button", { name: "History" });
+    fireEvent.click(screen.getByRole("button", { name: "Open round Completed allocation" }));
+    expect(screen.getByRole("heading", { name: "Completed allocation" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Create another round" })).toBeEnabled();
   });
 
-  it("connects a real wallet and reloads canonical state", async () => {
-    const disconnected = adapterFor({ ...ready, account: null });
-    render(<App adapter={disconnected} />);
+  it("filters all canonical rounds and opens their detail", async () => {
+    const adapter = adapterFor({
+      ...ready,
+      rounds: [
+        ready.rounds[0],
+        { ...ready.rounds[0], id: "round-2", title: "Locked allocation", phase: "LOCKED" },
+        { ...ready.rounds[0], id: "round-3", title: "Past allocation", phase: "CANCELLED" },
+      ],
+    });
+    render(<App adapter={adapter} />);
 
-    fireEvent.click(await screen.findByRole("button", { name: /Connect wallet/i }));
-
-    await waitFor(() => expect(disconnected.connectWallet).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(disconnected.loadWorkspace).toHaveBeenCalledTimes(2));
+    expect(await screen.findByRole("button", { name: "Open round Research access" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "In decision" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open round Locked allocation" }));
+    expect(screen.getByRole("heading", { name: "Locked allocation" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "History" }));
+    expect(screen.getByRole("button", { name: "Open round Past allocation" })).toBeVisible();
   });
 
-  it("exposes and executes every OPEN-round browser action", async () => {
+  it("opens a new round from the permanent creation destination and reloads canonical state", async () => {
+    const next = { ...ready, rounds: [{ ...ready.rounds[0], id: "round-2", title: "New research access" }] };
+    const adapter = adapterFor({ ...ready, rounds: [] });
+    vi.mocked(adapter.loadWorkspace).mockResolvedValueOnce({ ...ready, rounds: [] }).mockResolvedValue(next);
+    render(<App adapter={adapter} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Create round" }));
+    fireEvent.change(screen.getByLabelText("Round ID"), { target: { value: "round-2" } });
+    fireEvent.change(screen.getByLabelText("Round title"), { target: { value: "New research access" } });
+    fireEvent.click(screen.getByRole("button", { name: "Open round" }));
+
+    await waitFor(() => expect(adapter.openRound).toHaveBeenCalledWith({ roundId: "round-2", title: "New research access" }));
+    await waitFor(() => expect(adapter.loadWorkspace).toHaveBeenCalledTimes(2));
+    expect(await screen.findByRole("heading", { name: "New research access" })).toBeVisible();
+  });
+
+  it("executes provider, requester, and creator actions in an open round", async () => {
     const adapter = adapterFor(ready);
     render(<App adapter={adapter} />);
-    await screen.findByText("Research access");
+    const detail = await screen.findByRole("complementary", { name: "Research access" });
 
-    fireEvent.change(screen.getByLabelText("Offer ID"), { target: { value: "offer-2" } });
-    fireEvent.change(screen.getByLabelText("Offer label"), { target: { value: "Source finder" } });
-    fireEvent.change(screen.getByLabelText("Promise"), { target: { value: "Find primary sources" } });
-    fireEvent.change(screen.getByLabelText("Capability IDs"), { target: { value: "web" } });
-    fireEvent.click(screen.getByRole("button", { name: /Submit offer \/ 1 GEN/i }));
-
+    fireEvent.change(within(detail).getByLabelText("Offer ID"), { target: { value: "offer-2" } });
+    fireEvent.change(within(detail).getByLabelText("Offer label"), { target: { value: "Source finder" } });
+    fireEvent.change(within(detail).getByLabelText("Access promise"), { target: { value: "Find primary sources" } });
+    fireEvent.change(within(detail).getByLabelText("Capability IDs"), { target: { value: "web" } });
+    fireEvent.click(within(detail).getByRole("button", { name: /Submit offer for 1 GEN/i }));
     await waitFor(() => expect(adapter.submitOffer).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(screen.getByRole("button", { name: /Lock round/i })).toBeEnabled());
-    fireEvent.click(screen.getByRole("button", { name: /Lock round/i }));
+
+    fireEvent.click(within(detail).getByText("Request access"));
+    fireEvent.change(within(detail).getByLabelText("Request ID"), { target: { value: "request-2" } });
+    fireEvent.change(within(detail).getByLabelText("Request label"), { target: { value: "Need sources" } });
+    fireEvent.change(within(detail).getByLabelText("Access need"), { target: { value: "Find authoritative sources" } });
+    fireEvent.click(within(detail).getByRole("button", { name: /Submit request for 1 GEN/i }));
+    await waitFor(() => expect(adapter.submitRequest).toHaveBeenCalledTimes(1));
+
+    fireEvent.click(within(detail).getByRole("button", { name: "Lock round" }));
     await waitFor(() => expect(adapter.lockRound).toHaveBeenCalledWith("round-1"));
-    fireEvent.click(screen.getByRole("button", { name: /Cancel round/i }));
-    await waitFor(() => expect(adapter.cancelRound).toHaveBeenCalledWith("round-1"));
   });
 
-  it("supports clear/retry, grant consumption, and withdrawal", async () => {
+  it("supports clear, grant consumption, and withdrawal from canonical activity", async () => {
     const lockedAdapter = adapterFor({ ...ready, rounds: [{ ...ready.rounds[0], phase: "RETRYABLE" }] });
     const { unmount } = render(<App adapter={lockedAdapter} />);
-    fireEvent.click(await screen.findByRole("button", { name: /Retry semantic clearing/i }));
+    fireEvent.click(await screen.findByRole("button", { name: "Retry semantic clearing" }));
     await waitFor(() => expect(lockedAdapter.clearRound).toHaveBeenCalledWith("round-1"));
     unmount();
 
-    const clearedAdapter = adapterFor({
+    const activityAdapter = adapterFor({
       ...ready,
       rounds: [{ ...ready.rounds[0], phase: "CLEARED" }],
       creditGen: "1",
       positions: [{ id: "round-1:request-1", roundId: "round-1", requestId: "request-1", kind: "grant", status: "ACTIVE", summary: "Route to offer-1" }],
     });
-    render(<App adapter={clearedAdapter} />);
-    fireEvent.click(await screen.findByRole("button", { name: /My access & credits/i }));
-    fireEvent.click(screen.getByRole("button", { name: /Consume grant/i }));
-    await waitFor(() => expect(clearedAdapter.consumeGrant).toHaveBeenCalled());
-    fireEvent.click(screen.getByRole("button", { name: /Withdraw 1 GEN/i }));
-    await waitFor(() => expect(clearedAdapter.withdrawCredit).toHaveBeenCalledWith("1000000000000000000"));
+    render(<App adapter={activityAdapter} />);
+    fireEvent.click(await screen.findByRole("button", { name: "My activity" }));
+    fireEvent.click(screen.getByRole("button", { name: "Consume grant" }));
+    await waitFor(() => expect(activityAdapter.consumeGrant).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole("button", { name: "Withdraw 1 GEN" }));
+    await waitFor(() => expect(activityAdapter.withdrawCredit).toHaveBeenCalledWith("1000000000000000000"));
   });
 
-  it("opens the first round and submits a requester need through browser controls", async () => {
-    const emptyAdapter = adapterFor({ ...ready, rounds: [] });
-    const { unmount } = render(<App adapter={emptyAdapter} />);
-    fireEvent.change(await screen.findByLabelText("Round ID"), { target: { value: "round-2" } });
-    fireEvent.change(screen.getByLabelText("Round title"), { target: { value: "New research access" } });
-    fireEvent.click(screen.getByRole("button", { name: "Open round" }));
-    await waitFor(() => expect(emptyAdapter.openRound).toHaveBeenCalledWith({ roundId: "round-2", title: "New research access" }));
-    unmount();
+  it("shows honest unconfigured state without reviewer internals or invented market state", async () => {
+    const { container } = render(<App adapter={createUnconfiguredAdapter()} />);
 
-    const requestAdapter = adapterFor(ready);
-    render(<App adapter={requestAdapter} />);
-    fireEvent.click(await screen.findByText("Submit requester need"));
-    fireEvent.change(screen.getByLabelText("Request ID"), { target: { value: "request-2" } });
-    fireEvent.change(screen.getByLabelText("Request label"), { target: { value: "Need sources" } });
-    fireEvent.change(screen.getByLabelText("Need"), { target: { value: "Find primary sources" } });
-    fireEvent.change(screen.getByLabelText("Required IDs"), { target: { value: "web" } });
-    fireEvent.click(screen.getByRole("button", { name: /Submit request \/ 1 GEN/i }));
-    await waitFor(() => expect(requestAdapter.submitRequest).toHaveBeenCalledTimes(1));
+    expect(await screen.findByText("Contract not configured")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Connect wallet" })).toBeDisabled();
+    expect(container).not.toHaveTextContent(/compatibility matrix|attempt id|sample round/i);
+  });
+
+  it("connects a real wallet adapter and reloads canonical state", async () => {
+    const disconnected = adapterFor({ ...ready, account: null });
+    render(<App adapter={disconnected} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Connect wallet" }));
+    await waitFor(() => expect(disconnected.connectWallet).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(disconnected.loadWorkspace).toHaveBeenCalledTimes(2));
   });
 });
