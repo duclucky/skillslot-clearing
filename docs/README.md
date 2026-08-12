@@ -509,10 +509,12 @@ be finalized in Phase 4 before source code.
 - Completed: registry collision analysis, official-source landscape, pinned A2A
   source fetch, semantic separability probe, product/UX brief, offline design
   engine and anti-default override, typed frontend boundary, 7-test baseline,
-  production frontend build, desktop/mobile visual inspection, and this locked
-  contract specification.
-- Pending: contract source, contract/static/direct/deployment tests, Studionet
-  smoke/lifecycle, browser-wallet evidence, public GitHub, CI, Vercel, Portal
+  production frontend build, desktop/mobile visual inspection, this locked
+  contract specification, the one-contract 8-write/8-view schema, direct/static
+  suites, safe receipt parser, resumable Studionet command surface, and local
+  accounting/recovery/validator replay coverage.
+- Pending: bounded Studionet smoke/lifecycle, real frontend adapter and wallet
+  lifecycle, browser-wallet evidence, public GitHub, CI, Vercel, Portal
   submission, and external adoption.
 
 ## Kill criteria

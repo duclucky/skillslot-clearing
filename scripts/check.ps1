@@ -56,6 +56,13 @@ if ($Only -eq "" -or $Only -eq "direct") {
   Assert-LastExitCode "Direct contract tests"
 }
 
+if ($Only -eq "" -or $Only -eq "deployment") {
+  & $Python -m pytest tests/test_deployment_receipts.py -v
+  Assert-LastExitCode "Deployment receipt parser tests"
+  node --test tests/deployment_script.test.mjs
+  Assert-LastExitCode "Deployment script tests"
+}
+
 if ($Only -eq "") {
   npm --prefix frontend run test
   Assert-LastExitCode "Frontend tests"

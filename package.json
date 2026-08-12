@@ -9,8 +9,12 @@
     "lint:contracts": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1 -Only lint",
     "test:static": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1 -Only static",
     "test:direct": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1 -Only direct",
+    "test:deployment": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1 -Only deployment",
     "test:frontend": "npm --prefix frontend run test",
     "build:frontend": "npm --prefix frontend run build",
+    "deploy:studionet": "node scripts/deploy_studionet.mjs deploy",
+    "demo:studionet": "node scripts/deploy_studionet.mjs demo",
+    "inspect:studionet": "node scripts/deploy_studionet.mjs inspect",
     "check": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1"
   },
   "dependencies": {
