@@ -21,7 +21,7 @@ Character count: 689
 - Consumer/integration explorer: N/A — one contract owns the complete trust boundary
 - Lifecycle evidence: https://github.com/duclucky/skillslot-clearing/blob/main/docs/evidence/studionet/deployment.json
 - Browser-wallet evidence: https://github.com/duclucky/skillslot-clearing/blob/main/docs/evidence/studionet/browser-lifecycle.json
-- Successful CI: PENDING_AFTER_REMEDIATION_PUSH
+- Successful CI: https://github.com/duclucky/skillslot-clearing/actions/runs/31883024625
 - Demo/frontend: https://skillslot-clearing.vercel.app
 
 ## Verified facts
