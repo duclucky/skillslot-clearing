@@ -12,6 +12,7 @@ const baseRound: RoundView = {
   requestCount: 1,
   feeGen: "1",
   providerBondGen: "1",
+  expired: false,
 };
 
 describe("default round selection", () => {

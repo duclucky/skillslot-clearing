@@ -12,12 +12,19 @@ const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const SCRIPT_DIR = path.dirname(SCRIPT_PATH);
 const ROOT_DIR = path.resolve(SCRIPT_DIR, "..");
 const CONTRACT_PATH = path.join(ROOT_DIR, "contracts", "skill_slot_clearing.py");
+const FRONTEND_PUBLIC_AGENTS_DIR = path.join(ROOT_DIR, "frontend", "public", "agents");
 const EVIDENCE_DIR = path.join(ROOT_DIR, "docs", "evidence", "studionet");
 const EVIDENCE_PATH = path.join(EVIDENCE_DIR, "deployment.json");
 const ARCHIVE_DIR = path.join(EVIDENCE_DIR, "archive");
 const EXPLORER_URL = "https://explorer-studio.genlayer.com";
+const METADATA_PUBLIC_BASE_URL = "https://skillslot-clearing.vercel.app/agents/";
 const DEFAULT_RPC_URL = studionet.rpcUrls.default.http[0];
 const ONE_GEN = 10n ** 18n;
+const DEFAULT_OPEN_TIMEOUT_SECONDS = 3600n;
+const DEFAULT_CLEAR_TIMEOUT_SECONDS = 7200n;
+const METADATA_POLICY_VERSION = "skillslot-agent-metadata-v1";
+const METADATA_ISSUER = "SkillSlotAgentRegistry";
+const METADATA_EXPIRES_AT = 1_800_000_000;
 const TERMINAL_FAILURES = new Set(["UNDETERMINED", "CANCELED", "LEADER_TIMEOUT", "VALIDATORS_TIMEOUT"]);
 const PRIMARY_KEYS = ["STUDIONET_PRIVATE_KEY", "GENLAYER_PRIVATE_KEY", "PRIVATE_KEY"];
 const REQUESTER_KEYS = ["STUDIONET_INTEGRATOR_PRIVATE_KEY", "STUDIONET_REQUESTER_PRIVATE_KEY"];
@@ -132,6 +139,10 @@ function jsonSafe(value) {
 
 function sha256File(filePath) {
   return createHash("sha256").update(readFileSync(filePath)).digest("hex");
+}
+
+function sha256Text(value) {
+  return createHash("sha256").update(value, "utf8").digest("hex");
 }
 
 function git(args) {
@@ -309,6 +320,8 @@ async function deploy(env) {
     identity,
     actors: { creatorProvider: signer.account.address },
     deployment: sanitizeEvidence({ transactionHash: hash, status: "SUBMITTED", submittedAt: new Date().toISOString() }),
+    demo: null,
+    balanceProof: null,
     status: "DEPLOY_SUBMITTED",
   });
   console.log(JSON.stringify({ action: "deploy", status: "SUBMITTED", transactionHash: hash }));
@@ -319,6 +332,8 @@ async function deploy(env) {
     identity,
     actors: { creatorProvider: signer.account.address },
     deployment: { ...record, contractAddress: address },
+    demo: null,
+    balanceProof: null,
     status: "DEPLOYED",
   });
   console.log(JSON.stringify({ action: "deploy", status: "FINALIZED", contractAddress: address }));
@@ -341,6 +356,80 @@ function ensureDemo(evidence, primary, requester) {
     transactions: {},
     status: "STARTED",
   };
+}
+
+function canonicalMetadataBody({ agentId, provider, capabilityIdsCsv, deliverySource, expiresAt = METADATA_EXPIRES_AT }) {
+  return JSON.stringify({
+    agent_id: agentId,
+    capability_ids_csv: capabilityIdsCsv,
+    delivery_source: deliverySource,
+    expires_at: expiresAt,
+    issuer: METADATA_ISSUER,
+    policy_version: METADATA_POLICY_VERSION,
+    provider,
+  });
+}
+
+function writeAgentMetadata({ agentId, provider, capabilityIdsCsv, deliverySource, expiresAt = METADATA_EXPIRES_AT }) {
+  if (!/^[a-z0-9][a-z0-9-]{2,79}$/.test(agentId)) throw new Error(`Invalid public metadata agent id: ${agentId}`);
+  mkdirSync(FRONTEND_PUBLIC_AGENTS_DIR, { recursive: true });
+  const body = canonicalMetadataBody({ agentId, provider, capabilityIdsCsv, deliverySource, expiresAt });
+  const metadataHash = sha256Text(body);
+  writeFileSync(path.join(FRONTEND_PUBLIC_AGENTS_DIR, `${agentId}.json`), body, "utf8");
+  return {
+    agentId,
+    metadataUri: `${METADATA_PUBLIC_BASE_URL}${agentId}.json`,
+    metadataHash,
+    metadataIssuer: METADATA_ISSUER,
+    metadataSignature: `${METADATA_ISSUER}:v1:${metadataHash}`,
+    metadataExpiresAt: expiresAt,
+  };
+}
+
+function demoOfferMetadata(primary) {
+  return writeAgentMetadata({
+    agentId: "studionet-flight-agent",
+    provider: primary.account.address,
+    capabilityIdsCsv: "FLIGHT.BOOK,CALENDAR.WRITE",
+    deliverySource: "a2a://studionet-flight-agent/route",
+  });
+}
+
+function balanceProofMetadata(primary) {
+  return writeAgentMetadata({
+    agentId: "studionet-diagnostic-agent",
+    provider: primary.account.address,
+    capabilityIdsCsv: "DIAGNOSTIC.ACCESS",
+    deliverySource: "a2a://studionet-diagnostic-agent/route",
+  });
+}
+
+function prepareMetadata(env) {
+  const primary = signingClient(env, PRIMARY_KEYS);
+  const flight = demoOfferMetadata(primary);
+  const diagnostic = balanceProofMetadata(primary);
+  mergeEvidence({
+    metadataRegistry: {
+      baseUrl: METADATA_PUBLIC_BASE_URL,
+      issuer: METADATA_ISSUER,
+      policyVersion: METADATA_POLICY_VERSION,
+      agents: [
+        {
+          agentId: flight.agentId,
+          metadataUri: flight.metadataUri,
+          metadataHash: flight.metadataHash,
+          metadataExpiresAt: flight.metadataExpiresAt,
+        },
+        {
+          agentId: diagnostic.agentId,
+          metadataUri: diagnostic.metadataUri,
+          metadataHash: diagnostic.metadataHash,
+          metadataExpiresAt: diagnostic.metadataExpiresAt,
+        },
+      ],
+    },
+  });
+  console.log(JSON.stringify({ action: "metadata", status: "WRITTEN", count: 2, baseUrl: METADATA_PUBLIC_BASE_URL }));
 }
 
 async function runStep(env, step) {
@@ -367,17 +456,37 @@ async function runStep(env, step) {
         primary.client,
         address,
         "open_round",
-        [demo.roundId, "Studionet agent access window", ONE_GEN, ONE_GEN],
+        [demo.roundId, "Studionet agent access window", ONE_GEN, ONE_GEN, DEFAULT_OPEN_TIMEOUT_SECONDS, DEFAULT_CLEAR_TIMEOUT_SECONDS],
       );
     }
   } else if (step === "submit-demo-positions") {
     const offer = await readView(primary.client, address, "get_offer", [demo.roundId, "offer-flight"]);
     if (!offer?.offer_id) {
+      const metadata = demoOfferMetadata(primary);
+      demo.offerMetadata = {
+        agentId: metadata.agentId,
+        metadataUri: metadata.metadataUri,
+        metadataHash: metadata.metadataHash,
+        metadataIssuer: metadata.metadataIssuer,
+        metadataExpiresAt: metadata.metadataExpiresAt,
+      };
       demo.transactions.submitOffer = await writeContractFinalized(
         primary.client,
         address,
         "submit_offer",
-        [demo.roundId, "offer-flight", "Flight scheduling agent", "Books air tickets and writes confirmed itineraries to a calendar.", "FLIGHT.BOOK,CALENDAR.WRITE"],
+        [
+          demo.roundId,
+          "offer-flight",
+          "Flight scheduling agent",
+          "Books air tickets and writes confirmed itineraries to a calendar.",
+          "FLIGHT.BOOK,CALENDAR.WRITE",
+          metadata.agentId,
+          metadata.metadataUri,
+          metadata.metadataHash,
+          metadata.metadataIssuer,
+          metadata.metadataSignature,
+          metadata.metadataExpiresAt,
+        ],
         ONE_GEN,
       );
     }
@@ -482,7 +591,7 @@ async function balanceProof(env) {
       primary.client,
       address,
       "open_round",
-      [proof.roundId, "Balance recovery proof", ONE_GEN, ONE_GEN],
+      [proof.roundId, "Balance recovery proof", ONE_GEN, ONE_GEN, DEFAULT_OPEN_TIMEOUT_SECONDS, DEFAULT_CLEAR_TIMEOUT_SECONDS],
     );
     persist();
     round = await readView(primary.client, address, "get_round", [proof.roundId]);
@@ -490,11 +599,31 @@ async function balanceProof(env) {
 
   const offer = await readView(primary.client, address, "get_offer", [proof.roundId, "offer-refund"]);
   if (!offer?.offer_id && round?.phase === "OPEN") {
+    const metadata = balanceProofMetadata(primary);
+    proof.offerMetadata = {
+      agentId: metadata.agentId,
+      metadataUri: metadata.metadataUri,
+      metadataHash: metadata.metadataHash,
+      metadataIssuer: metadata.metadataIssuer,
+      metadataExpiresAt: metadata.metadataExpiresAt,
+    };
     proof.transactions.submitOffer = await writeContractFinalized(
       primary.client,
       address,
       "submit_offer",
-      [proof.roundId, "offer-refund", "Refund proof agent", "Provides one bounded diagnostic access slot.", "DIAGNOSTIC.ACCESS"],
+      [
+        proof.roundId,
+        "offer-refund",
+        "Refund proof agent",
+        "Provides one bounded diagnostic access slot.",
+        "DIAGNOSTIC.ACCESS",
+        metadata.agentId,
+        metadata.metadataUri,
+        metadata.metadataHash,
+        metadata.metadataIssuer,
+        metadata.metadataSignature,
+        metadata.metadataExpiresAt,
+      ],
       ONE_GEN,
     );
     persist();
@@ -553,6 +682,7 @@ async function main() {
   const env = loadEnvironment();
   const command = process.argv[2] ?? "inspect";
   if (command === "inspect") await inspect(env);
+  else if (command === "metadata") prepareMetadata(env);
   else if (command === "deploy") await deploy(env);
   else if (command === "demo") await demo(env);
   else if (command === "balance-proof") await balanceProof(env);

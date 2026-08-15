@@ -6,6 +6,23 @@ import type { ContractAdapter } from "./domain";
 const address = "0x00000000000000000000000000000000000000aa" as const;
 const account = "0x00000000000000000000000000000000000000bb" as const;
 
+function offerInput(overrides = {}) {
+  return {
+    roundId: "round-1",
+    offerId: "offer-2",
+    label: "Agent",
+    promise: "Find sources",
+    capabilityIds: "web",
+    agentId: "agent-2",
+    metadataUri: "https://skillslot-clearing.vercel.app/agents/agent-2",
+    metadataHash: "a".repeat(64),
+    metadataIssuer: "SkillSlotAgentRegistry",
+    metadataSignature: `SkillSlotAgentRegistry:v1:${"a".repeat(64)}`,
+    metadataExpiresAt: "1800000000",
+    ...overrides,
+  };
+}
+
 function clients() {
   const readContract = vi.fn(async ({ functionName, args }: { functionName: string; args?: unknown[] }) => {
     if (functionName === "get_round_ids") return ["round-1"];
@@ -17,6 +34,7 @@ function clients() {
         phase: "CLEARED",
         booking_fee_wei: ONE_GEN_WEI.toString(),
         provider_bond_wei: ONE_GEN_WEI.toString(),
+        expired: false,
         offer_ids_csv: "offer-1",
         request_ids_csv: "request-1",
         offer_count: "1",
@@ -109,6 +127,7 @@ describe("GenLayer contract adapter", () => {
           phase: id === "round-open" ? "OPEN" : id === "round-cleared" ? "CLEARED" : "CANCELLED",
           booking_fee_wei: ONE_GEN_WEI.toString(),
           provider_bond_wei: ONE_GEN_WEI.toString(),
+          expired: false,
           offer_ids_csv: id === "round-cancelled" ? "" : `offer-${id}`,
           request_ids_csv: id === "round-cleared" ? `request-${id}` : "",
           offer_count: id === "round-cancelled" ? "0" : "1",
@@ -142,7 +161,7 @@ describe("GenLayer contract adapter", () => {
     ]);
   });
 
-  it("maps all eight writes, exact GEN value, and submitted/accepted/finalized progress", async () => {
+  it("maps all nine writes, exact GEN value, and submitted/accepted/finalized progress", async () => {
     const { readClient, writeClient } = clients();
     const progress = vi.fn();
     const adapter = createGenLayerAdapter({
@@ -153,15 +172,37 @@ describe("GenLayer contract adapter", () => {
     });
 
     await adapter.openRound({ roundId: "round-2", title: "New round" });
-    await adapter.submitOffer({ roundId: "round-1", offerId: "offer-2", label: "Agent", promise: "Find sources", capabilityIds: "web" });
+    await adapter.submitOffer(offerInput());
     await adapter.submitRequest({ roundId: "round-1", requestId: "request-2", label: "Need", need: "Find sources", requiredIds: "web", excludedIds: "" });
     await adapter.lockRound("round-1");
     await adapter.clearRound("round-1");
     await adapter.cancelRound("round-1");
+    await adapter.recoverExpiredRound("round-1");
     await adapter.consumeGrant({ roundId: "round-1", requestId: "request-1" });
     await adapter.withdrawCredit(ONE_GEN_WEI.toString());
 
-    expect(writeClient.writeContract).toHaveBeenCalledTimes(8);
+    expect(writeClient.writeContract).toHaveBeenCalledTimes(9);
+    expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({
+      functionName: "open_round",
+      args: ["round-2", "New round", ONE_GEN_WEI, ONE_GEN_WEI, 3600n, 7200n],
+    }));
+    expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({
+      functionName: "submit_offer",
+      args: [
+        "round-1",
+        "offer-2",
+        "Agent",
+        "Find sources",
+        "web",
+        "agent-2",
+        "https://skillslot-clearing.vercel.app/agents/agent-2",
+        "a".repeat(64),
+        "SkillSlotAgentRegistry",
+        `SkillSlotAgentRegistry:v1:${"a".repeat(64)}`,
+        1800000000n,
+      ],
+      value: ONE_GEN_WEI,
+    }));
     expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "submit_offer", value: ONE_GEN_WEI }));
     expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "submit_request", value: ONE_GEN_WEI }));
     expect(progress.mock.calls.slice(0, 4).map(([event]) => event.stage)).toEqual([
@@ -213,11 +254,12 @@ describe("GenLayer contract adapter", () => {
 
   it.each([
     ["open_round", (adapter: ContractAdapter) => adapter.openRound({ roundId: "round-2", title: "Round" })],
-    ["submit_offer", (adapter: ContractAdapter) => adapter.submitOffer({ roundId: "round-1", offerId: "offer-2", label: "Agent", promise: "Find sources", capabilityIds: "web" })],
+    ["submit_offer", (adapter: ContractAdapter) => adapter.submitOffer(offerInput())],
     ["submit_request", (adapter: ContractAdapter) => adapter.submitRequest({ roundId: "round-1", requestId: "request-2", label: "Need", need: "Find sources", requiredIds: "web", excludedIds: "" })],
     ["lock_round", (adapter: ContractAdapter) => adapter.lockRound("round-1")],
     ["clear_round", (adapter: ContractAdapter) => adapter.clearRound("round-1")],
     ["cancel_round", (adapter: ContractAdapter) => adapter.cancelRound("round-1")],
+    ["recover_expired_round", (adapter: ContractAdapter) => adapter.recoverExpiredRound("round-1")],
     ["consume_grant", (adapter: ContractAdapter) => adapter.consumeGrant({ roundId: "round-1", requestId: "request-1" })],
     ["withdraw_credit", (adapter: ContractAdapter) => adapter.withdrawCredit(ONE_GEN_WEI.toString())],
   ])("routes %s through the shared cancellation policy", async (functionName, invoke) => {

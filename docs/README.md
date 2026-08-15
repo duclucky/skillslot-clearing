@@ -52,7 +52,7 @@ resolution are explicitly outside v1.
 | Replacement | PASS | Removing GenLayer restores a privileged marketplace's semantic matching decision. |
 | Judgment | PASS | Required/excluded natural-language capability meaning cannot be reduced to deterministic tags alone. |
 | Evidence availability | PASS | Consensus input is bounded canonical order state; official A2A examples were fetched at a pinned commit. |
-| Evidence authenticity | PASS | Wallet transactions authenticate actors' own promises/needs; external performance claims cannot trigger v1 consequences. |
+| Evidence authenticity | PASS | Provider fee release requires an authorized metadata URI, body hash, issuer proof, provider binding, capability match, and unexpired metadata before semantic clearing can use the offer. |
 | Equivalence | PASS | Exact pair decisions, bounded fact IDs, coverage, and compatible edge set are critical; prose is not. |
 | Consequence | PASS | Accepted edges directly assign scarce access and booking credits. |
 | Adversarial | PASS | Competing providers/requesters benefit from biased compatibility edges. |
@@ -130,11 +130,12 @@ creator-only lifecycle controls remain contextual to the selected round.
 | --- | --- | --- | --- | --- | --- | --- |
 | Connect wallet | injected-provider discovery and Studionet switch | Any visitor | Any | No value | Connected network/account | Honest missing-wallet/network error |
 | Open round | `open_round` | Creator | No active round | bounded title and terms; no value | Finalized then canonical round reload | Retry transaction; no local success state |
-| Offer a slot | `submit_offer` | Provider | `OPEN` | bounded promise/requirements; 1 GEN bond | Finalized then own offer reload | Failed write leaves form recoverable |
+| Offer a slot | `submit_offer` | Provider | `OPEN` before open deadline | bounded promise, capability IDs, authenticated metadata fields; 1 GEN bond | Finalized then own offer reload | Failed write leaves form recoverable |
 | Request access | `submit_request` | Requester | `OPEN` | bounded need/exclusions; 1 GEN booking fee | Finalized then own request reload | Failed write leaves form recoverable |
 | Lock round | `lock_round` | Creator | `OPEN` with both sides | No value | Finalized `LOCKED` reload | Show unmet precondition or failed tx |
 | Clear matches | `clear_round` | Creator | `LOCKED` or `RETRYABLE` | No value | Submitted -> accepted/decided -> finalized -> canonical reload | `UNVERIFIABLE` exposes retry; undetermined/failed changes no state |
 | Cancel safely | `cancel_round` | Creator | Safe `OPEN` only | No value | Finalized cancellation and credits reload | Duplicate/unsafe cancel blocked |
+| Recover expired round | `recover_expired_round` | Any wallet | expired `OPEN`, `LOCKED`, or `RETRYABLE` | No value | Finalized refund-only cancellation and credits reload | Before-deadline, cleared, and duplicate recovery blocked/no-op |
 | Use one-time access | `consume_grant` | Matched requester | Active grant | No value | Finalized `CONSUMED` reload | Duplicate/wrong-wallet use blocked |
 | Withdraw credit | `withdraw_credit` | Credited actor | Credit > 0 | No value | Finalized child transfer plus credit/balance reload | Debit-first; failed transfer evidence remains honest |
 
@@ -145,7 +146,7 @@ creator-only lifecycle controls remain contextual to the selected round.
 | `OPEN` | Accepting offers and requests | Submit one position or wait for lock |
 | `LOCKED` | Ready to match | Creator can ask validators to clear the round |
 | `CLEARING` | Validators are matching | Wait; no access or payout is claimed yet |
-| `RETRYABLE` | Matching needs another attempt | Creator can retry; all funds remain protected |
+| `RETRYABLE` | Matching needs another attempt | Creator can retry before deadline; anyone can recover after deadline |
 | `CLEARED` | Matches finalized | Use a matched access grant or withdraw credit |
 | `CANCELLED` | Round cancelled safely | Withdraw the credited refund |
 | `ACTIVE` grant | Access ready | Use the one-time route right |
@@ -178,6 +179,7 @@ round and are never reused after cancellation or clearing.
 | `title`, `label` | trim outer whitespace; 3-120 characters | empty after trim, control characters, over bound |
 | `promise_text`, `need_text` | trim outer whitespace; 1-600 characters | empty, control characters, over bound |
 | fact-ID CSV | zero or more unique safe IDs; max 600 characters; canonical comma join | empty token, duplicate, unsafe token, over bound |
+| agent metadata | authorized registry URI, SHA-256 body hash, issuer, issuer proof, expiry, and agent ID | bad URI, bad hash, bad issuer/proof, provider mismatch, capability mismatch, expired metadata |
 | fee and bond | exactly `10**18` base units, displayed as `1 GEN` | any other configured amount or received value |
 | round cardinality | at most four offers and four requests | fifth position on either side |
 
@@ -195,8 +197,8 @@ stable forms:
 
 | Record/index | Key | Canonical fields |
 | --- | --- | --- |
-| `rounds` | `round_id` | creator, title, phase, fee/bond, insertion-order ID CSVs, counts, attempts, match count, round liability |
-| `offers` | `round_id|offer_id` | provider, label, promise, capability IDs, deposit, matched request, active flag |
+| `rounds` | `round_id` | creator, title, phase, fee/bond, open/clear deadlines, insertion-order ID CSVs, counts, attempts, match count, round liability |
+| `offers` | `round_id|offer_id` | provider, label, promise, capability IDs, authenticated metadata fields, deposit, matched request, active flag |
 | `requests` | `round_id|request_id` | requester, label, need, required IDs, excluded IDs, deposit, matched offer, outcome |
 | `matches` | `round_id|request_id` | offer/request IDs, provider/requester, grant status |
 | `offer_by_actor` | `round_id|offer-actor|address` | offer ID for one-offer-per-wallet enforcement |
@@ -219,12 +221,13 @@ locked liability so cancellation/clearing can prove it reached zero.
 ### Writes
 
 ```text
-open_round(round_id, title, booking_fee_wei, provider_bond_wei)
-submit_offer(round_id, offer_id, label, promise_text, capability_ids_csv) payable
+open_round(round_id, title, booking_fee_wei, provider_bond_wei, open_timeout_seconds, clear_timeout_seconds)
+submit_offer(round_id, offer_id, label, promise_text, capability_ids_csv, agent_id, metadata_uri, metadata_hash, metadata_issuer, metadata_signature, metadata_expires_at) payable
 submit_request(round_id, request_id, label, need_text, required_ids_csv, excluded_ids_csv) payable
 lock_round(round_id)
 clear_round(round_id) -> normalized clearing result
 cancel_round(round_id)
+recover_expired_round(round_id)
 consume_grant(round_id, request_id)
 withdraw_credit(amount_wei)
 ```
@@ -237,8 +240,8 @@ value through metadata/runtime semantics and static metadata tests.
 
 | View | Inputs | Returned canonical data |
 | --- | --- | --- |
-| `get_round` | `round_id` | phase, creator, terms, counts, attempt/match totals, bounded ID order, round liability |
-| `get_offer` | `round_id`, `offer_id` | immutable offer plus matched request or empty result |
+| `get_round` | `round_id` | phase, creator, terms, deadlines, expiry status, counts, attempt/match totals, bounded ID order, round liability |
+| `get_offer` | `round_id`, `offer_id` | immutable offer, authenticated metadata fields, matched request or empty result |
 | `get_request` | `round_id`, `request_id` | immutable request plus outcome/matched offer |
 | `get_match` | `round_id`, `request_id` | match actors/IDs and `ACTIVE`/`CONSUMED`, or empty result |
 | `can_route` | `round_id`, `request_id`, `requester` | true only for the matched requester while its grant is `ACTIVE` |
@@ -257,18 +260,25 @@ serialized values over RPC. Absence is explicit and never filled with demo data.
 missing --open_round--> OPEN
 OPEN --lock_round--> LOCKED
 OPEN --cancel_round--> CANCELLED
+OPEN --recover_expired_round after open_deadline--> CANCELLED
 LOCKED --clear_round/internal--> CLEARING --consensus CLEARABLE--> CLEARED
 LOCKED --clear_round/internal--> CLEARING --consensus UNVERIFIABLE--> RETRYABLE
+LOCKED --recover_expired_round after clear_deadline--> CANCELLED
 RETRYABLE --clear_round/internal--> CLEARING --consensus CLEARABLE--> CLEARED
 RETRYABLE --clear_round/internal--> CLEARING --consensus UNVERIFIABLE--> RETRYABLE
+RETRYABLE --recover_expired_round after clear_deadline--> CANCELLED
 ```
 
 `CLEARED` and `CANCELLED` are terminal. `CLEARING` is written only inside the
 atomic clearing transaction; an aborted/undetermined transaction exposes no
 accepted consequence. Offers and requests are legal only in `OPEN`. Locking
-requires at least one offer and one request. Cancellation from `LOCKED`,
+requires at least one offer and one request. `submit_offer`, `submit_request`,
+and `lock_round` enforce `now < open_deadline`; `clear_round` enforces
+`now < clear_deadline`. Cancellation from `LOCKED`,
 `CLEARING`, `RETRYABLE`, or `CLEARED` is forbidden. Repeating creator-owned
 `cancel_round` on `CANCELLED` is the single documented idempotent no-op.
+Repeating `recover_expired_round` on `CANCELLED` is also a no-op after funds
+have already been credited once.
 
 ### Request outcome and grant
 
@@ -284,10 +294,14 @@ right; it does not assert a task was delivered and moves no funds.
 
 ## Consensus task and normalized schema
 
-`clear_round` pre-reads the locked round and all bounded positions before
+`submit_offer` first fetches the provider metadata from an authorized registry
+URI, verifies the SHA-256 body hash, issuer proof, provider address,
+capability IDs, policy version, delivery source, and expiry, and stores only an
+authenticated offer. `clear_round` pre-reads the locked round and all bounded positions before
 entering nondeterminism. The no-argument leader function sends that immutable
 snapshot to `gl.nondet.exec_prompt(..., response_format="json")`. No other write
-or view invokes nondeterminism.
+or view invokes semantic adjudication; metadata verification uses its own
+bounded nondeterministic fetch and validator replay.
 
 The leader must return exactly this critical shape:
 
@@ -341,6 +355,7 @@ in v1. Validator prose and response ordering cannot affect the result.
 | `CLEARABLE`, every submitted offer | credit its provider the 1 GEN provider-bond refund, matched or not |
 | completed `CLEARABLE` round | set all order outcomes, set round liability to zero, record match count, set `CLEARED` |
 | `UNVERIFIABLE` | set `RETRYABLE`; no money/right consequence |
+| expired `OPEN`/`LOCKED`/`RETRYABLE` | any caller can credit each locked deposit back to its original actor and set `CANCELLED`; no provider fee is released |
 | failed, rejected, or undetermined transaction | no accepted canonical change; frontend offers transaction recovery |
 
 ## Accounting invariant
@@ -360,7 +375,7 @@ total_received_wei
   transfer. A transfer failure reverts the whole transaction.
 - `open_round`, `lock_round`, `clear_round` returning `UNVERIFIABLE`, and
   `consume_grant` move no value.
-- No match, retry, duplicate cancellation, duplicate consumption, or duplicate
+- No match, retry, timeout recovery, duplicate cancellation, duplicate consumption, or duplicate
   withdrawal can double-credit, double-withdraw, or double-settle.
 
 `get_accounting` exposes totals and the equality result. Direct tests assert the
@@ -371,12 +386,13 @@ surfaces convert base units to GEN and use only small whole-GEN demo values.
 
 | Write | Caller authorization | Allowed state / forbidden state | Idempotency | Value/accounting effect | Canonical views affected | Required negative tests |
 | --- | --- | --- | --- | --- | --- | --- |
-| `open_round` | any wallet becomes immutable creator | missing ID only; forbidden if ID ever exists | duplicate always rejects | non-payable; totals unchanged | `get_round`, `get_round_ids`, `get_accounting` | duplicate ID, bad ID/title/amount, nonzero value, round isolation |
-| `submit_offer` | any wallet with no offer in round | `OPEN`; forbidden in all later/terminal phases | duplicate actor or ID rejects | receive and lock exactly 1 GEN | `get_round`, `get_offer`, `get_accounting` | wrong value, duplicate actor/ID, fifth offer, wrong state, finalized/cancelled, invariant |
-| `submit_request` | any wallet with no request in round | `OPEN`; forbidden in all later/terminal phases | duplicate actor or ID rejects | receive and lock exactly 1 GEN | `get_round`, `get_request`, `get_accounting` | wrong value, duplicate actor/ID, fifth request, wrong state, finalized/cancelled, invariant |
-| `lock_round` | round creator only | `OPEN` with both sides; forbidden elsewhere | duplicate lock rejects | non-payable; totals unchanged | `get_round` | wrong caller, empty side, wrong state, duplicate, cancelled/finalized, invariant unchanged |
-| `clear_round` | round creator only | `LOCKED` or `RETRYABLE`; forbidden elsewhere | only `RETRYABLE` creates a new bounded attempt | `CLEARABLE` moves all liability to credits; `UNVERIFIABLE` moves none | all round/order/match/credit/accounting views | wrong caller/state, duplicate after clear, malformed/malicious/contradictory output, retry, terminal state, exact credits/invariant |
+| `open_round` | any wallet becomes immutable creator | missing ID only; forbidden if ID ever exists | duplicate always rejects | non-payable; totals unchanged | `get_round`, `get_round_ids`, `get_accounting` | duplicate ID, bad ID/title/amount/timeouts, nonzero value, round isolation |
+| `submit_offer` | any wallet with no offer in round and authenticated metadata | `OPEN` before deadline; forbidden in all later/terminal phases | duplicate actor or ID rejects | receive and lock exactly 1 GEN | `get_round`, `get_offer`, `get_accounting` | wrong value, bad issuer/proof/hash, provider/capability/expiry mismatch, duplicate actor/ID, fifth offer, wrong state, finalized/cancelled, invariant |
+| `submit_request` | any wallet with no request in round | `OPEN` before deadline; forbidden in all later/terminal phases | duplicate actor or ID rejects | receive and lock exactly 1 GEN | `get_round`, `get_request`, `get_accounting` | wrong value, duplicate actor/ID, fifth request, wrong state, finalized/cancelled, invariant |
+| `lock_round` | round creator only | `OPEN` with both sides before deadline; forbidden elsewhere | duplicate lock rejects | non-payable; totals unchanged | `get_round` | wrong caller, empty side, wrong state, expired, duplicate, cancelled/finalized, invariant unchanged |
+| `clear_round` | round creator only | `LOCKED` or `RETRYABLE` before clear deadline; forbidden elsewhere | only `RETRYABLE` creates a new bounded attempt | `CLEARABLE` moves all liability to credits; `UNVERIFIABLE` moves none | all round/order/match/credit/accounting views | wrong caller/state, expired, duplicate after clear, malformed/malicious/contradictory output, retry, terminal state, exact credits/invariant |
 | `cancel_round` | creator checked before phase check | `OPEN`; duplicate creator call in `CANCELLED` is no-op; all other phases forbidden | documented no-op only for creator on `CANCELLED` | credits every recorded deposit once and zeros round liability | round/order/credit/accounting views | wrong caller including cancelled, locked/retryable/cleared, duplicate, two-round isolation, no double-credit, invariant |
+| `recover_expired_round` | any wallet | expired `OPEN`, `LOCKED`, or `RETRYABLE`; forbidden before deadline and after `CLEARED` | duplicate on `CANCELLED` is no-op | refund-only credits locked deposits to original actors; no fee payout | round/order/credit/accounting views | before deadline, cleared state, duplicate call, wrong accounting, no double-credit |
 | `consume_grant` | matched requester only | round `CLEARED` and grant `ACTIVE`; forbidden otherwise | second use rejects | non-payable; totals unchanged | `get_match`, `can_route` | wrong wallet, unmatched request, pre-finalized/cancelled, duplicate, other-round request, invariant unchanged |
 | `withdraw_credit` | caller may debit only own credit | positive amount no greater than credit | duplicate/over-credit rejects | debit before external transfer; credited decreases, withdrawn increases | `get_credit`, `get_accounting` | zero/negative/over-credit, double withdrawal, debit-before-transfer, external recipient, transfer revert, invariant |
 
@@ -384,13 +400,13 @@ surfaces convert base units to GEN and use only small whole-GEN demo values.
 
 | Threat | Incentive/impact | Contract/product control |
 | --- | --- | --- |
-| Provider exaggerates capability | win a booking fee | v1 treats the promise only as the provider's bonded commitment and never claims performance; access reservation is the bounded consequence |
+| Provider exaggerates capability | win a booking fee | payout-eligible offers must bind capability IDs to authorized metadata source, body hash, issuer proof, provider address, and expiry before semantic clearing |
 | Requester injects instructions in need text | bias validators or escape schema | fixed prompt authority, JSON data envelope, full pair coverage, allowlisted enums/IDs, independent validator replay |
 | Malicious leader invents/misses/reorders pairs | steer scarce capacity | complete Cartesian normalization and deterministic insertion-order matching |
 | Creator locks empty side or clears twice | trap funds or double settle | both sides required; strict state guards; terminal `CLEARED`; accounting invariant |
 | Caller forges another actor | steal grant/refund/credit | `gl.message.sender` binds positions, creator actions, grant consumption, and withdrawal |
 | Duplicate/replayed writes | double position, grant, or value movement | stable IDs, actor indexes, terminal phases, debit-before-transfer, explicit duplicate tests |
-| External Agent Card is false or replaced | unsupported performance consequence | never used as consequence-triggering evidence in v1 |
+| External Agent Card is false or replaced | unsupported payout or routing | hash/issuer/provider/capability/expiry mismatch rejects the offer before value can be released |
 | Validator/source outage | funds penalized without evidence | `UNVERIFIABLE -> RETRYABLE`, no grant/credit movement |
 | Frontend lies about success | user acts on nonexistent state | explicit transaction stages and canonical reload after finalization; no local canonical state |
 | Superseded deployment retains value | stranded GEN | revision identity, resumable scripts, close/refund/withdraw plan, zero-liability evidence |
@@ -507,7 +523,7 @@ absence of fixture-as-live behavior.
 
 ## Honest evidence status
 
-- Completed: all 14 idea gates; the one-contract 8-write/8-view schema; direct,
+- Completed: all 14 idea gates; the one-contract 9-write/8-view schema; direct,
   static, deployment, and frontend suites; safe receipt parsing; resumable
   Studionet deployment; finalized semantic, grant, accounting, recovery, and
   balance evidence; the real `genlayer-js` frontend adapter; the three-destination

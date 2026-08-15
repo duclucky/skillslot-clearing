@@ -30,6 +30,8 @@ import {
 } from "./transactionRecovery";
 
 export const ONE_GEN_WEI = 10n ** 18n;
+const DEFAULT_OPEN_TIMEOUT_SECONDS = 3600n;
+const DEFAULT_CLEAR_TIMEOUT_SECONDS = 7200n;
 
 export interface GenLayerClientLike {
   readContract(args: {
@@ -54,6 +56,7 @@ interface RoundRecord {
   phase: string;
   booking_fee_wei: string;
   provider_bond_wei: string;
+  expired?: boolean;
   offer_ids_csv: string;
   request_ids_csv: string;
   offer_count: string;
@@ -238,6 +241,7 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
             requestCount: Number(round.request_count),
             feeGen: formatGen(round.booking_fee_wei),
             providerBondGen: formatGen(round.provider_bond_wei),
+            expired: Boolean(round.expired),
           })),
       positions,
       creditGen: formatGen(creditWei),
@@ -318,9 +322,26 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
       if (!options.connect) throw new Error("No browser wallet connector is configured");
       return (await options.connect()).account;
     },
-    openRound: (input: OpenRoundInput) => execute("open_round", [input.roundId, input.title, ONE_GEN_WEI, ONE_GEN_WEI]),
+    openRound: (input: OpenRoundInput) =>
+      execute("open_round", [input.roundId, input.title, ONE_GEN_WEI, ONE_GEN_WEI, DEFAULT_OPEN_TIMEOUT_SECONDS, DEFAULT_CLEAR_TIMEOUT_SECONDS]),
     submitOffer: (input: OfferInput) =>
-      execute("submit_offer", [input.roundId, input.offerId, input.label, input.promise, input.capabilityIds], ONE_GEN_WEI),
+      execute(
+        "submit_offer",
+        [
+          input.roundId,
+          input.offerId,
+          input.label,
+          input.promise,
+          input.capabilityIds,
+          input.agentId,
+          input.metadataUri,
+          input.metadataHash,
+          input.metadataIssuer,
+          input.metadataSignature,
+          BigInt(input.metadataExpiresAt),
+        ],
+        ONE_GEN_WEI,
+      ),
     submitRequest: (input: RequestInput) =>
       execute(
         "submit_request",
@@ -330,6 +351,7 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
     lockRound: (roundId: string) => execute("lock_round", [roundId]),
     clearRound: (roundId: string) => execute("clear_round", [roundId]),
     cancelRound: (roundId: string) => execute("cancel_round", [roundId]),
+    recoverExpiredRound: (roundId: string) => execute("recover_expired_round", [roundId]),
     consumeGrant: ({ roundId, requestId }) => execute("consume_grant", [roundId, requestId]),
     withdrawCredit: (amountWei: string) => execute("withdraw_credit", [BigInt(amountWei)]),
   };
@@ -361,6 +383,7 @@ export function createUnconfiguredAdapter(): ContractAdapter {
     lockRound: unavailable,
     clearRound: unavailable,
     cancelRound: unavailable,
+    recoverExpiredRound: unavailable,
     consumeGrant: unavailable,
     withdrawCredit: unavailable,
   };

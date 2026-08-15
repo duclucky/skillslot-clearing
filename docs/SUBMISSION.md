@@ -10,33 +10,33 @@ SkillSlot Clearing - Validator-Cleared Agent Access
 
 ## Notes / description
 
-SkillSlot Clearing is a wallet-enabled GenLayer marketplace for capacity-constrained agent access. Providers bond 1 GEN around a natural-language service promise; requesters escrow a 1 GEN booking fee with exact needs, capability IDs, and exclusions. Validators inspect the complete bounded set of canonical, wallet-authenticated statements and independently decide every compatibility edge. Semantic equivalence compares the normalized pair graph while deterministic code applies unit capacity and insertion order, creates one-time route grants, credits matched fees, and refunds unused positions. Its reusable 8-write/8-view contract serves A2A routers, MCP marketplaces, and DAO schedulers. Verified evidence includes one deployed contract, 124 automated checks, Windows CI, 5 GEN received/withdrawn with zero liabilities, and production OKX-wallet consume/withdraw flows. Limits: Studionet only; access is reserved, not service performance; external adoption is not yet proven.
+SkillSlot Clearing is a wallet-enabled GenLayer marketplace for capacity-constrained agent access. Providers bond 1 GEN around an offer bound to authenticated agent metadata; requesters escrow a 1 GEN booking fee with exact needs, capability IDs, and exclusions. Validators inspect the bounded canonical set and independently decide every compatibility edge only after deterministic metadata checks pass. Semantic equivalence compares the normalized pair graph while deterministic code applies unit capacity and insertion order, creates one-time route grants, credits matched fees, refunds unused positions, and lets any wallet recover expired locked funds without releasing provider fees. This remediation revision is local until redeployed to Studionet.
 
-Character count: 981
+Character count: 755
 
 ## Evidence
 
 - Repository: https://github.com/duclucky/skillslot-clearing
-- Primary contract explorer: https://explorer-studio.genlayer.com/address/0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86
+- Primary contract explorer: PENDING_REDEPLOY_FOR_REVIEWER_REMEDIATION
 - Consumer/integration explorer: N/A — one contract owns the complete trust boundary
 - Lifecycle evidence: https://github.com/duclucky/skillslot-clearing/blob/main/docs/evidence/studionet/deployment.json
 - Browser-wallet evidence: https://github.com/duclucky/skillslot-clearing/blob/main/docs/evidence/studionet/browser-lifecycle.json
-- Successful CI: https://github.com/duclucky/skillslot-clearing/actions/runs/31603299326
-- Demo/frontend: https://skillslot-clearing.vercel.app - production canonical reads plus finalized OKX-wallet consume and withdrawal verified
+- Successful CI: PENDING_AFTER_REMEDIATION_PUSH
+- Demo/frontend: PENDING_REDEPLOY_FOR_REVIEWER_REMEDIATION
 
 ## Verified facts
 
-- Contracts: 1 (`SkillSlotClearing`), with 8 public writes and 8 public views
-- Automated checks: 124 passing; 8 static, 39 direct, 5 receipt parser, 7 deployment tooling, 65 frontend
+- Contracts: 1 (`SkillSlotClearing`), with 9 public writes and 8 public views
+- Automated checks: 131 passing locally after remediation; 8 static, 44 direct, 5 receipt parser, 7 deployment tooling, 67 frontend
 - Network: GenLayer Studionet, chain ID 61999
-- Deployment: `0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86`, finalized with successful execution
-- Lifecycle: one offer and one opposing request produced a validator-cleared match; the requester consumed the one-time grant; aggregate canonical accounting now proves 5 GEN received and withdrawn with zero locked/credited liability
+- Deployment: previous deployment `0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86` is superseded for reviewer remediation
+- Lifecycle: PENDING_REDEPLOY_FOR_METADATA_AND_TIMEOUT_RECOVERY
 - Balance proof: a separate 1 GEN offer was safely cancelled and withdrawn; the actor balance moved down exactly 1 GEN and returned exactly 1 GEN
 - Browser proof: production OKX Wallet finalized `consume_grant` and `withdraw_credit`; the app retained one hash per action, recovered transient status reads without resubmission, then reloaded canonical grant `CONSUMED` and credit `0 GEN`
 
 ## Honest limitations / pending
 
-- Script-signed authorized wallets prove the full Studionet lifecycle; production browser-wallet evidence separately proves `consume_grant` and `withdraw_credit`, not all eight writes.
+- Script-signed authorized wallets prove the earlier full Studionet lifecycle; the metadata-authenticated offer and timeout recovery revision still needs redeployment and lifecycle evidence.
 - Studionet is a hosted development network, not production mainnet.
 - No external A2A router, MCP marketplace, or DAO scheduler has adopted the interface yet.
 - The contract reserves access based on submitted meaning; it does not certify later agent performance or fulfillment.

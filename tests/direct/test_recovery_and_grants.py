@@ -9,6 +9,7 @@ from tests.direct.helpers import (
     mock_clearing,
     open_round,
     pair_result,
+    set_time,
     submit_offer,
     submit_request,
     unverifiable_result,
@@ -226,3 +227,95 @@ def test_withdrawal_rejects_zero_negative_and_over_credit(
             contract.withdraw_credit(amount)
     with direct_vm.expect_revert("Insufficient credit"):
         contract.withdraw_credit(UNIT_GEN + 1)
+
+
+def test_anyone_can_recover_expired_open_round_without_creator(
+    direct_vm,
+    direct_deploy,
+    direct_alice,
+    direct_bob,
+    direct_charlie,
+):
+    contract = direct_deploy(CONTRACT_PATH)
+    setup_open_positions(contract, direct_vm, direct_alice, direct_bob, direct_charlie)
+
+    set_time(direct_vm, "2026-08-15T11:59:59Z")
+    direct_vm.sender = direct_charlie
+    with direct_vm.expect_revert("Round recovery deadline has not passed"):
+        contract.recover_expired_round("round-alpha")
+
+    set_time(direct_vm, "2026-08-15T12:00:00Z")
+    direct_vm.sender = direct_charlie
+    contract.recover_expired_round("round-alpha")
+
+    assert contract.get_round("round-alpha")["phase"] == "CANCELLED"
+    assert contract.get_round("round-alpha")["locked_liability_wei"] == "0"
+    assert contract.get_credit(to_hex(direct_bob)) == str(UNIT_GEN)
+    assert contract.get_credit(to_hex(direct_charlie)) == str(UNIT_GEN)
+    assert contract.get_accounting()["invariant_holds"] is True
+
+
+def test_anyone_can_recover_expired_locked_or_retryable_round_without_payout(
+    direct_vm,
+    direct_deploy,
+    direct_accounts,
+):
+    creator, provider, requester, stranger = direct_accounts[:4]
+    contract = direct_deploy(CONTRACT_PATH)
+    setup_open_positions(contract, direct_vm, creator, provider, requester, "round-locked")
+    lock_round(contract, direct_vm, creator, "round-locked")
+    set_time(direct_vm, "2026-08-15T12:59:59Z")
+    direct_vm.sender = stranger
+    with direct_vm.expect_revert("Round recovery deadline has not passed"):
+        contract.recover_expired_round("round-locked")
+
+    set_time(direct_vm, "2026-08-15T13:00:00Z")
+    contract.recover_expired_round("round-locked")
+
+    assert contract.get_round("round-locked")["phase"] == "CANCELLED"
+    assert contract.get_credit(to_hex(provider)) == str(UNIT_GEN)
+    assert contract.get_credit(to_hex(requester)) == str(UNIT_GEN)
+    assert contract.get_round("round-locked")["match_count"] == "0"
+    assert contract.get_match("round-locked", "request-alpha") == {}
+
+    setup_open_positions(contract, direct_vm, creator, direct_accounts[4], direct_accounts[5], "round-retry")
+    lock_round(contract, direct_vm, creator, "round-retry")
+    mock_clearing(direct_vm, unverifiable_result())
+    set_time(direct_vm, "2026-08-15T11:30:00Z")
+    direct_vm.sender = creator
+    contract.clear_round("round-retry")
+    assert contract.get_round("round-retry")["phase"] == "RETRYABLE"
+
+    set_time(direct_vm, "2026-08-15T13:00:00Z")
+    direct_vm.sender = stranger
+    contract.recover_expired_round("round-retry")
+
+    assert contract.get_round("round-retry")["phase"] == "CANCELLED"
+    assert contract.get_credit(to_hex(direct_accounts[4])) == str(UNIT_GEN)
+    assert contract.get_credit(to_hex(direct_accounts[5])) == str(UNIT_GEN)
+    assert contract.get_accounting()["invariant_holds"] is True
+
+
+def test_recovery_is_idempotent_after_terminal_cancel_and_rejects_cleared(
+    direct_vm,
+    direct_deploy,
+    direct_accounts,
+):
+    creator, provider, requester, stranger = direct_accounts[:4]
+    contract = direct_deploy(CONTRACT_PATH)
+    setup_open_positions(contract, direct_vm, creator, provider, requester)
+    set_time(direct_vm, "2026-08-15T12:00:00Z")
+    direct_vm.sender = stranger
+    contract.recover_expired_round("round-alpha")
+    contract.recover_expired_round("round-alpha")
+
+    assert contract.get_credit(to_hex(provider)) == str(UNIT_GEN)
+    assert contract.get_credit(to_hex(requester)) == str(UNIT_GEN)
+    assert contract.get_accounting()["total_credited_wei"] == str(2 * UNIT_GEN)
+
+    setup_open_positions(contract, direct_vm, creator, direct_accounts[4], direct_accounts[5], "round-cleared")
+    clear_single_match(contract, direct_vm, creator, "round-cleared")
+    set_time(direct_vm, "2026-08-15T13:00:00Z")
+    direct_vm.sender = stranger
+    with direct_vm.expect_revert("Round cannot be recovered"):
+        contract.recover_expired_round("round-cleared")

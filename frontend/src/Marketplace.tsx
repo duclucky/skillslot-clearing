@@ -157,7 +157,7 @@ export function CreateRound({ snapshot, adapter, busy, runWrite, onCreated }: Sh
         <p className="lede">Choose a stable identity and invite providers and requesters into one bounded semantic decision.</p>
         <div className="creator-responsibility">
           <CheckCircle aria-hidden="true" />
-          <p>You become the round creator. Only your wallet can lock, clear, retry, or safely cancel it.</p>
+          <p>You become the round creator for normal operation. If a deadline passes, any wallet can trigger refund-only recovery.</p>
         </div>
       </div>
       <form className="create-form" onSubmit={submit} noValidate>
@@ -188,6 +188,7 @@ function RoundDetail({ snapshot, adapter, busy, runWrite, round, onCreateRound }
   const hasOffer = snapshot.positions.some((position) => position.roundId === round.id && position.kind === "offer");
   const hasRequest = snapshot.positions.some((position) => position.roundId === round.id && position.kind === "request");
   const terminal = round.phase === "CLEARED" || round.phase === "CANCELLED";
+  const recoverable = Boolean(account && round.expired && (round.phase === "OPEN" || round.phase === "LOCKED" || round.phase === "RETRYABLE"));
 
   return (
     <aside className="round-detail" aria-labelledby="selected-round-title">
@@ -209,7 +210,7 @@ function RoundDetail({ snapshot, adapter, busy, runWrite, round, onCreateRound }
         <div className="inline-guidance"><LockKey aria-hidden="true" /><p>Connect a Studionet wallet to join or operate this round.</p></div>
       ) : null}
 
-      {round.phase === "OPEN" && account ? (
+      {round.phase === "OPEN" && account && !round.expired ? (
         <div className="participation-stack">
           {!hasOffer && round.offerCount < 4 ? <OfferForm roundId={round.id} adapter={adapter} busy={busy} runWrite={runWrite} /> : null}
           {!hasRequest && round.requestCount < 4 ? <RequestForm roundId={round.id} adapter={adapter} busy={busy} runWrite={runWrite} /> : null}
@@ -223,10 +224,17 @@ function RoundDetail({ snapshot, adapter, busy, runWrite, round, onCreateRound }
         </div>
       ) : null}
 
-      {creator && (round.phase === "LOCKED" || round.phase === "RETRYABLE") ? (
+      {creator && !round.expired && (round.phase === "LOCKED" || round.phase === "RETRYABLE") ? (
         <button className="button button-primary button-full" disabled={busy} onClick={() => void runWrite(() => adapter.clearRound(round.id))}>
           {round.phase === "RETRYABLE" ? "Retry semantic clearing" : "Clear round semantically"}
         </button>
+      ) : null}
+
+      {recoverable ? (
+        <div className="creator-controls">
+          <div><strong>Timeout recovery</strong><p>Deadline passed. Any wallet can refund locked deposits without releasing provider fees.</p></div>
+          <button className="button button-danger" type="button" disabled={busy} onClick={() => void runWrite(() => adapter.recoverExpiredRound(round.id))}>Recover expired round</button>
+        </div>
       ) : null}
 
       {terminal ? (
@@ -246,6 +254,12 @@ function OfferForm({ roundId, adapter, busy, runWrite }: Pick<SharedProps, "adap
   const [label, setLabel] = useState("");
   const [promise, setPromise] = useState("");
   const [capabilityIds, setCapabilityIds] = useState("");
+  const [agentId, setAgentId] = useState("");
+  const [metadataUri, setMetadataUri] = useState("");
+  const [metadataHash, setMetadataHash] = useState("");
+  const [metadataIssuer, setMetadataIssuer] = useState("SkillSlotAgentRegistry");
+  const [metadataSignature, setMetadataSignature] = useState("");
+  const [metadataExpiresAt, setMetadataExpiresAt] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -253,11 +267,23 @@ function OfferForm({ roundId, adapter, busy, runWrite }: Pick<SharedProps, "adap
     const checkedLabel = validateText(label, "Offer label", 3, 120);
     const checkedPromise = validateText(promise, "Access promise", 1, 600);
     const checkedCapabilities = validateCapabilityCsv(capabilityIds, "Capability IDs");
+    const checkedAgentId = validateIdentifier(agentId, "Agent ID");
+    const checkedUri = validateText(metadataUri, "Metadata URI", 10, 600);
+    const checkedHash = validateText(metadataHash, "Metadata hash", 64, 64);
+    const checkedIssuer = validateText(metadataIssuer, "Metadata issuer", 3, 120);
+    const checkedSignature = validateText(metadataSignature, "Metadata signature", 10, 600);
+    const checkedExpiresAt = validateText(metadataExpiresAt, "Metadata expiry", 1, 20);
     const nextErrors = {
       ...(checkedId.error ? { offerId: checkedId.error } : {}),
       ...(checkedLabel.error ? { label: checkedLabel.error } : {}),
       ...(checkedPromise.error ? { promise: checkedPromise.error } : {}),
       ...(checkedCapabilities.error ? { capabilityIds: checkedCapabilities.error } : {}),
+      ...(checkedAgentId.error ? { agentId: checkedAgentId.error } : {}),
+      ...(checkedUri.error ? { metadataUri: checkedUri.error } : {}),
+      ...(checkedHash.error ? { metadataHash: checkedHash.error } : {}),
+      ...(checkedIssuer.error ? { metadataIssuer: checkedIssuer.error } : {}),
+      ...(checkedSignature.error ? { metadataSignature: checkedSignature.error } : {}),
+      ...(checkedExpiresAt.error || !/^\d+$/.test(checkedExpiresAt.value) ? { metadataExpiresAt: checkedExpiresAt.error || "Metadata expiry must be a Unix timestamp." } : {}),
     };
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
@@ -267,6 +293,12 @@ function OfferForm({ roundId, adapter, busy, runWrite }: Pick<SharedProps, "adap
       label: checkedLabel.value,
       promise: checkedPromise.value,
       capabilityIds: checkedCapabilities.value,
+      agentId: checkedAgentId.value,
+      metadataUri: checkedUri.value,
+      metadataHash: checkedHash.value,
+      metadataIssuer: checkedIssuer.value,
+      metadataSignature: checkedSignature.value,
+      metadataExpiresAt: checkedExpiresAt.value,
     }));
   }
   return <details className="action-disclosure" open><summary>Offer an agent</summary><form className="action-form" onSubmit={submit} noValidate>
@@ -274,6 +306,12 @@ function OfferForm({ roundId, adapter, busy, runWrite }: Pick<SharedProps, "adap
     <Field id="offer-label" label="Offer label" value={label} onChange={setLabel} error={errors.label} maxLength={120} required />
     <Field id="offer-promise" label="Access promise" value={promise} onChange={setPromise} error={errors.promise} maxLength={600} multiline required />
     <Field id="offer-capabilities" label="Capability IDs" value={capabilityIds} onChange={setCapabilityIds} error={errors.capabilityIds} maxLength={600} hint="Example: scheduling,flight-search" />
+    <Field id="agent-id" label="Agent ID" value={agentId} onChange={setAgentId} error={errors.agentId} maxLength={80} hint="Must match the registry metadata." required />
+    <Field id="metadata-uri" label="Metadata URI" value={metadataUri} onChange={setMetadataUri} error={errors.metadataUri} maxLength={600} hint="Allowed registry source for this agent." required />
+    <Field id="metadata-hash" label="Metadata hash" value={metadataHash} onChange={setMetadataHash} error={errors.metadataHash} maxLength={64} hint="SHA-256 of the fetched metadata body." required />
+    <Field id="metadata-issuer" label="Metadata issuer" value={metadataIssuer} onChange={setMetadataIssuer} error={errors.metadataIssuer} maxLength={120} required />
+    <Field id="metadata-signature" label="Metadata signature" value={metadataSignature} onChange={setMetadataSignature} error={errors.metadataSignature} maxLength={600} required />
+    <Field id="metadata-expiry" label="Metadata expiry" value={metadataExpiresAt} onChange={setMetadataExpiresAt} error={errors.metadataExpiresAt} maxLength={20} hint="Unix seconds. Expired metadata cannot receive fees." required />
     <button className="button button-primary button-full" disabled={busy} type="submit"><PaperPlaneTilt aria-hidden="true" />Submit offer for 1 GEN</button>
   </form></details>;
 }

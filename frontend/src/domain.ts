@@ -17,6 +17,7 @@ export interface RoundView {
   requestCount: number;
   feeGen: string;
   providerBondGen: string;
+  expired: boolean;
 }
 
 export interface PositionView {
@@ -50,6 +51,12 @@ export interface OfferInput {
   label: string;
   promise: string;
   capabilityIds: string;
+  agentId: string;
+  metadataUri: string;
+  metadataHash: string;
+  metadataIssuer: string;
+  metadataSignature: string;
+  metadataExpiresAt: string;
 }
 
 export interface RequestInput {
@@ -94,6 +101,7 @@ export interface ContractAdapter {
   lockRound(roundId: string): Promise<TransactionReceipt>;
   clearRound(roundId: string): Promise<TransactionReceipt>;
   cancelRound(roundId: string): Promise<TransactionReceipt>;
+  recoverExpiredRound(roundId: string): Promise<TransactionReceipt>;
   consumeGrant(input: { roundId: string; requestId: string }): Promise<TransactionReceipt>;
   withdrawCredit(amountWei: string): Promise<TransactionReceipt>;
 }

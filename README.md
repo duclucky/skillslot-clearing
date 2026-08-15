@@ -4,7 +4,7 @@ SkillSlot Clearing uses GenLayer validators to clear scarce agent-access slots b
 
 ## Why GenLayer
 
-Providers describe what an agent promises to do; requesters describe an exact need, required capabilities, and exclusions. Keyword matching cannot reliably decide whether differently worded promises satisfy those constraints. GenLayer validators independently judge the complete bounded compatibility graph. The contract then applies deterministic request order and unit capacity, so no marketplace backend can choose winners or move funds offchain.
+Providers bond an offer to authenticated agent metadata, a bounded capability set, and a service promise; requesters escrow an exact need, required capabilities, and exclusions. Keyword matching cannot reliably decide whether differently worded offers satisfy those constraints. GenLayer validators independently judge the complete bounded compatibility graph after the contract verifies the provider metadata source. The contract then applies deterministic request order and unit capacity, so no marketplace backend can choose winners or move funds offchain.
 
 The product reserves access. It does **not** certify agent performance, task completion, identity, service quality, or legal obligations.
 
@@ -14,7 +14,7 @@ The product reserves access. It does **not** certify agent performance, task com
 - Contract: one `SkillSlotClearing` Intelligent Contract with 8 writes and 8 views
 - Network: Studionet (`61999`)
 - Deployment: `0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86`
-- Automated checks: 124 currently pass locally (8 static, 39 direct, 5 receipt parser, 7 deployment tooling, 65 frontend)
+- Automated checks: 131 currently pass locally (8 static, 44 direct, 5 receipt parser, 7 deployment tooling, 67 frontend)
 - Verified Windows CI: [`check` run 31604345353](https://github.com/duclucky/skillslot-clearing/actions/runs/31604345353) passed
 - Network lifecycle: across the script-signed and production browser-wallet lifecycles, canonical accounting records semantic matches, consumed grants, 5 GEN received, 5 GEN withdrawn, zero locked or credited liability, and invariant true
 - Balance proof: a separate 1 GEN deposit/cancel/withdraw flow returned the actor balance from `2010.6399969999999882 GEN` to `2011.6399969999999882 GEN`
@@ -33,12 +33,13 @@ The product reserves access. It does **not** certify agent performance, task com
 ## Product flow
 
 1. A creator opens a bounded round with a fixed 1 GEN booking fee and 1 GEN provider bond.
-2. Up to four providers and four requesters submit wallet-authenticated positions.
+2. Up to four providers submit offers bound to registry metadata, and up to four requesters submit wallet-authenticated needs.
 3. The creator locks the round.
 4. Validators independently judge every offer/request pair and agree on critical meaning, not prose wording.
 5. The contract deterministically assigns unit-capacity matches, creates route grants, and credits fees/refunds.
 6. A matched requester consumes the one-time grant; actors withdraw canonical credits.
-7. If evidence or consensus is unavailable, the round becomes non-penalizing `RETRYABLE` with funds still locked.
+7. If evidence or consensus is unavailable, the round becomes non-penalizing `RETRYABLE` with funds still locked until retry or timeout recovery.
+8. If the creator stops acting after a deadline, any wallet can call refund-only recovery; provider fees are not released on timeout.
 
 ## Architecture
 
@@ -51,7 +52,7 @@ Browser wallet (EIP-6963 / EIP-1193)
   <- canonical round, position, grant, credit, and invariant views
 ```
 
-The frontend reconstructs every canonical round, provides permanent Rounds, Create round, and My activity destinations, and exposes all eight legal writes only to the relevant wallet and lifecycle state. It discovers injected wallets, restores authorization with `eth_accounts` without forcing a permission prompt, switches/adds Studionet on an explicit connect action, tracks wallet/submitted/accepted/finalized/failed states, preserves form data across wallet cancellation and uncertain submission, retries only transaction-status and canonical-state reads, never resubmits a known transaction, and reloads canonical contract state only after finalization. Local storage remembers only harmless wallet selection metadata.
+The frontend reconstructs every canonical round, provides permanent Rounds, Create round, and My activity destinations, and exposes all nine legal writes only to the relevant wallet and lifecycle state. It discovers injected wallets, restores authorization with `eth_accounts` without forcing a permission prompt, switches/adds Studionet on an explicit connect action, tracks wallet/submitted/accepted/finalized/failed states, preserves form data across wallet cancellation and uncertain submission, retries only transaction-status and canonical-state reads, never resubmits a known transaction, and reloads canonical contract state only after finalization. Local storage remembers only harmless wallet selection metadata.
 
 ## Run locally
 
@@ -93,9 +94,10 @@ The demo uses exactly 1 GEN for each value-bearing position and stops at `RETRYA
 
 ## Honest limitations
 
-- The full lifecycle is proven by script-signed authorized wallets; production OKX Wallet evidence separately covers finalized grant consumption and credit withdrawal, not all eight writes.
+- The full lifecycle is proven by script-signed authorized wallets on the earlier Studionet deployment; this reviewer-remediation revision requires redeployment before its new metadata and timeout-recovery claims become network evidence.
+- Production OKX Wallet evidence separately covers finalized grant consumption and credit withdrawal, not all nine writes.
 - Studionet is a hosted development network, not production mainnet.
 - External agent routers have not adopted the reusable interface yet.
-- Compatibility is bounded to the round's submitted statements and stable fact IDs; the contract does not verify later service performance.
+- Compatibility is bounded to authenticated metadata, the round's submitted statements, and stable fact IDs; the contract does not verify later service performance.
 
 See the [full specification](docs/README.md), [research record](docs/RESEARCH.md), and [design system](design-system/skillslot-clearing/MASTER.md).

@@ -15,6 +15,9 @@ def test_open_round_creates_canonical_isolated_state(direct_vm, direct_deploy, d
         "phase": "OPEN",
         "booking_fee_wei": str(UNIT_GEN),
         "provider_bond_wei": str(UNIT_GEN),
+        "open_deadline": "1786795200",
+        "clear_deadline": "1786798800",
+        "expired": False,
         "offer_ids_csv": "",
         "request_ids_csv": "",
         "offer_count": "0",
@@ -47,9 +50,13 @@ def test_open_round_requires_locked_demo_terms(direct_vm, direct_deploy, direct_
     direct_vm.value = 0
 
     with direct_vm.expect_revert("Booking fee must be exactly 1 GEN"):
-        contract.open_round("round-fee", "Fee mismatch round", UNIT_GEN - 1, UNIT_GEN)
+        contract.open_round("round-fee", "Fee mismatch round", UNIT_GEN - 1, UNIT_GEN, 3600, 7200)
     with direct_vm.expect_revert("Provider bond must be exactly 1 GEN"):
-        contract.open_round("round-bond", "Bond mismatch round", UNIT_GEN, UNIT_GEN + 1)
+        contract.open_round("round-bond", "Bond mismatch round", UNIT_GEN, UNIT_GEN + 1, 3600, 7200)
+    with direct_vm.expect_revert("Open timeout is invalid"):
+        contract.open_round("round-timeout-open", "Timeout mismatch round", UNIT_GEN, UNIT_GEN, 0, 7200)
+    with direct_vm.expect_revert("Clear timeout is invalid"):
+        contract.open_round("round-timeout-clear", "Timeout mismatch round", UNIT_GEN, UNIT_GEN, 3600, 0)
 
 
 def test_open_round_validates_identifier_and_title(direct_vm, direct_deploy, direct_alice):
@@ -59,11 +66,11 @@ def test_open_round_validates_identifier_and_title(direct_vm, direct_deploy, dir
 
     for invalid_id in ("ab", "round|bad", "x" * 81):
         with direct_vm.expect_revert("Round ID is invalid"):
-            contract.open_round(invalid_id, "Valid title", UNIT_GEN, UNIT_GEN)
+            contract.open_round(invalid_id, "Valid title", UNIT_GEN, UNIT_GEN, 3600, 7200)
 
     for invalid_title in ("  ", "x" * 121):
         with direct_vm.expect_revert("Round title is invalid"):
-            contract.open_round("round-title", invalid_title, UNIT_GEN, UNIT_GEN)
+            contract.open_round("round-title", invalid_title, UNIT_GEN, UNIT_GEN, 3600, 7200)
 
 
 def test_two_rounds_remain_isolated_and_discoverable(direct_vm, direct_deploy, direct_alice, direct_bob):

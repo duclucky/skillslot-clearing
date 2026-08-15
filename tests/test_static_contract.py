@@ -72,6 +72,7 @@ def test_position_public_surface_and_nondeterminism_boundary_are_locked():
         "lock_round",
         "clear_round",
         "cancel_round",
+        "recover_expired_round",
         "consume_grant",
         "withdraw_credit",
         "get_round",
@@ -89,7 +90,7 @@ def test_position_public_surface_and_nondeterminism_boundary_are_locked():
     top_level_functions = [node for node in tree.body if isinstance(node, ast.FunctionDef)]
     contract_methods = [node for node in contract_class.body if isinstance(node, ast.FunctionDef)]
     for node in top_level_functions + contract_methods:
-        if node.name != "clear_round":
+        if node.name != "clear_round" and node.name != "_verify_agent_metadata":
             rendered = ast.unparse(node)
             assert "gl.nondet" not in rendered
             assert "gl.vm.run_nondet" not in rendered

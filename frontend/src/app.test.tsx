@@ -17,6 +17,7 @@ function adapterFor(snapshot: WorkspaceSnapshot): ContractAdapter {
     lockRound: vi.fn(async () => ({ hash: "0xlock" })),
     clearRound: vi.fn(async () => ({ hash: "0xclear" })),
     cancelRound: vi.fn(async () => ({ hash: "0xcancel" })),
+    recoverExpiredRound: vi.fn(async () => ({ hash: "0xrecover" })),
     consumeGrant: vi.fn(async () => ({ hash: "0xconsume" })),
     withdrawCredit: vi.fn(async () => ({ hash: "0xwithdraw" })),
   };
@@ -36,6 +37,7 @@ const ready: WorkspaceSnapshot = {
     requestCount: 1,
     feeGen: "1",
     providerBondGen: "1",
+    expired: false,
   }],
   positions: [],
   creditGen: "0",
@@ -124,8 +126,18 @@ describe("SkillSlot Clearing marketplace", () => {
     fireEvent.change(within(detail).getByLabelText("Offer label"), { target: { value: "Source finder" } });
     fireEvent.change(within(detail).getByLabelText("Access promise"), { target: { value: "Find primary sources" } });
     fireEvent.change(within(detail).getByLabelText("Capability IDs"), { target: { value: "web" } });
+    fireEvent.change(within(detail).getByLabelText("Agent ID"), { target: { value: "agent-2" } });
+    fireEvent.change(within(detail).getByLabelText("Metadata URI"), { target: { value: "https://skillslot-clearing.vercel.app/agents/agent-2" } });
+    fireEvent.change(within(detail).getByLabelText("Metadata hash"), { target: { value: "a".repeat(64) } });
+    fireEvent.change(within(detail).getByLabelText("Metadata signature"), { target: { value: `SkillSlotAgentRegistry:v1:${"a".repeat(64)}` } });
+    fireEvent.change(within(detail).getByLabelText("Metadata expiry"), { target: { value: "1800000000" } });
     fireEvent.click(within(detail).getByRole("button", { name: /Submit offer for 1 GEN/i }));
     await waitFor(() => expect(adapter.submitOffer).toHaveBeenCalledTimes(1));
+    expect(adapter.submitOffer).toHaveBeenCalledWith(expect.objectContaining({
+      agentId: "agent-2",
+      metadataIssuer: "SkillSlotAgentRegistry",
+      metadataExpiresAt: "1800000000",
+    }));
 
     fireEvent.click(within(detail).getByText("Request access"));
     fireEvent.change(within(detail).getByLabelText("Request ID"), { target: { value: "request-2" } });
@@ -160,6 +172,11 @@ describe("SkillSlot Clearing marketplace", () => {
     fireEvent.change(within(detail).getByLabelText("Offer label"), { target: { value: "Source finder" } });
     fireEvent.change(within(detail).getByLabelText("Access promise"), { target: { value: "Find primary sources" } });
     fireEvent.change(within(detail).getByLabelText("Capability IDs"), { target: { value: "web" } });
+    fireEvent.change(within(detail).getByLabelText("Agent ID"), { target: { value: "agent-2" } });
+    fireEvent.change(within(detail).getByLabelText("Metadata URI"), { target: { value: "https://skillslot-clearing.vercel.app/agents/agent-2" } });
+    fireEvent.change(within(detail).getByLabelText("Metadata hash"), { target: { value: "a".repeat(64) } });
+    fireEvent.change(within(detail).getByLabelText("Metadata signature"), { target: { value: `SkillSlotAgentRegistry:v1:${"a".repeat(64)}` } });
+    fireEvent.change(within(detail).getByLabelText("Metadata expiry"), { target: { value: "1800000000" } });
     fireEvent.click(within(detail).getByRole("button", { name: /Submit offer for 1 GEN/i }));
 
     await waitFor(() =>
@@ -227,6 +244,15 @@ describe("SkillSlot Clearing marketplace", () => {
     await waitFor(() => expect(activityAdapter.consumeGrant).toHaveBeenCalled());
     fireEvent.click(screen.getByRole("button", { name: "Withdraw 1 GEN" }));
     await waitFor(() => expect(activityAdapter.withdrawCredit).toHaveBeenCalledWith("1000000000000000000"));
+  });
+
+  it("exposes permissionless timeout recovery only after canonical expiry", async () => {
+    const adapter = adapterFor({ ...ready, rounds: [{ ...ready.rounds[0], phase: "LOCKED", expired: true }] });
+    render(<App adapter={adapter} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Recover expired round" }));
+
+    await waitFor(() => expect(adapter.recoverExpiredRound).toHaveBeenCalledWith("round-1"));
   });
 
   it("shows honest unconfigured state without reviewer internals or invented market state", async () => {
@@ -316,6 +342,7 @@ describe("SkillSlot Clearing marketplace", () => {
     expect(adapter.lockRound).not.toHaveBeenCalled();
     expect(adapter.clearRound).not.toHaveBeenCalled();
     expect(adapter.cancelRound).not.toHaveBeenCalled();
+    expect(adapter.recoverExpiredRound).not.toHaveBeenCalled();
     expect(adapter.consumeGrant).not.toHaveBeenCalled();
     expect(adapter.withdrawCredit).not.toHaveBeenCalled();
   });
