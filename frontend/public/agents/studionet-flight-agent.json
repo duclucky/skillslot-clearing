@@ -1,0 +1,1 @@
+{"agent_id":"studionet-flight-agent","capability_ids_csv":"FLIGHT.BOOK,CALENDAR.WRITE","delivery_source":"a2a://studionet-flight-agent/route","expires_at":1800000000,"issuer":"SkillSlotAgentRegistry","policy_version":"skillslot-agent-metadata-v1","provider":"0xC495ef51618D03267A1f227aFe5b27B38c748272"}

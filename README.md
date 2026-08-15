@@ -11,18 +11,19 @@ The product reserves access. It does **not** certify agent performance, task com
 ## Verified status
 
 - Track: GenLayer **Projects**
-- Contract: one `SkillSlotClearing` Intelligent Contract with 8 writes and 8 views
+- Contract: one `SkillSlotClearing` Intelligent Contract with 9 writes and 8 views
 - Network: Studionet (`61999`)
-- Deployment: `0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86`
+- Deployment: `0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`
 - Automated checks: 131 currently pass locally (8 static, 44 direct, 5 receipt parser, 7 deployment tooling, 67 frontend)
 - Verified Windows CI: [`check` run 31604345353](https://github.com/duclucky/skillslot-clearing/actions/runs/31604345353) passed
-- Network lifecycle: across the script-signed and production browser-wallet lifecycles, canonical accounting records semantic matches, consumed grants, 5 GEN received, 5 GEN withdrawn, zero locked or credited liability, and invariant true
+- Network lifecycle: the remediation deployment records a script-signed `FINALIZED_LIFECYCLE` with authenticated metadata, consumed grant, 2 GEN received, 2 GEN withdrawn, zero locked or credited liability, and invariant true
+- Timeout recovery proof: the remediation deployment records requester-called `recover_expired_round`, terminal `CANCELLED`, 4 GEN cumulative received/withdrawn across proofs, zero locked or credited liability, and invariant true
 - Balance proof: a separate 1 GEN deposit/cancel/withdraw flow returned the actor balance from `2010.6399969999999882 GEN` to `2011.6399969999999882 GEN`
 
 ## Deployed contract
 
-- Address: [`0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86`](https://explorer-studio.genlayer.com/address/0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86)
-- Deployment transaction: [`0x4696f8c362979c1733a84fbdf0659b6b149406cd00fd2338478b5f314d81e851`](https://explorer-studio.genlayer.com/transactions/0x4696f8c362979c1733a84fbdf0659b6b149406cd00fd2338478b5f314d81e851)
+- Address: [`0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`](https://explorer-studio.genlayer.com/address/0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834)
+- Deployment transaction: [`0xeca9750f84152b5c0f0b3b71d7361a50fefe7e6005aa01b14b3281c7cac98962`](https://explorer-studio.genlayer.com/transactions/0xeca9750f84152b5c0f0b3b71d7361a50fefe7e6005aa01b14b3281c7cac98962)
 - Sanitized lifecycle evidence: [`docs/evidence/studionet/deployment.json`](docs/evidence/studionet/deployment.json)
 - Production browser-wallet evidence: [`docs/evidence/studionet/browser-lifecycle.json`](docs/evidence/studionet/browser-lifecycle.json)
 
@@ -77,6 +78,7 @@ The script loads ignored configuration from the project `.env`, then the authori
 ```powershell
 npm run inspect:studionet   # read-only
 npm run deploy:studionet    # exact contract/API revision; resumable
+npm run timeout:studionet   # expired locked round -> permissionless refund-only recovery
 npm run demo:studionet      # semantic match -> grant -> withdrawal
 npm run balance:studionet   # deposit -> cancel -> withdraw balance proof
 ```
@@ -94,8 +96,7 @@ The demo uses exactly 1 GEN for each value-bearing position and stops at `RETRYA
 
 ## Honest limitations
 
-- The full lifecycle is proven by script-signed authorized wallets on the earlier Studionet deployment; this reviewer-remediation revision requires redeployment before its new metadata and timeout-recovery claims become network evidence.
-- Production OKX Wallet evidence separately covers finalized grant consumption and credit withdrawal, not all nine writes.
+- The remediation lifecycle and timeout recovery are script-signed Studionet evidence. Production OKX Wallet evidence separately covers finalized grant consumption and credit withdrawal from the earlier browser run, not all nine writes on the remediation deployment.
 - Studionet is a hosted development network, not production mainnet.
 - External agent routers have not adopted the reusable interface yet.
 - Compatibility is bounded to authenticated metadata, the round's submitted statements, and stable fact IDs; the contract does not verify later service performance.

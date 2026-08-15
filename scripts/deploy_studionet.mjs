@@ -657,6 +657,136 @@ async function balanceProof(env) {
   console.log(JSON.stringify({ action: "balance-proof", status: proof.status, beforeDeposit: proof.beforeDeposit, afterDeposit: proof.afterDeposit, beforeWithdraw: proof.beforeWithdraw, afterWithdraw: proof.afterWithdraw }, null, 2));
 }
 
+async function waitUntilRoundExpired(client, address, roundId, retries = 20) {
+  for (let attempt = 0; attempt < retries; attempt += 1) {
+    const round = await readView(client, address, "get_round", [roundId]);
+    if (round?.expired === true) return round;
+    await new Promise((resolve) => setTimeout(resolve, 15_000));
+  }
+  throw new Error("Timeout proof round did not expire before recovery window");
+}
+
+async function timeoutProof(env) {
+  await deploy(env);
+  const evidence = readEvidence();
+  const address = requireDeployment(evidence);
+  const primary = signingClient(env, PRIMARY_KEYS);
+  const requester = signingClient(env, REQUESTER_KEYS);
+  if (primary.account.address.toLowerCase() === requester.account.address.toLowerCase()) {
+    throw new Error("Creator/provider and requester wallets must differ");
+  }
+  await assertStudionet(primary.client);
+  await assertStudionet(requester.client);
+  const proof = evidence.timeoutRecoveryProof ?? {
+    contractAddress: address,
+    roundId: `timeout-${Date.now().toString(36)}`,
+    actors: { creatorProvider: primary.account.address, recoveryCaller: requester.account.address },
+    transactions: {},
+    status: "STARTED",
+  };
+  if (proof.contractAddress.toLowerCase() !== address.toLowerCase()) {
+    throw new Error("Recorded timeout proof belongs to a different contract revision");
+  }
+  const persist = () => mergeEvidence({ timeoutRecoveryProof: proof });
+  persist();
+
+  let round = await readView(primary.client, address, "get_round", [proof.roundId]);
+  if (!round?.round_id) {
+    proof.transactions.openRound = await writeContractFinalized(
+      primary.client,
+      address,
+      "open_round",
+      [proof.roundId, "Permissionless timeout recovery proof", ONE_GEN, ONE_GEN, 300n, 60n],
+    );
+    persist();
+    round = await readView(primary.client, address, "get_round", [proof.roundId]);
+  }
+
+  const offer = await readView(primary.client, address, "get_offer", [proof.roundId, "offer-timeout"]);
+  if (!offer?.offer_id && round?.phase === "OPEN") {
+    const metadata = balanceProofMetadata(primary);
+    proof.offerMetadata = {
+      agentId: metadata.agentId,
+      metadataUri: metadata.metadataUri,
+      metadataHash: metadata.metadataHash,
+      metadataIssuer: metadata.metadataIssuer,
+      metadataExpiresAt: metadata.metadataExpiresAt,
+    };
+    proof.transactions.submitOffer = await writeContractFinalized(
+      primary.client,
+      address,
+      "submit_offer",
+      [
+        proof.roundId,
+        "offer-timeout",
+        "Timeout recovery diagnostic agent",
+        "Provides one bounded diagnostic access slot.",
+        "DIAGNOSTIC.ACCESS",
+        metadata.agentId,
+        metadata.metadataUri,
+        metadata.metadataHash,
+        metadata.metadataIssuer,
+        metadata.metadataSignature,
+        metadata.metadataExpiresAt,
+      ],
+      ONE_GEN,
+    );
+    persist();
+  }
+
+  const request = await readView(requester.client, address, "get_request", [proof.roundId, "request-timeout"]);
+  if (!request?.request_id) {
+    proof.transactions.submitRequest = await writeContractFinalized(
+      requester.client,
+      address,
+      "submit_request",
+      [proof.roundId, "request-timeout", "Timeout recovery request", "Need a diagnostic access slot.", "DIAGNOSTIC.ACCESS", ""],
+      ONE_GEN,
+    );
+    persist();
+  }
+
+  round = await readView(primary.client, address, "get_round", [proof.roundId]);
+  if (round?.phase === "OPEN") {
+    proof.transactions.lock = await writeContractFinalized(primary.client, address, "lock_round", [proof.roundId]);
+    persist();
+  }
+
+  proof.expiredRound = await waitUntilRoundExpired(primary.client, address, proof.roundId);
+  persist();
+  round = await readView(primary.client, address, "get_round", [proof.roundId]);
+  if (["LOCKED", "RETRYABLE", "OPEN"].includes(round?.phase)) {
+    proof.transactions.recoverExpiredRound = await writeContractFinalized(requester.client, address, "recover_expired_round", [proof.roundId]);
+    persist();
+  }
+
+  const primaryCredit = BigInt(await readView(primary.client, address, "get_credit", [primary.account.address]));
+  if (primaryCredit > 0n) {
+    proof.transactions.withdrawPrimary = await writeContractFinalized(primary.client, address, "withdraw_credit", [primaryCredit]);
+    persist();
+  }
+  const requesterCredit = BigInt(await readView(requester.client, address, "get_credit", [requester.account.address]));
+  if (requesterCredit > 0n) {
+    proof.transactions.withdrawRequester = await writeContractFinalized(requester.client, address, "withdraw_credit", [requesterCredit]);
+    persist();
+  }
+  proof.finalReads = {
+    round: await readView(primary.client, address, "get_round", [proof.roundId]),
+    primaryCreditWei: await readView(primary.client, address, "get_credit", [primary.account.address]),
+    requesterCreditWei: await readView(primary.client, address, "get_credit", [requester.account.address]),
+    accounting: await readView(primary.client, address, "get_accounting", []),
+  };
+  proof.status =
+    proof.finalReads.round?.phase === "CANCELLED" &&
+    proof.finalReads.primaryCreditWei === "0" &&
+    proof.finalReads.requesterCreditWei === "0" &&
+    proof.finalReads.accounting?.invariant_holds === true
+      ? "FINALIZED_TIMEOUT_RECOVERY"
+      : "FINALIZED_INCOMPLETE";
+  mergeEvidence({ timeoutRecoveryProof: proof });
+  console.log(JSON.stringify({ action: "timeout-proof", status: proof.status, finalReads: proof.finalReads }, null, 2));
+}
+
 async function inspect(env) {
   const evidence = readEvidence();
   const report = {
@@ -685,6 +815,7 @@ async function main() {
   else if (command === "metadata") prepareMetadata(env);
   else if (command === "deploy") await deploy(env);
   else if (command === "demo") await demo(env);
+  else if (command === "timeout-proof") await timeoutProof(env);
   else if (command === "balance-proof") await balanceProof(env);
   else if (["open-round", "submit-demo-positions", "lock", "clear", "consume", "withdraw"].includes(command)) {
     await runStep(env, command);

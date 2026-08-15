@@ -2,72 +2,73 @@
   "network": "studionet",
   "chainId": 61999,
   "explorer": "https://explorer-studio.genlayer.com",
-  "updatedAt": "2026-08-12T05:54:26.106Z",
+  "updatedAt": "2026-08-15T11:45:47.191Z",
   "identity": {
     "network": "studionet",
-    "sourceCommit": "55133c14919a97027fe1a08a0dd188e2d5903dc8",
-    "contractSha256": "cad5328a7e2edb8da81a97152b692e649d3009084d62a5376a42bd0f7977bcd5",
+    "sourceCommit": "446e8ede30cb5d91ef8ca3b6b92e0a646ba2adc8",
+    "contractSha256": "0c6203a72fcc1c33f27a70cffd7ff4b1c5fea3621a81123e4e8592fe7f32ad94",
     "runner": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6"
   },
   "actors": {
     "creatorProvider": "0xC495ef51618D03267A1f227aFe5b27B38c748272"
   },
   "deployment": {
-    "transactionHash": "0x4696f8c362979c1733a84fbdf0659b6b149406cd00fd2338478b5f314d81e851",
+    "transactionHash": "0xeca9750f84152b5c0f0b3b71d7361a50fefe7e6005aa01b14b3281c7cac98962",
     "status": "FINALIZED",
     "execution": "FINISHED_WITH_RETURN",
-    "finalizedAt": "2026-08-12T05:40:18.144Z",
-    "contractAddress": "0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86"
+    "finalizedAt": "2026-08-15T11:32:24.517Z",
+    "contractAddress": "0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834"
   },
   "status": "DEPLOYED",
   "demo": {
-    "contractAddress": "0x9aeebe7B3e1318D4ca2eBD38fB714b84976fdA86",
-    "roundId": "slot-mspnuuza",
+    "contractAddress": "0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834",
+    "roundId": "slot-msuaqy9n",
     "actors": {
       "creatorProvider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
       "requester": "0x45aD397c438397A702B53a7499a78D08961D39Db"
     },
     "transactions": {
       "openRound": {
-        "transactionHash": "0x624792d8a326d52bc6fce07ad533c936264871f4ec343b249f086ed767cb8394",
+        "transactionHash": "0x7cda9ed043e59f484a7c13cd7cc1f9722e80ad7fe47051a1cf49a5325e2b5f6c",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-08-12T05:41:21.371Z"
+        "finalizedAt": "2026-08-15T11:33:21.724Z"
       },
       "submitOffer": {
-        "transactionHash": "0x72aa03459fb1962fafc853e43b5a5de3b630b1f70eb6bf6c67cc9db10fc7941e",
+        "transactionHash": "0x1584d46811297594ed6c54814ae8060ef72af3e4424ef30025a7657de67ede16",
         "status": "FINALIZED",
-        "recoveredFromCanonicalStateAfterRateLimit": true
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-08-15T11:34:20.003Z"
       },
       "submitRequest": {
-        "transactionHash": "0x14ae453d3a2a739b3d4866e6e5d9928132965fe71e866b0f2fb0882e7c5b4a27",
+        "transactionHash": "0x7c92542c33189bdc2f2355bc9c260c9dae0f51be5e83975d3ae825e1a1393dc3",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-08-12T05:44:32.697Z"
+        "finalizedAt": "2026-08-15T11:34:58.819Z"
       },
       "lock": {
-        "transactionHash": "0x47b2b3c4c6ebbe0377d4aa8ff8b8045e3b0c0ec528fbfdfa16c57bf2c23bba42",
+        "transactionHash": "0xb609660e375e76914429271356ab6b53dbfd816d3d2c44e2e99f4afa11aad8a2",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-08-12T05:45:29.537Z"
+        "finalizedAt": "2026-08-15T11:35:55.325Z"
       },
       "clear": {
-        "transactionHash": "0x2e22e360bd2b6997184fee5fad3071fc6b0fa8016fd42d07604c9ccf85d96cda",
+        "transactionHash": "0x329ac9404d2ca289d09175638aa8d4cb3ed7830ffe1afe576661ece69ccd1335",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-08-12T05:46:45.237Z"
+        "finalizedAt": "2026-08-15T11:37:02.881Z"
       },
       "consume": {
-        "transactionHash": "0x75ccfddd196d0c29331ebeaa19aa41c6534fb1371b80eea53b01367fd95523a1",
+        "transactionHash": "0xb6f49c3c74493111bcd345fcc38415ad4f420a0b97e05b6c3801fc10b7ade36b",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-08-12T05:47:42.278Z"
+        "finalizedAt": "2026-08-15T11:37:52.195Z"
       },
       "withdrawPrimary": {
-        "transactionHash": "0xced36cb6fc5f2300d52036d873714b5b33fb73f625d8b0fc2eef83c531ae235a",
+        "transactionHash": "0x62f8690c372add727016e331488b7d330ed5b7d01189ac69ce6bb53e8b920bc1",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-08-12T05:48:58.399Z"
+        "finalizedAt": "2026-08-15T11:39:50.203Z"
       }
     },
     "status": "FINALIZED_LIFECYCLE",
@@ -75,28 +76,37 @@
       "round": {
         "attempt_count": "1",
         "booking_fee_wei": "1000000000000000000",
+        "clear_deadline": "1786800756",
         "creator": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+        "expired": false,
         "locked_liability_wei": "0",
         "match_count": "1",
         "offer_count": "1",
         "offer_ids_csv": "offer-flight",
+        "open_deadline": "1786797156",
         "phase": "CLEARED",
         "provider_bond_wei": "1000000000000000000",
         "request_count": "1",
         "request_ids_csv": "request-flight",
-        "round_id": "slot-mspnuuza",
+        "round_id": "slot-msuaqy9n",
         "title": "Studionet agent access window"
       },
       "offer": {
         "active": false,
+        "agent_id": "studionet-flight-agent",
         "capability_ids_csv": "FLIGHT.BOOK,CALENDAR.WRITE",
         "deposit_wei": "1000000000000000000",
         "label": "Flight scheduling agent",
         "matched_request_id": "request-flight",
+        "metadata_authenticated": true,
+        "metadata_expires_at": "1800000000",
+        "metadata_hash": "71f4c22ded677ae9079fdfb5a2b994d823bf607da877da949c05bb46c5d0ba71",
+        "metadata_issuer": "SkillSlotAgentRegistry",
+        "metadata_uri": "https://skillslot-clearing.vercel.app/agents/studionet-flight-agent.json",
         "offer_id": "offer-flight",
         "promise_text": "Books air tickets and writes confirmed itineraries to a calendar.",
         "provider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
-        "round_id": "slot-mspnuuza"
+        "round_id": "slot-msuaqy9n"
       },
       "request": {
         "deposit_wei": "1000000000000000000",
@@ -108,7 +118,7 @@
         "request_id": "request-flight",
         "requester": "0x45aD397c438397A702B53a7499a78D08961D39Db",
         "required_ids_csv": "FLIGHT.BOOK,CALENDAR.WRITE",
-        "round_id": "slot-mspnuuza"
+        "round_id": "slot-msuaqy9n"
       },
       "match": {
         "grant_status": "CONSUMED",
@@ -116,7 +126,7 @@
         "provider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
         "request_id": "request-flight",
         "requester": "0x45aD397c438397A702B53a7499a78D08961D39Db",
-        "round_id": "slot-mspnuuza"
+        "round_id": "slot-msuaqy9n"
       },
       "primaryCreditWei": "0",
       "requesterCreditWei": "0",
@@ -127,63 +137,140 @@
         "total_received_wei": "2000000000000000000",
         "total_withdrawn_wei": "2000000000000000000"
       }
+    },
+    "offerMetadata": {
+      "agentId": "studionet-flight-agent",
+      "metadataUri": "https://skillslot-clearing.vercel.app/agents/studionet-flight-agent.json",
+      "metadataHash": "71f4c22ded677ae9079fdfb5a2b994d823bf607da877da949c05bb46c5d0ba71",
+      "metadataIssuer": "SkillSlotAgentRegistry",
+      "metadataExpiresAt": 1800000000
     }
   },
-  "balanceProof": {
-    "roundId": "slot-mspnuuza-refund",
-    "actor": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+  "balanceProof": null,
+  "metadataRegistry": {
+    "baseUrl": "https://skillslot-clearing.vercel.app/agents/",
+    "issuer": "SkillSlotAgentRegistry",
+    "policyVersion": "skillslot-agent-metadata-v1",
+    "agents": [
+      {
+        "agentId": "studionet-flight-agent",
+        "metadataUri": "https://skillslot-clearing.vercel.app/agents/studionet-flight-agent.json",
+        "metadataHash": "71f4c22ded677ae9079fdfb5a2b994d823bf607da877da949c05bb46c5d0ba71",
+        "metadataExpiresAt": 1800000000
+      },
+      {
+        "agentId": "studionet-diagnostic-agent",
+        "metadataUri": "https://skillslot-clearing.vercel.app/agents/studionet-diagnostic-agent.json",
+        "metadataHash": "a9f2ebefbad4a7644989c320cd5dc73abdc15dcadf01352b0da7d0623c8f425d",
+        "metadataExpiresAt": 1800000000
+      }
+    ]
+  },
+  "timeoutRecoveryProof": {
+    "contractAddress": "0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834",
+    "roundId": "timeout-msub1ul1",
+    "actors": {
+      "creatorProvider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "recoveryCaller": "0x45aD397c438397A702B53a7499a78D08961D39Db"
+    },
     "transactions": {
       "openRound": {
-        "transactionHash": "0x3f3b88c2a1c84f855f38ffde19d1eecbbe48facba69e962b32fe3272a64f704a",
+        "transactionHash": "0x82edd295888456e183ddcdb6ab49b0615445d9abec7e85e734d2a245ad5cd988",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-08-12T05:52:18.159Z"
+        "finalizedAt": "2026-08-15T11:41:41.383Z"
       },
       "submitOffer": {
-        "transactionHash": "0xe24fd22a748cf11c317dc777f3b98f19554d2409ce538a1fb132d78fe6e2ace2",
+        "transactionHash": "0x31acaa2f0cee8f33206287dcfa1c287cdb00eb3290b7d15133d1ab6041bd0dca",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-08-12T05:52:58.090Z"
+        "finalizedAt": "2026-08-15T11:42:29.167Z"
       },
-      "cancelRound": {
-        "transactionHash": "0x8bdee30b3053f7b2b60e558fb1e001e8e3420908947d27b2d0ba6967611d2d16",
+      "submitRequest": {
+        "transactionHash": "0x41041e99c0db26b5bc39046a3f3b9b951bf25a4dc853e59736dcecdf7ed787d4",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-08-12T05:53:45.407Z"
+        "finalizedAt": "2026-08-15T11:43:07.591Z"
       },
-      "withdrawCredit": {
-        "transactionHash": "0x5c6def2e8f80f3b764742a931aab0a491d35d445286d0a30ae280c5eee9569dc",
+      "lock": {
+        "transactionHash": "0xd792289f349f0d305b0219211485bf5d6c1ecf84258a114a560e7b7014e84b77",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-08-12T05:54:23.164Z"
+        "finalizedAt": "2026-08-15T11:43:46.343Z"
+      },
+      "recoverExpiredRound": {
+        "transactionHash": "0x2a44fcf94b1d54b96d149b9af39eae0b6468806b7854594327af795c061baaa0",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-08-15T11:44:25.573Z"
+      },
+      "withdrawPrimary": {
+        "transactionHash": "0xead2db203422fb550346ea3a4e9815f4c3a188630258cf124924bf3ff183b354",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-08-15T11:45:03.887Z"
+      },
+      "withdrawRequester": {
+        "transactionHash": "0xa675bc0c0f9e2ba34da85ef044f4edf30d9cad125bd8cc2c7657a316ad60fc9b",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-08-15T11:45:41.899Z"
       }
     },
-    "status": "FINALIZED_BALANCE_PROOF",
-    "beforeDeposit": "2011.6399969999999882 GEN",
-    "afterDeposit": "2010.6399969999999882 GEN",
-    "beforeWithdraw": "2010.6399969999999882 GEN",
-    "afterWithdraw": "2011.6399969999999882 GEN",
-    "finalRound": {
+    "status": "FINALIZED_TIMEOUT_RECOVERY",
+    "offerMetadata": {
+      "agentId": "studionet-diagnostic-agent",
+      "metadataUri": "https://skillslot-clearing.vercel.app/agents/studionet-diagnostic-agent.json",
+      "metadataHash": "a9f2ebefbad4a7644989c320cd5dc73abdc15dcadf01352b0da7d0623c8f425d",
+      "metadataIssuer": "SkillSlotAgentRegistry",
+      "metadataExpiresAt": 1800000000
+    },
+    "expiredRound": {
       "attempt_count": "0",
       "booking_fee_wei": "1000000000000000000",
+      "clear_deadline": "1786794125",
       "creator": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
-      "locked_liability_wei": "0",
+      "expired": true,
+      "locked_liability_wei": "2000000000000000000",
       "match_count": "0",
       "offer_count": "1",
-      "offer_ids_csv": "offer-refund",
-      "phase": "CANCELLED",
+      "offer_ids_csv": "offer-timeout",
+      "open_deadline": "1786794365",
+      "phase": "LOCKED",
       "provider_bond_wei": "1000000000000000000",
-      "request_count": "0",
-      "request_ids_csv": "",
-      "round_id": "slot-mspnuuza-refund",
-      "title": "Balance recovery proof"
+      "request_count": "1",
+      "request_ids_csv": "request-timeout",
+      "round_id": "timeout-msub1ul1",
+      "title": "Permissionless timeout recovery proof"
     },
-    "finalAccounting": {
-      "invariant_holds": true,
-      "total_credited_wei": "0",
-      "total_locked_wei": "0",
-      "total_received_wei": "3000000000000000000",
-      "total_withdrawn_wei": "3000000000000000000"
+    "finalReads": {
+      "round": {
+        "attempt_count": "0",
+        "booking_fee_wei": "1000000000000000000",
+        "clear_deadline": "1786794125",
+        "creator": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+        "expired": false,
+        "locked_liability_wei": "0",
+        "match_count": "0",
+        "offer_count": "1",
+        "offer_ids_csv": "offer-timeout",
+        "open_deadline": "1786794365",
+        "phase": "CANCELLED",
+        "provider_bond_wei": "1000000000000000000",
+        "request_count": "1",
+        "request_ids_csv": "request-timeout",
+        "round_id": "timeout-msub1ul1",
+        "title": "Permissionless timeout recovery proof"
+      },
+      "primaryCreditWei": "0",
+      "requesterCreditWei": "0",
+      "accounting": {
+        "invariant_holds": true,
+        "total_credited_wei": "0",
+        "total_locked_wei": "0",
+        "total_received_wei": "4000000000000000000",
+        "total_withdrawn_wei": "4000000000000000000"
+      }
     }
   }
 }
