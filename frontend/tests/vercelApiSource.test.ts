@@ -7,6 +7,7 @@ const testDir = dirname(fileURLToPath(import.meta.url));
 const frontendRoot = resolve(testDir, "..");
 const sourceFiles = [
   resolve(frontendRoot, "api/agent-metadata.ts"),
+  resolve(frontendRoot, "api/studionet-rpc.ts"),
   resolve(frontendRoot, "src/providerMetadataApi.ts"),
 ];
 

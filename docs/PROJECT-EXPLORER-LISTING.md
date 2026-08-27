@@ -43,16 +43,17 @@ https://explorer-studio.genlayer.com/address/0x90555BCDbC68a6833Fb98aC215b1Cbb19
 Prerequisites: use a Studionet-compatible EVM wallet with test GEN. For the full lifecycle, use two wallets or two accounts: one creator/provider wallet and one requester wallet. The app never simulates balances, fees, signatures, transactions, or finality.
 
 1. Open https://skillslot-clearing.vercel.app.
-2. Read the Overview checklist to understand the full reviewer path.
+2. Read the Overview mechanism explainer to understand how provider offers, requester escrow, validator clearing, and settlement fit together.
 3. Click Connect wallet and choose a detected wallet from the modal. The app will switch/add GenLayer Studionet before writes.
-4. Open Create round and create a new round with a stable round ID and title.
-5. Open Rounds, select the new round, and submit a provider offer from the creator/provider wallet. Use the default generated metadata mode; enter an offer ID, label, access promise, capability IDs such as `FLIGHT.BOOK,CALENDAR.WRITE`, and an agent ID. The app generates the authorized metadata URI, hash, issuer, signature, and expiry.
-6. Connect the requester wallet, select the same round, and submit a request with a matching need and overlapping required capability IDs.
+4. Open Rounds and choose one of the pre-created `Project Explorer ...` rounds under Open now. These are intentionally left open for reviewers and fresh users.
+5. Submit a provider offer from the creator/provider wallet. Use the default generated metadata mode; enter an offer ID, label, access promise, capability IDs such as `FLIGHT.BOOK,CALENDAR.WRITE`, and an agent ID. The app generates the authorized metadata URI, hash, issuer, signature, and expiry.
+6. Connect the requester wallet, select the same open round, and submit a request with a matching need and overlapping required capability IDs.
 7. Reconnect the creator/provider wallet, select the round, and lock it.
 8. Click Clear round semantically. GenLayer validators review the bounded graph; after finality, the app reloads canonical round, match, grant, credit, and accounting views.
 9. Reconnect the requester wallet, open My activity, and consume the active grant.
 10. Reconnect any wallet with credited GEN and withdraw the available credit.
-11. Optional recovery test: create a round and let it expire in an uncleared state; then any wallet can call Recover expired round to refund locked deposits without releasing provider fees.
+11. Optional creator path: open Create round and create a new round with a stable round ID and title.
+12. Optional recovery test: create a round and let it expire in an uncleared state; then any wallet can call Recover expired round to refund locked deposits without releasing provider fees.
 
 ## What reviewers should verify
 

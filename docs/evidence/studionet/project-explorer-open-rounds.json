@@ -1,0 +1,62 @@
+{
+  "network": "studionet",
+  "chainId": 61999,
+  "contractAddress": "0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834",
+  "createdAt": "2026-08-27T05:19:00Z",
+  "purpose": "Project Explorer reviewer inventory: public rounds intentionally left OPEN so fresh users can join as provider or requester from the production web app.",
+  "summary": {
+    "created": 6,
+    "totalRoundsAfterCreation": 8,
+    "openRoundsAfterCreation": 6
+  },
+  "rounds": [
+    {
+      "roundId": "explorer-mtb2g37w-1",
+      "title": "Project Explorer live analyst access",
+      "transactionHash": "0x9530dc6e4f64b40fe3ce9c87657fd37b18c1c930fd29c229a02017beed617c1d",
+      "phase": "OPEN",
+      "expired": false,
+      "openDeadline": "1790399538"
+    },
+    {
+      "roundId": "explorer-mtb2g37w-2",
+      "title": "Project Explorer travel agent access",
+      "transactionHash": "0x1280add301f4613565e206aced7c9832b8b676139f17b2619fda497beb4aca41",
+      "phase": "OPEN",
+      "expired": false,
+      "openDeadline": "1790399579"
+    },
+    {
+      "roundId": "explorer-mtb2g37w-3",
+      "title": "Project Explorer calendar agent access",
+      "transactionHash": "0x814f3859f0a88c1f56bbebf85a8abadf967eff8fa792784edce17cf8bab4b7a5",
+      "phase": "OPEN",
+      "expired": false,
+      "openDeadline": "1790399620"
+    },
+    {
+      "roundId": "explorer-mtb2g37w-4",
+      "title": "Project Explorer research assistant access",
+      "transactionHash": "0xa264a38fe269ee6737ab2122f1367f74cb7f797dfc4263c40279fdeaa1715617",
+      "phase": "OPEN",
+      "expired": false,
+      "openDeadline": "1790399660"
+    },
+    {
+      "roundId": "explorer-mtb2g37w-5",
+      "title": "Project Explorer procurement agent access",
+      "transactionHash": "0xe9ef95173a542de6afa5c99bd3434b022ce0cba6d099795f38622cbdd26eb2f3",
+      "phase": "OPEN",
+      "expired": false,
+      "openDeadline": "1790399700"
+    },
+    {
+      "roundId": "explorer-mtb2g37w-6",
+      "title": "Project Explorer support triage access",
+      "transactionHash": "0x3f5df561338b621bc4da8ce158fcf5f602c75f988e629b3ffd7d011ee3b203f6",
+      "phase": "OPEN",
+      "expired": false,
+      "openDeadline": "1790399740"
+    }
+  ]
+}

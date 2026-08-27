@@ -398,7 +398,7 @@ export function createConfiguredAdapter(
   contractAddress: `0x${string}`,
   onTransaction?: (progress: TransactionProgress) => void,
 ) {
-  const readClient = createClient({ chain: studionet }) as unknown as GenLayerClientLike;
+  const readClient = createClient({ chain: studionet, endpoint: "/api/studionet-rpc" }) as unknown as GenLayerClientLike;
   return createGenLayerAdapter({
     contractAddress,
     restore: restoreStudionetWallet,
