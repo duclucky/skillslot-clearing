@@ -365,6 +365,27 @@ describe("SkillSlot Clearing marketplace", () => {
     await waitFor(() => expect(disconnected.loadWorkspace).toHaveBeenCalledTimes(2));
   });
 
+  it("shows the connected wallet immediately while canonical state reload is still pending", async () => {
+    __resetWalletForTests();
+    window.localStorage.clear();
+    window.ethereum = walletProvider((method) => {
+      if (method === "eth_chainId") return STUDIONET_CHAIN_ID;
+      if (method === "eth_requestAccounts") return ["0x0000000000000000000000000000000000000001"];
+      return [];
+    });
+    const disconnected = adapterFor({ ...ready, account: null });
+    render(<App adapter={disconnected} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Connect wallet" }));
+    expect(await screen.findByRole("dialog", { name: "Choose wallet" })).toBeVisible();
+    vi.mocked(disconnected.loadWorkspace).mockReturnValueOnce(new Promise(() => undefined));
+    fireEvent.click(screen.getByRole("button", { name: "Browser wallet" }));
+
+    await waitFor(() => expect(disconnected.connectWallet).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Choose wallet" })).not.toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "0x0000...0001" })).toBeEnabled();
+  });
+
   it("shows an honest no-wallet state in the wallet-selection modal", async () => {
     __resetWalletForTests();
     window.localStorage.clear();
@@ -392,6 +413,23 @@ describe("SkillSlot Clearing marketplace", () => {
 
     expect(adapter.disconnectWallet).toHaveBeenCalledTimes(1);
     await waitFor(() => expect(adapter.loadWorkspace).toHaveBeenCalledTimes(2));
+  });
+
+  it("clears the connected wallet immediately while canonical state reload is still pending", async () => {
+    const adapter = {
+      ...adapterFor(ready),
+      disconnectWallet: vi.fn(),
+    };
+    render(<App adapter={adapter} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "0x0000...0001" }));
+    expect(screen.getByRole("menu", { name: "Wallet account" })).toBeVisible();
+    vi.mocked(adapter.loadWorkspace).mockReturnValueOnce(new Promise(() => undefined));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Disconnect" }));
+
+    expect(adapter.disconnectWallet).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(screen.queryByRole("menu", { name: "Wallet account" })).not.toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "Connect wallet" })).toBeEnabled();
   });
 
   it("uses the connected wallet control to switch wrong-network sessions to Studionet", async () => {

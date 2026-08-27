@@ -75,6 +75,39 @@ function shortAddress(address: string) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
+type WalletUiOverride = { kind: "connected"; account: string } | { kind: "disconnected" } | null;
+
+function sameAccount(left: string | null, right: string) {
+  return Boolean(left && left.toLowerCase() === right.toLowerCase());
+}
+
+function snapshotWithConnectedWallet(snapshot: WorkspaceSnapshot, account: string): WorkspaceSnapshot {
+  const sameWallet = sameAccount(snapshot.account, account);
+  return {
+    ...snapshot,
+    account,
+    availability: snapshot.availability === "unconfigured" || snapshot.availability === "unavailable" ? snapshot.availability : "ready",
+    positions: sameWallet ? snapshot.positions : [],
+    creditGen: sameWallet ? snapshot.creditGen : "0",
+  };
+}
+
+function snapshotWithDisconnectedWallet(snapshot: WorkspaceSnapshot): WorkspaceSnapshot {
+  return {
+    ...snapshot,
+    account: null,
+    availability: snapshot.availability === "wrong_network" ? "ready" : snapshot.availability,
+    positions: [],
+    creditGen: "0",
+  };
+}
+
+function applyWalletUiOverride(snapshot: WorkspaceSnapshot, override: WalletUiOverride): WorkspaceSnapshot {
+  if (override?.kind === "connected") return snapshotWithConnectedWallet(snapshot, override.account);
+  if (override?.kind === "disconnected") return snapshotWithDisconnectedWallet(snapshot);
+  return snapshot;
+}
+
 export function App({ adapter: suppliedAdapter }: AppProps) {
   const [destination, setDestination] = useState<Destination>("overview");
   const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null);
@@ -90,6 +123,7 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
   const [walletLoading, setWalletLoading] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const transactionRef = useRef<TransactionProgress | null>(null);
+  const walletUiOverrideRef = useRef<WalletUiOverride>(null);
   const updateTransaction = useCallback((next: TransactionProgress | null) => {
     transactionRef.current = next;
     setTransaction(next);
@@ -111,9 +145,10 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
     setLoadError(null);
     try {
       const next = await adapter.loadWorkspace();
-      setSnapshot(next);
-      setSelectedRoundId((current) => current && next.rounds.some((round) => round.id === current) ? current : defaultRoundId(next.rounds));
-      return next;
+      const visibleSnapshot = applyWalletUiOverride(next, walletUiOverrideRef.current);
+      setSnapshot(visibleSnapshot);
+      setSelectedRoundId((current) => current && visibleSnapshot.rounds.some((round) => round.id === current) ? current : defaultRoundId(visibleSnapshot.rounds));
+      return visibleSnapshot;
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : "Workspace could not be loaded.");
       return null;
@@ -166,10 +201,12 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
     setActionError(null);
     setRecoveryMessage(null);
     try {
-      await adapter.connectWallet(selected);
+      const account = await adapter.connectWallet(selected);
+      walletUiOverrideRef.current = { kind: "connected", account };
+      setSnapshot((current) => snapshotWithConnectedWallet(current, account));
       setWalletModalOpen(false);
       setWalletOptions([]);
-      await refresh();
+      void refresh();
     } catch (error) {
       if (isTransactionCancelled(error)) return;
       setActionError(error instanceof Error ? error.message : "Wallet connection failed.");
@@ -184,8 +221,10 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
     setRecoveryMessage(null);
     setAccountMenuOpen(false);
     try {
-      await adapter.connectWallet(undefined);
-      await refresh();
+      const account = await adapter.connectWallet(undefined);
+      walletUiOverrideRef.current = { kind: "connected", account };
+      setSnapshot((current) => snapshotWithConnectedWallet(current, account));
+      void refresh();
     } catch (error) {
       if (isTransactionCancelled(error)) return;
       setActionError(error instanceof Error ? error.message : "Wallet network switch failed.");
@@ -196,8 +235,10 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
 
   async function disconnect() {
     adapter.disconnectWallet?.();
+    walletUiOverrideRef.current = { kind: "disconnected" };
     setAccountMenuOpen(false);
-    await refresh();
+    setSnapshot((current) => snapshotWithDisconnectedWallet(current));
+    void refresh();
   }
 
   const runWrite: RunWrite = async (action, afterFinalized) => {

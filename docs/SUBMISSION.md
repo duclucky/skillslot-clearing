@@ -27,7 +27,7 @@ Character count: 689
 ## Verified facts
 
 - Contracts: 1 (`SkillSlotClearing`), with 9 public writes and 8 public views
-- Automated checks: 156 passing locally after Project Explorer upgrade; 8 static, 44 direct, 5 receipt parser, 7 deployment tooling, 92 frontend
+- Automated checks: 158 passing locally after Project Explorer upgrade; 8 static, 44 direct, 5 receipt parser, 7 deployment tooling, 94 frontend
 - Network: GenLayer Studionet, chain ID 61999
 - Deployment: `0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`, transaction `0xeca9750f84152b5c0f0b3b71d7361a50fefe7e6005aa01b14b3281c7cac98962`
 - Lifecycle: `FINALIZED_LIFECYCLE` with authenticated metadata, consumed grant, zero locked liability, zero credited liability, and invariant true
