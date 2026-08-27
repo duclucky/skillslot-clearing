@@ -12,6 +12,7 @@ import { type ChangeEvent, type FormEvent, useState } from "react";
 
 import type { ContractAdapter, RoundView, WorkspaceSnapshot } from "./domain";
 import { validateCapabilityCsv, validateIdentifier, validateText } from "./formValidation";
+import { generateProviderMetadata } from "./providerMetadata";
 import { filterRounds, type RoundFilter, roundFilter } from "./roundFilters";
 
 export type RunWrite = (
@@ -212,7 +213,7 @@ function RoundDetail({ snapshot, adapter, busy, runWrite, round, onCreateRound }
 
       {round.phase === "OPEN" && account && !round.expired ? (
         <div className="participation-stack">
-          {!hasOffer && round.offerCount < 4 ? <OfferForm roundId={round.id} adapter={adapter} busy={busy} runWrite={runWrite} /> : null}
+          {!hasOffer && round.offerCount < 4 ? <OfferForm roundId={round.id} account={account} adapter={adapter} busy={busy} runWrite={runWrite} /> : null}
           {!hasRequest && round.requestCount < 4 ? <RequestForm roundId={round.id} adapter={adapter} busy={busy} runWrite={runWrite} /> : null}
           {creator ? (
             <div className="creator-controls">
@@ -249,44 +250,73 @@ function RoundDetail({ snapshot, adapter, busy, runWrite, round, onCreateRound }
   );
 }
 
-function OfferForm({ roundId, adapter, busy, runWrite }: Pick<SharedProps, "adapter" | "busy" | "runWrite"> & { roundId: string }) {
+function OfferForm({ roundId, account, adapter, busy, runWrite }: Pick<SharedProps, "adapter" | "busy" | "runWrite"> & { roundId: string; account: string | null }) {
   const [offerId, setOfferId] = useState("");
   const [label, setLabel] = useState("");
   const [promise, setPromise] = useState("");
   const [capabilityIds, setCapabilityIds] = useState("");
   const [agentId, setAgentId] = useState("");
+  const [deliverySource, setDeliverySource] = useState("");
   const [metadataUri, setMetadataUri] = useState("");
   const [metadataHash, setMetadataHash] = useState("");
   const [metadataIssuer, setMetadataIssuer] = useState("SkillSlotAgentRegistry");
   const [metadataSignature, setMetadataSignature] = useState("");
-  const [metadataExpiresAt, setMetadataExpiresAt] = useState("");
+  const [metadataExpiresAt, setMetadataExpiresAt] = useState("1800000000");
   const [errors, setErrors] = useState<Record<string, string>>({});
-  function submit(event: FormEvent) {
+  function usingAdvancedMetadata() {
+    return Boolean(metadataUri.trim() || metadataHash.trim() || metadataSignature.trim());
+  }
+  async function submit(event: FormEvent) {
     event.preventDefault();
     const checkedId = validateIdentifier(offerId, "Offer ID");
     const checkedLabel = validateText(label, "Offer label", 3, 120);
     const checkedPromise = validateText(promise, "Access promise", 1, 600);
     const checkedCapabilities = validateCapabilityCsv(capabilityIds, "Capability IDs");
     const checkedAgentId = validateIdentifier(agentId, "Agent ID");
-    const checkedUri = validateText(metadataUri, "Metadata URI", 10, 600);
-    const checkedHash = validateText(metadataHash, "Metadata hash", 64, 64);
+    const checkedDeliverySource = validateText(deliverySource || `a2a://${agentId.trim()}/route`, "Delivery source", 6, 600);
     const checkedIssuer = validateText(metadataIssuer, "Metadata issuer", 3, 120);
-    const checkedSignature = validateText(metadataSignature, "Metadata signature", 10, 600);
     const checkedExpiresAt = validateText(metadataExpiresAt, "Metadata expiry", 1, 20);
+    const advanced = usingAdvancedMetadata();
+    const checkedUri = advanced ? validateText(metadataUri, "Metadata URI", 10, 600) : { value: "", error: "" };
+    const checkedHash = advanced ? validateText(metadataHash, "Metadata hash", 64, 64) : { value: "", error: "" };
+    const checkedSignature = advanced ? validateText(metadataSignature, "Metadata signature", 10, 600) : { value: "", error: "" };
     const nextErrors = {
       ...(checkedId.error ? { offerId: checkedId.error } : {}),
       ...(checkedLabel.error ? { label: checkedLabel.error } : {}),
       ...(checkedPromise.error ? { promise: checkedPromise.error } : {}),
       ...(checkedCapabilities.error ? { capabilityIds: checkedCapabilities.error } : {}),
       ...(checkedAgentId.error ? { agentId: checkedAgentId.error } : {}),
+      ...(checkedDeliverySource.error ? { deliverySource: checkedDeliverySource.error } : {}),
       ...(checkedUri.error ? { metadataUri: checkedUri.error } : {}),
       ...(checkedHash.error ? { metadataHash: checkedHash.error } : {}),
       ...(checkedIssuer.error ? { metadataIssuer: checkedIssuer.error } : {}),
       ...(checkedSignature.error ? { metadataSignature: checkedSignature.error } : {}),
       ...(checkedExpiresAt.error || !/^\d+$/.test(checkedExpiresAt.value) ? { metadataExpiresAt: checkedExpiresAt.error || "Metadata expiry must be a Unix timestamp." } : {}),
+      ...(!account ? { generatedMetadata: "Connect a Studionet wallet so generated metadata can bind to your provider address." } : {}),
     };
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
+    let generated = {
+      metadataUri: checkedUri.value,
+      metadataHash: checkedHash.value,
+      metadataIssuer: checkedIssuer.value,
+      metadataSignature: checkedSignature.value,
+      metadataExpiresAt: checkedExpiresAt.value,
+    };
+    if (!advanced) {
+      generated = await generateProviderMetadata({
+        agentId: checkedAgentId.value,
+        capabilityIdsCsv: checkedCapabilities.value,
+        deliverySource: checkedDeliverySource.value,
+        expiresAt: Number(checkedExpiresAt.value),
+        provider: account,
+      });
+      setMetadataUri(generated.metadataUri);
+      setMetadataHash(generated.metadataHash);
+      setMetadataIssuer(generated.metadataIssuer);
+      setMetadataSignature(generated.metadataSignature);
+      setMetadataExpiresAt(generated.metadataExpiresAt);
+    }
     void runWrite(() => adapter.submitOffer({
       roundId,
       offerId: checkedId.value,
@@ -294,24 +324,33 @@ function OfferForm({ roundId, adapter, busy, runWrite }: Pick<SharedProps, "adap
       promise: checkedPromise.value,
       capabilityIds: checkedCapabilities.value,
       agentId: checkedAgentId.value,
-      metadataUri: checkedUri.value,
-      metadataHash: checkedHash.value,
-      metadataIssuer: checkedIssuer.value,
-      metadataSignature: checkedSignature.value,
-      metadataExpiresAt: checkedExpiresAt.value,
+      metadataUri: generated.metadataUri,
+      metadataHash: generated.metadataHash,
+      metadataIssuer: generated.metadataIssuer,
+      metadataSignature: generated.metadataSignature,
+      metadataExpiresAt: generated.metadataExpiresAt,
     }));
   }
   return <details className="action-disclosure" open><summary>Offer an agent</summary><form className="action-form" onSubmit={submit} noValidate>
+    <div className="generated-metadata-note">
+      <strong>Generated metadata mode</strong>
+      <p>The app binds this offer to your connected provider wallet, computes the SHA-256 hash, and submits the registry proof automatically.</p>
+      {errors.generatedMetadata ? <small className="field-error" role="alert">{errors.generatedMetadata}</small> : null}
+    </div>
     <Field id="offer-id" label="Offer ID" value={offerId} onChange={setOfferId} error={errors.offerId} maxLength={80} required />
     <Field id="offer-label" label="Offer label" value={label} onChange={setLabel} error={errors.label} maxLength={120} required />
     <Field id="offer-promise" label="Access promise" value={promise} onChange={setPromise} error={errors.promise} maxLength={600} multiline required />
-    <Field id="offer-capabilities" label="Capability IDs" value={capabilityIds} onChange={setCapabilityIds} error={errors.capabilityIds} maxLength={600} hint="Example: scheduling,flight-search" />
-    <Field id="agent-id" label="Agent ID" value={agentId} onChange={setAgentId} error={errors.agentId} maxLength={80} hint="Must match the registry metadata." required />
-    <Field id="metadata-uri" label="Metadata URI" value={metadataUri} onChange={setMetadataUri} error={errors.metadataUri} maxLength={600} hint="Allowed registry source for this agent." required />
-    <Field id="metadata-hash" label="Metadata hash" value={metadataHash} onChange={setMetadataHash} error={errors.metadataHash} maxLength={64} hint="SHA-256 of the fetched metadata body." required />
-    <Field id="metadata-issuer" label="Metadata issuer" value={metadataIssuer} onChange={setMetadataIssuer} error={errors.metadataIssuer} maxLength={120} required />
-    <Field id="metadata-signature" label="Metadata signature" value={metadataSignature} onChange={setMetadataSignature} error={errors.metadataSignature} maxLength={600} required />
-    <Field id="metadata-expiry" label="Metadata expiry" value={metadataExpiresAt} onChange={setMetadataExpiresAt} error={errors.metadataExpiresAt} maxLength={20} hint="Unix seconds. Expired metadata cannot receive fees." required />
+    <Field id="offer-capabilities" label="Capability IDs" value={capabilityIds} onChange={setCapabilityIds} error={errors.capabilityIds} maxLength={600} hint="Example: FLIGHT.BOOK,CALENDAR.WRITE" />
+    <Field id="agent-id" label="Agent ID" value={agentId} onChange={setAgentId} error={errors.agentId} maxLength={80} hint="Example: studionet-flight-agent or your stable agent ID." required />
+    <Field id="delivery-source" label="Delivery source" value={deliverySource} onChange={setDeliverySource} error={errors.deliverySource} maxLength={600} hint="Optional. Defaults to a2a://<agent-id>/route." />
+    <details className="advanced-metadata">
+      <summary>Advanced metadata fields</summary>
+      <Field id="metadata-uri" label="Metadata URI" value={metadataUri} onChange={setMetadataUri} error={errors.metadataUri} maxLength={600} hint="Leave blank to generate a production /agents/ URI." />
+      <Field id="metadata-hash" label="Metadata hash" value={metadataHash} onChange={setMetadataHash} error={errors.metadataHash} maxLength={64} hint="Leave blank to calculate SHA-256 automatically." />
+      <Field id="metadata-issuer" label="Metadata issuer" value={metadataIssuer} onChange={setMetadataIssuer} error={errors.metadataIssuer} maxLength={120} required />
+      <Field id="metadata-signature" label="Metadata signature" value={metadataSignature} onChange={setMetadataSignature} error={errors.metadataSignature} maxLength={600} hint="Leave blank to generate SkillSlotAgentRegistry proof." />
+      <Field id="metadata-expiry" label="Metadata expiry" value={metadataExpiresAt} onChange={setMetadataExpiresAt} error={errors.metadataExpiresAt} maxLength={20} hint="Unix seconds. Expired metadata cannot receive fees." required />
+    </details>
     <button className="button button-primary button-full" disabled={busy} type="submit"><PaperPlaneTilt aria-hidden="true" />Submit offer for 1 GEN</button>
   </form></details>;
 }

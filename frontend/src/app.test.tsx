@@ -141,17 +141,17 @@ describe("SkillSlot Clearing marketplace", () => {
     fireEvent.change(within(detail).getByLabelText("Offer ID"), { target: { value: "offer-2" } });
     fireEvent.change(within(detail).getByLabelText("Offer label"), { target: { value: "Source finder" } });
     fireEvent.change(within(detail).getByLabelText("Access promise"), { target: { value: "Find primary sources" } });
-    fireEvent.change(within(detail).getByLabelText("Capability IDs"), { target: { value: "web" } });
+    fireEvent.change(within(detail).getByLabelText("Capability IDs"), { target: { value: "FLIGHT.BOOK,CALENDAR.WRITE" } });
     fireEvent.change(within(detail).getByLabelText("Agent ID"), { target: { value: "agent-2" } });
-    fireEvent.change(within(detail).getByLabelText("Metadata URI"), { target: { value: "https://skillslot-clearing.vercel.app/agents/agent-2" } });
-    fireEvent.change(within(detail).getByLabelText("Metadata hash"), { target: { value: "a".repeat(64) } });
-    fireEvent.change(within(detail).getByLabelText("Metadata signature"), { target: { value: `SkillSlotAgentRegistry:v1:${"a".repeat(64)}` } });
-    fireEvent.change(within(detail).getByLabelText("Metadata expiry"), { target: { value: "1800000000" } });
     fireEvent.click(within(detail).getByRole("button", { name: /Submit offer for 1 GEN/i }));
     await waitFor(() => expect(adapter.submitOffer).toHaveBeenCalledTimes(1));
     expect(adapter.submitOffer).toHaveBeenCalledWith(expect.objectContaining({
       agentId: "agent-2",
+      capabilityIds: "FLIGHT.BOOK,CALENDAR.WRITE",
+      metadataUri: expect.stringContaining("https://skillslot-clearing.vercel.app/agents/generated/agent-2.json?"),
+      metadataHash: expect.stringMatching(/^[a-f0-9]{64}$/),
       metadataIssuer: "SkillSlotAgentRegistry",
+      metadataSignature: expect.stringMatching(/^SkillSlotAgentRegistry:v1:[a-f0-9]{64}$/),
       metadataExpiresAt: "1800000000",
     }));
 

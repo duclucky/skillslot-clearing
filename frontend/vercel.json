@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/agents/generated/:agentId.json",
+      "destination": "/api/agent-metadata?agentId=:agentId"
+    }
+  ]
+}

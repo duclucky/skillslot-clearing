@@ -902,6 +902,52 @@ h2 {
   padding: 4px 0 20px;
 }
 
+.generated-metadata-note {
+  padding: 13px;
+  color: var(--signal-hover);
+  background: var(--signal-soft);
+  border: 1px solid #9dbfac;
+  border-radius: 6px;
+}
+
+.generated-metadata-note strong {
+  display: block;
+  font-size: 13px;
+}
+
+.generated-metadata-note p {
+  margin: 5px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.generated-metadata-note .field-error {
+  display: block;
+  margin-top: 8px;
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.advanced-metadata {
+  padding: 12px;
+  background: #fbf8ef;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.advanced-metadata summary {
+  min-height: 34px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.advanced-metadata[open] {
+  display: grid;
+  gap: 12px;
+}
+
 .field {
   min-width: 0;
   display: grid;
