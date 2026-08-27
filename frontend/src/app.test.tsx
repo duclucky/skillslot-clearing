@@ -45,10 +45,23 @@ const ready: WorkspaceSnapshot = {
 };
 
 describe("SkillSlot Clearing marketplace", () => {
+  it("opens with Project Explorer overview and a reviewer lifecycle checklist", async () => {
+    render(<App adapter={adapterFor(ready)} />);
+
+    expect(await screen.findByRole("heading", { name: "SkillSlot Clearing" })).toBeVisible();
+    expect(screen.getByText("A GenLayer marketplace for clearing scarce agent access.")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Overview" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("list", { name: "Project Explorer try-it checklist" })).toBeVisible();
+    expect(screen.getByText("Submit provider offer")).toBeVisible();
+    expect(screen.getByText("GenLayer validators inspect authenticated metadata, needs, capability IDs, and exclusions before deterministic settlement.")).toBeVisible();
+  });
+
   it("provides permanent Rounds, Create round, and My activity destinations", async () => {
     render(<App adapter={adapterFor(ready)} />);
 
-    expect(await screen.findByRole("button", { name: "Rounds" })).toHaveAttribute("aria-pressed", "true");
+    expect(await screen.findByRole("button", { name: "Overview" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Rounds" }));
+    expect(screen.getByRole("button", { name: "Rounds" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: "Create round" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "My activity" })).toBeEnabled();
     fireEvent.click(screen.getByRole("button", { name: "Create round" }));
@@ -62,6 +75,7 @@ describe("SkillSlot Clearing marketplace", () => {
     });
     render(<App adapter={terminalAdapter} />);
 
+    fireEvent.click(await screen.findByRole("button", { name: "Rounds" }));
     await screen.findByRole("button", { name: "History" });
     fireEvent.click(screen.getByRole("button", { name: "Open round Completed allocation" }));
     expect(screen.getByRole("heading", { name: "Completed allocation" })).toBeVisible();
@@ -79,6 +93,7 @@ describe("SkillSlot Clearing marketplace", () => {
     });
     render(<App adapter={adapter} />);
 
+    fireEvent.click(await screen.findByRole("button", { name: "Rounds" }));
     expect(await screen.findByRole("button", { name: "Open round Research access" })).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "In decision" }));
     fireEvent.click(screen.getByRole("button", { name: "Open round Locked allocation" }));
@@ -120,6 +135,7 @@ describe("SkillSlot Clearing marketplace", () => {
   it("executes provider, requester, and creator actions in an open round", async () => {
     const adapter = adapterFor(ready);
     render(<App adapter={adapter} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Rounds" }));
     const detail = await screen.findByRole("complementary", { name: "Research access" });
 
     fireEvent.change(within(detail).getByLabelText("Offer ID"), { target: { value: "offer-2" } });
@@ -166,6 +182,7 @@ describe("SkillSlot Clearing marketplace", () => {
       });
     });
     render(<App adapter={adapter} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Rounds" }));
     const detail = await screen.findByRole("complementary", { name: "Research access" });
 
     fireEvent.change(within(detail).getByLabelText("Offer ID"), { target: { value: "offer-2" } });
@@ -193,6 +210,7 @@ describe("SkillSlot Clearing marketplace", () => {
     vi.mocked(adapter.lockRound).mockRejectedValue(new Error("Only the creator can lock this round"));
     render(<App adapter={adapter} />);
 
+    fireEvent.click(await screen.findByRole("button", { name: "Rounds" }));
     fireEvent.click(await screen.findByRole("button", { name: "Lock round" }));
 
     expect(await screen.findByText("Only the creator can lock this round")).toBeVisible();
@@ -207,6 +225,7 @@ describe("SkillSlot Clearing marketplace", () => {
     );
     render(<App adapter={adapter} />);
 
+    fireEvent.click(await screen.findByRole("button", { name: "Rounds" }));
     fireEvent.click(await screen.findByRole("button", { name: "Lock round" }));
 
     const status = await screen.findByRole("status");
@@ -222,12 +241,14 @@ describe("SkillSlot Clearing marketplace", () => {
     const adapter = adapterFor({ ...ready, rounds: [{ ...ready.rounds[0], offerCount: 0, requestCount: 0 }] });
     render(<App adapter={adapter} />);
 
+    fireEvent.click(await screen.findByRole("button", { name: "Rounds" }));
     expect(await screen.findByRole("button", { name: "Lock round" })).toBeDisabled();
   });
 
   it("supports clear, grant consumption, and withdrawal from canonical activity", async () => {
     const lockedAdapter = adapterFor({ ...ready, rounds: [{ ...ready.rounds[0], phase: "RETRYABLE" }] });
     const { unmount } = render(<App adapter={lockedAdapter} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Rounds" }));
     fireEvent.click(await screen.findByRole("button", { name: "Retry semantic clearing" }));
     await waitFor(() => expect(lockedAdapter.clearRound).toHaveBeenCalledWith("round-1"));
     unmount();
@@ -250,6 +271,7 @@ describe("SkillSlot Clearing marketplace", () => {
     const adapter = adapterFor({ ...ready, rounds: [{ ...ready.rounds[0], phase: "LOCKED", expired: true }] });
     render(<App adapter={adapter} />);
 
+    fireEvent.click(await screen.findByRole("button", { name: "Rounds" }));
     fireEvent.click(await screen.findByRole("button", { name: "Recover expired round" }));
 
     await waitFor(() => expect(adapter.recoverExpiredRound).toHaveBeenCalledWith("round-1"));
@@ -296,6 +318,7 @@ describe("SkillSlot Clearing marketplace", () => {
       return () => undefined;
     });
     render(<App adapter={adapter} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Rounds" }));
     await screen.findByRole("heading", { name: "Find a clearing round" });
 
     act(() => emit?.({ stage: "wallet", hash: "", functionName: "submit_offer" }));
@@ -312,6 +335,7 @@ describe("SkillSlot Clearing marketplace", () => {
       return () => undefined;
     });
     render(<App adapter={adapter} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Rounds" }));
     await screen.findByRole("heading", { name: "Find a clearing round" });
 
     act(() =>
@@ -364,6 +388,7 @@ describe("SkillSlot Clearing marketplace", () => {
     });
     render(<App adapter={adapter} />);
 
+    fireEvent.click(await screen.findByRole("button", { name: "Rounds" }));
     fireEvent.click(await screen.findByRole("button", { name: "Lock round" }));
 
     expect(await screen.findByText("Syncing canonical state")).toBeVisible();
@@ -388,6 +413,7 @@ describe("SkillSlot Clearing marketplace", () => {
     });
     render(<App adapter={adapter} />);
 
+    fireEvent.click(await screen.findByRole("button", { name: "Rounds" }));
     fireEvent.click(await screen.findByRole("button", { name: "Lock round" }));
 
     await waitFor(() => expect(adapter.loadWorkspace).toHaveBeenCalledTimes(2));

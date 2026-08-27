@@ -1,6 +1,8 @@
 import {
   ArrowsClockwise,
   ArrowsLeftRight,
+  CheckCircle,
+  Compass,
   LockKey,
   Plus,
   ShieldWarning,
@@ -15,6 +17,7 @@ import {
 } from "./contractAdapter";
 import { Activity } from "./Activity";
 import type { ContractAdapter, TransactionProgress, WorkspaceSnapshot } from "./domain";
+import { getExplorerGuide, type ExplorerGuideStepState } from "./explorerGuide";
 import { CreateRound, Marketplace, type RunWrite } from "./Marketplace";
 import { defaultRoundId } from "./roundFilters";
 import {
@@ -23,7 +26,7 @@ import {
 } from "./transactionRecovery";
 import "./styles.css";
 
-type Destination = "rounds" | "create" | "activity";
+type Destination = "overview" | "rounds" | "create" | "activity";
 
 interface AppProps {
   adapter?: ContractAdapter;
@@ -41,6 +44,7 @@ const initialSnapshot: WorkspaceSnapshot = {
 };
 
 const destinations: Array<{ id: Destination; label: string; icon: typeof ArrowsLeftRight }> = [
+  { id: "overview", label: "Overview", icon: Compass },
   { id: "rounds", label: "Rounds", icon: ArrowsLeftRight },
   { id: "create", label: "Create round", icon: Plus },
   { id: "activity", label: "My activity", icon: LockKey },
@@ -51,7 +55,7 @@ function shortAddress(address: string) {
 }
 
 export function App({ adapter: suppliedAdapter }: AppProps) {
-  const [destination, setDestination] = useState<Destination>("rounds");
+  const [destination, setDestination] = useState<Destination>("overview");
   const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null);
   const [snapshot, setSnapshot] = useState(initialSnapshot);
   const [loading, setLoading] = useState(true);
@@ -170,6 +174,10 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
     setDestination("create");
   }
 
+  function openRounds() {
+    setDestination("rounds");
+  }
+
   function showCreated(roundId: string) {
     setSelectedRoundId(roundId);
     setDestination("rounds");
@@ -229,6 +237,14 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
         ) : null}
         {unconfigured && !loading ? <ConfigurationNotice availability={snapshot.availability} /> : null}
         {loading ? <LoadingState /> : null}
+        {!loading && destination === "overview" ? (
+          <Overview
+            snapshot={snapshot}
+            selectedRoundId={selectedRoundId}
+            onOpenRounds={openRounds}
+            onCreateRound={openCreate}
+          />
+        ) : null}
         {!loading && destination === "rounds" ? (
           <Marketplace
             snapshot={snapshot}
@@ -245,6 +261,96 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
       </main>
     </div>
   );
+}
+
+function Overview({
+  snapshot,
+  selectedRoundId,
+  onOpenRounds,
+  onCreateRound,
+}: {
+  snapshot: WorkspaceSnapshot;
+  selectedRoundId: string | null;
+  onOpenRounds: () => void;
+  onCreateRound: () => void;
+}) {
+  const guide = getExplorerGuide(snapshot, selectedRoundId);
+  const statusLabel = snapshot.contractAddress ? `${shortAddress(snapshot.contractAddress)} on ${snapshot.networkName ?? "Studionet"}` : "Missing contract configuration";
+  return (
+    <section className="overview-view" aria-labelledby="overview-title">
+      <div className="hero-panel">
+        <p className="eyebrow">Project Explorer preview</p>
+        <h1 id="overview-title">SkillSlot Clearing</h1>
+        <p className="hero-line">A GenLayer marketplace for clearing scarce agent access.</p>
+        <p className="lede">
+          Providers bond authenticated agent offers, requesters escrow exact needs, and GenLayer validators clear semantic compatibility before deterministic settlement moves grants, refunds, and credits.
+        </p>
+        <div className="hero-actions">
+          <button className="button button-primary" type="button" onClick={onOpenRounds}>
+            <ArrowsLeftRight aria-hidden="true" /> Browse rounds
+          </button>
+          <button className="button button-secondary" type="button" onClick={onCreateRound}>
+            <Plus aria-hidden="true" /> Create a round
+          </button>
+        </div>
+      </div>
+
+      <div className="proof-grid" aria-label="Product proof">
+        <ProofCard label="Network" value={snapshot.networkName ?? "Studionet"} detail={statusLabel} />
+        <ProofCard label="Contract" value={snapshot.contractAddress ? "Configured" : "Missing"} detail="Reads use canonical view methods; writes use the selected wallet." />
+        <ProofCard label="Settlement" value={snapshot.accountingInvariant === false ? "Check needed" : "Invariant tracked"} detail="No fake balances, fees, transactions, or finality are displayed." />
+      </div>
+
+      <div className="overview-grid">
+        <section className="explainer-card" aria-labelledby="why-genlayer-title">
+          <p className="eyebrow">Why GenLayer</p>
+          <h2 id="why-genlayer-title">Semantic matching with bounded evidence</h2>
+          <p>
+            GenLayer validators inspect authenticated metadata, needs, capability IDs, and exclusions before deterministic settlement.
+          </p>
+          <ul className="evidence-list">
+            <li><CheckCircle aria-hidden="true" /> Provider fees require metadata authentication before clearing.</li>
+            <li><CheckCircle aria-hidden="true" /> Requester deposits are refunded when no compatible slot clears.</li>
+            <li><CheckCircle aria-hidden="true" /> Expired locked funds can be recovered permissionlessly.</li>
+          </ul>
+        </section>
+
+        <section className="checklist-card" aria-labelledby="try-title">
+          <div className="section-heading compact-heading">
+            <div>
+              <p className="eyebrow">Try it end to end</p>
+              <h2 id="try-title">Reviewer lifecycle checklist</h2>
+            </div>
+            {guide.nextStep ? <span className={`guide-state guide-${guide.nextStep.state}`}>Next: {guide.nextStep.title}</span> : null}
+          </div>
+          <ol className="guide-list" aria-label="Project Explorer try-it checklist">
+            {guide.steps.map((step) => (
+              <li key={step.id} className={`guide-step guide-step-${step.state}`}>
+                <span className={`guide-state guide-${step.state}`}>{guideStateLabel(step.state)}</span>
+                <strong>{step.title}</strong>
+                <small>{step.role}</small>
+                <p>{step.detail}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+      </div>
+    </section>
+  );
+}
+
+function ProofCard({ label, value, detail }: { label: string; value: string; detail: string }) {
+  return <div className="proof-card"><span>{label}</span><strong>{value}</strong><p>{detail}</p></div>;
+}
+
+function guideStateLabel(state: ExplorerGuideStepState) {
+  const labels: Record<ExplorerGuideStepState, string> = {
+    done: "Done",
+    available: "Available",
+    blocked: "Blocked",
+    "not-applicable": "Later",
+  };
+  return labels[state];
 }
 
 function TransactionNotice({ transaction }: { transaction: TransactionProgress }) {

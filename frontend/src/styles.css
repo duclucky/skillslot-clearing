@@ -292,6 +292,219 @@ summary:focus-visible {
   align-items: start;
 }
 
+.overview-view {
+  display: grid;
+  gap: 22px;
+}
+
+.hero-panel {
+  min-height: 390px;
+  display: grid;
+  align-content: end;
+  padding: clamp(26px, 6vw, 62px);
+  color: var(--surface);
+  background:
+    radial-gradient(circle at 86% 18%, rgba(220, 235, 226, 0.22), transparent 30%),
+    linear-gradient(135deg, #14201a 0%, #1c241f 52%, #31533f 100%);
+  border: 1px solid #0f1914;
+  border-radius: calc(var(--radius) + 6px);
+  box-shadow: var(--shadow);
+}
+
+.hero-panel .eyebrow,
+.hero-panel h1,
+.hero-panel .lede {
+  color: inherit;
+}
+
+.hero-panel h1 {
+  max-width: 13ch;
+  margin-bottom: 10px;
+  color: var(--surface);
+  font-size: clamp(48px, 8vw, 86px);
+}
+
+.hero-line {
+  max-width: 760px;
+  margin: 0 0 14px;
+  color: #f4e6c7;
+  font-family: Newsreader, Georgia, serif;
+  font-size: clamp(24px, 3vw, 36px);
+  line-height: 1.08;
+}
+
+.hero-panel .lede {
+  max-width: 780px;
+  color: rgba(255, 253, 247, 0.78);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.hero-panel .button-primary {
+  color: var(--ink);
+  background: #f4e6c7;
+  border-color: #f4e6c7;
+}
+
+.hero-panel .button-secondary {
+  color: var(--surface);
+  border-color: rgba(255, 253, 247, 0.44);
+}
+
+.proof-grid,
+.overview-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.proof-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.overview-grid {
+  grid-template-columns: minmax(300px, 0.78fr) minmax(0, 1.22fr);
+  align-items: start;
+}
+
+.proof-card,
+.explainer-card,
+.checklist-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.proof-card {
+  padding: 18px;
+}
+
+.proof-card span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--signal);
+  font-family: "IBM Plex Mono", "Cascadia Mono", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.proof-card strong {
+  display: block;
+  color: var(--ink);
+  font-size: 18px;
+}
+
+.proof-card p,
+.explainer-card p,
+.guide-step p {
+  margin: 8px 0 0;
+  color: var(--ink-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.explainer-card,
+.checklist-card {
+  padding: clamp(20px, 3vw, 30px);
+}
+
+.evidence-list {
+  display: grid;
+  gap: 12px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.evidence-list li {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 10px;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.evidence-list svg {
+  width: 19px;
+  height: 19px;
+  color: var(--signal);
+}
+
+.compact-heading {
+  margin-bottom: 18px;
+}
+
+.guide-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guide-step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  padding: 14px;
+  background: #fbf8ef;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.guide-step strong,
+.guide-step small,
+.guide-step p {
+  grid-column: 2;
+}
+
+.guide-step strong {
+  font-size: 14px;
+}
+
+.guide-step small {
+  color: var(--ink-muted);
+  font-family: "IBM Plex Mono", "Cascadia Mono", monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.guide-state {
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 9px;
+  color: var(--ink-muted);
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-family: "IBM Plex Mono", "Cascadia Mono", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.guide-done,
+.guide-available {
+  color: var(--signal);
+  background: var(--signal-soft);
+  border-color: #9dbfac;
+}
+
+.guide-blocked {
+  color: var(--warning);
+  background: var(--warning-soft);
+  border-color: #d7bc82;
+}
+
 .round-browser,
 .round-detail,
 .create-form,
@@ -1050,7 +1263,9 @@ h2 {
 
 @media (max-width: 980px) {
   .marketplace-layout,
-  .create-view {
+  .create-view,
+  .proof-grid,
+  .overview-grid {
     grid-template-columns: 1fr;
   }
 
