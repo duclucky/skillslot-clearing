@@ -1991,6 +1991,14 @@ h2 {
   grid-template-columns: 1fr;
 }
 
+.overview-grid-stacked {
+  justify-items: center;
+}
+
+.overview-grid-stacked > .immersive-card {
+  width: 100%;
+}
+
 .overview-grid-stacked .mechanism-card > .section-heading {
   justify-content: center;
   text-align: center;
@@ -2004,16 +2012,8 @@ h2 {
 }
 
 .usage-card .section-heading {
-  align-items: flex-end;
-}
-
-.usage-card .section-note {
-  max-width: 32ch;
-  margin: 0;
-  color: rgba(255, 255, 255, 0.66);
-  font-size: 14px;
-  line-height: 1.45;
-  text-align: right;
+  justify-content: center;
+  text-align: center;
 }
 
 .usage-list {
@@ -2520,11 +2520,6 @@ h2 {
 
   .section-heading {
     display: grid;
-  }
-
-  .usage-card .section-note {
-    max-width: none;
-    text-align: left;
   }
 
   .section-heading .button {

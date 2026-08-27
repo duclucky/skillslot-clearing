@@ -491,7 +491,6 @@ function Overview({
             <p className="eyebrow">Start here</p>
             <h2 id="usage-title">How to use SkillSlot</h2>
           </div>
-          <p className="section-note">A clear path from discovery to a validator-cleared result.</p>
         </div>
         <ol className="usage-list">
           <li className="usage-step">

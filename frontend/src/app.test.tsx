@@ -88,6 +88,7 @@ describe("SkillSlot Clearing marketplace", () => {
     expect(screen.getByText("Browse an open round")).toBeVisible();
     expect(screen.getByText("Offer or request access")).toBeVisible();
     expect(screen.getByText("Review the finalized result")).toBeVisible();
+    expect(screen.queryByText("A clear path from discovery to a validator-cleared result.")).not.toBeInTheDocument();
     expect(screen.queryByText("Project Explorer preview")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Project proof metrics")).not.toBeInTheDocument();
     expect(screen.queryByText("Checks Passing")).not.toBeInTheDocument();
