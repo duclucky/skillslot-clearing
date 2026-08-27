@@ -83,6 +83,7 @@ describe("SkillSlot Clearing marketplace", () => {
     expect(screen.getByText("GenLayer validators")).toBeVisible();
     expect(screen.getByRole("region", { name: "Semantic matching with bounded evidence" })).toHaveClass("immersive-card");
     expect(screen.getByRole("region", { name: "How SkillSlot clears access" })).toHaveClass("immersive-card");
+    expect(document.querySelector(".overview-grid")).toHaveClass("overview-grid-stacked");
     expect(screen.getByRole("region", { name: "How to use SkillSlot" })).toBeVisible();
     expect(screen.getByText("Browse an open round")).toBeVisible();
     expect(screen.getByText("Offer or request access")).toBeVisible();

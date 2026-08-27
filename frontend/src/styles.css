@@ -1988,7 +1988,12 @@ h2 {
 
 .overview-grid {
   width: min(100%, 1040px);
-  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
+  grid-template-columns: 1fr;
+}
+
+.overview-grid-stacked .mechanism-card > .section-heading {
+  justify-content: center;
+  text-align: center;
 }
 
 .usage-card {
@@ -2045,13 +2050,6 @@ h2 {
   color: rgba(255, 255, 255, 0.68);
   font-size: 13px;
   line-height: 1.55;
-}
-
-.landing-cta-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 20px;
 }
 
 .explainer-card,
@@ -2527,15 +2525,6 @@ h2 {
   .usage-card .section-note {
     max-width: none;
     text-align: left;
-  }
-
-  .landing-cta-row {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
-  .landing-cta-row .button {
-    width: 100%;
   }
 
   .section-heading .button {

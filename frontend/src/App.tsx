@@ -450,7 +450,7 @@ function Overview({
         </div>
       </div>
 
-      <div className="overview-grid">
+      <div className="overview-grid overview-grid-stacked">
         <section className="explainer-card immersive-card" aria-label="Why GenLayer" aria-labelledby="why-genlayer-title">
           <p className="eyebrow">Why GenLayer</p>
           <h2 id="why-genlayer-title">Semantic matching with bounded evidence</h2>
@@ -516,14 +516,6 @@ function Overview({
             </div>
           </li>
         </ol>
-        <div className="landing-cta-row">
-          <button className="button button-primary" type="button" onClick={onOpenRounds}>
-            <ArrowsLeftRight aria-hidden="true" /> Browse rounds
-          </button>
-          <button className="button button-secondary" type="button" onClick={onCreateRound}>
-            <Plus aria-hidden="true" /> Create a round
-          </button>
-        </div>
       </section>
     </section>
   );
