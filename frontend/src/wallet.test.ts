@@ -201,4 +201,45 @@ describe("browser wallet integration", () => {
     });
     expect(request).toHaveBeenNthCalledWith(2, { method: "eth_accounts" });
   });
+
+  it("logs sanitized transaction diagnostics when Studionet submission fails", async () => {
+    const failure = Object.assign(new Error("unknown RPC error"), { code: -32603 });
+    const request = vi.fn(async () => {
+      throw failure;
+    });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const compatible = withStudionetFeeCompatibility({ request });
+    const transaction = {
+      from: "0x0000000000000000000000000000000000000001",
+      to: "0x0000000000000000000000000000000000000002",
+      data: "0xabcdef",
+      value: "0x0",
+      gas: "0x30d40",
+      nonce: "0x182",
+      chainId: "0xf22f",
+    };
+
+    await expect(compatible.request({ method: "eth_sendTransaction", params: [transaction] })).rejects.toThrow(
+      "unknown RPC error",
+    );
+
+    expect(warn).toHaveBeenCalledWith(
+      "[SkillSlot] Studionet wallet submission failed",
+      {
+        error: { code: -32603, message: "unknown RPC error" },
+        transaction: {
+          chainId: "0xf22f",
+          dataLength: 8,
+          from: "0x0000000000000000000000000000000000000001",
+          gas: "0x30d40",
+          gasPrice: "0x3b9aca00",
+          nonce: "0x182",
+          to: "0x0000000000000000000000000000000000000002",
+          value: "0x0",
+        },
+      },
+    );
+    expect(warn.mock.calls[0][1].transaction).not.toHaveProperty("data");
+    warn.mockRestore();
+  });
 });

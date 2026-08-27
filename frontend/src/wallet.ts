@@ -25,6 +25,35 @@ function isZeroFee(value: unknown) {
   return typeof value === "string" && (/^0x0*$/i.test(value) || /^0+$/.test(value));
 }
 
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (!error || typeof error !== "object") return String(error);
+  const value = error as { message?: unknown; shortMessage?: unknown; details?: unknown };
+  return [value.shortMessage, value.message, value.details].find((part): part is string => typeof part === "string") || String(error);
+}
+
+function diagnosticError(error: unknown) {
+  const code = error && typeof error === "object" ? (error as { code?: unknown }).code : undefined;
+  return {
+    ...(code === undefined ? {} : { code }),
+    message: errorMessage(error),
+  };
+}
+
+function diagnosticTransaction(transaction: Record<string, unknown>) {
+  const data = typeof transaction.data === "string" ? transaction.data : "";
+  return {
+    from: transaction.from,
+    to: transaction.to,
+    value: transaction.value,
+    gas: transaction.gas,
+    gasPrice: transaction.gasPrice,
+    nonce: transaction.nonce,
+    chainId: transaction.chainId,
+    dataLength: data.length,
+  };
+}
+
 export function withStudionetFeeCompatibility(provider: WalletProvider): WalletProvider {
   return {
     request: async (args) => {
@@ -34,11 +63,21 @@ export function withStudionetFeeCompatibility(provider: WalletProvider): WalletP
       const [transaction, ...rest] = args.params;
       if (!transaction || typeof transaction !== "object") return provider.request(args);
       const gasPrice = (transaction as { gasPrice?: unknown }).gasPrice;
-      if (!isZeroFee(gasPrice)) return provider.request(args);
-      return provider.request({
-        ...args,
-        params: [{ ...transaction, gasPrice: STUDIONET_WALLET_GAS_PRICE }, ...rest],
-      });
+      const compatibleTransaction = isZeroFee(gasPrice)
+        ? { ...transaction, gasPrice: STUDIONET_WALLET_GAS_PRICE }
+        : transaction;
+      try {
+        return await provider.request({
+          ...args,
+          params: [compatibleTransaction, ...rest],
+        });
+      } catch (error) {
+        console.warn("[SkillSlot] Studionet wallet submission failed", {
+          error: diagnosticError(error),
+          transaction: diagnosticTransaction(compatibleTransaction as Record<string, unknown>),
+        });
+        throw error;
+      }
     },
   };
 }

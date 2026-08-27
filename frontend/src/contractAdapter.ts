@@ -111,6 +111,19 @@ type AdapterOptions = {
 
 const terminalFailures = new Set(["UNDETERMINED", "CANCELED", "LEADER_TIMEOUT", "VALIDATORS_TIMEOUT"]);
 
+function studionetClientChain() {
+  return {
+    ...studionet,
+    rpcUrls: {
+      ...studionet.rpcUrls,
+      default: {
+        ...studionet.rpcUrls.default,
+        http: [...studionet.rpcUrls.default.http],
+      },
+    },
+  };
+}
+
 function splitCsv(value: string | undefined) {
   return value ? value.split(",").map((item) => item.trim()).filter(Boolean) : [];
 }
@@ -398,7 +411,7 @@ export function createConfiguredAdapter(
   contractAddress: `0x${string}`,
   onTransaction?: (progress: TransactionProgress) => void,
 ) {
-  const readClient = createClient({ chain: studionet, endpoint: "/api/studionet-rpc" }) as unknown as GenLayerClientLike;
+  const readClient = createClient({ chain: studionetClientChain(), endpoint: "/api/studionet-rpc" }) as unknown as GenLayerClientLike;
   return createGenLayerAdapter({
     contractAddress,
     restore: restoreStudionetWallet,
@@ -411,7 +424,7 @@ export function createConfiguredAdapter(
         readClient,
         writeClient: session
           ? (createClient({
-              chain: studionet,
+              chain: studionetClientChain(),
               account: session.account,
               provider: withStudionetFeeCompatibility(session.provider),
             }) as unknown as GenLayerClientLike)
