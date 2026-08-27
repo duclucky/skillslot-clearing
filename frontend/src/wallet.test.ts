@@ -61,6 +61,70 @@ describe("browser wallet integration", () => {
     expect(restored.request).not.toHaveBeenCalledWith(expect.objectContaining({ method: "wallet_switchEthereumChain" }));
   });
 
+  it("switches a restored wallet to Studionet before returning an active session", async () => {
+    const calls: string[] = [];
+    const restored: WalletProvider = {
+      request: vi.fn(async ({ method }) => {
+        calls.push(method);
+        if (method === "eth_accounts") return ["0x0000000000000000000000000000000000000001"];
+        if (method === "eth_chainId") return "0x1";
+        return null;
+      }),
+    };
+    window.ethereum = restored;
+    window.localStorage.setItem("skillslot.walletId", "browser-wallet");
+    window.localStorage.setItem("skillslot.account", "0x0000000000000000000000000000000000000001");
+
+    const session = await restoreStudionetWallet();
+
+    expect(session?.onStudionet).toBe(true);
+    expect(calls).toContain("wallet_switchEthereumChain");
+    expect(restored.request).not.toHaveBeenCalledWith(expect.objectContaining({ method: "eth_requestAccounts" }));
+  });
+
+  it("keeps a restored wallet marked wrong-network when the user rejects Studionet switching", async () => {
+    const restored: WalletProvider = {
+      request: vi.fn(async ({ method }) => {
+        if (method === "eth_accounts") return ["0x0000000000000000000000000000000000000001"];
+        if (method === "eth_chainId") return "0x1";
+        if (method === "wallet_switchEthereumChain") throw Object.assign(new Error("rejected"), { code: 4001 });
+        return null;
+      }),
+    };
+    window.ethereum = restored;
+    window.localStorage.setItem("skillslot.walletId", "browser-wallet");
+    window.localStorage.setItem("skillslot.account", "0x0000000000000000000000000000000000000001");
+
+    const session = await restoreStudionetWallet();
+
+    expect(session?.onStudionet).toBe(false);
+  });
+
+  it("retries Studionet switching from an active restored wrong-network session without requesting accounts again", async () => {
+    const calls: string[] = [];
+    const restored: WalletProvider = {
+      request: vi.fn(async ({ method }) => {
+        calls.push(method);
+        if (method === "eth_accounts") return ["0x0000000000000000000000000000000000000001"];
+        if (method === "eth_chainId") return "0x1";
+        if (method === "wallet_switchEthereumChain" && calls.filter((item) => item === method).length === 1) {
+          throw Object.assign(new Error("rejected"), { code: 4001 });
+        }
+        return null;
+      }),
+    };
+    window.ethereum = restored;
+    window.localStorage.setItem("skillslot.walletId", "browser-wallet");
+    window.localStorage.setItem("skillslot.account", "0x0000000000000000000000000000000000000001");
+
+    await restoreStudionetWallet();
+    const session = await connectStudionetWallet();
+
+    expect(session.onStudionet).toBe(true);
+    expect(calls.filter((item) => item === "wallet_switchEthereumChain")).toHaveLength(2);
+    expect(restored.request).not.toHaveBeenCalledWith(expect.objectContaining({ method: "eth_requestAccounts" }));
+  });
+
   it("adds an unknown Studionet chain and switches before returning the connected account", async () => {
     const calls: string[] = [];
     const injected: WalletProvider = {

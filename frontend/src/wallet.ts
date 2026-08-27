@@ -146,7 +146,17 @@ function persist(session: WalletSession) {
   activeSession = session;
 }
 
+async function switchSessionToStudionet(session: WalletSession) {
+  await ensureStudionet(session.provider);
+  const switched = { ...session, onStudionet: true };
+  persist(switched);
+  return switched;
+}
+
 export async function connectStudionetWallet(selected?: WalletOption): Promise<WalletSession> {
+  if (!selected && activeSession) {
+    return switchSessionToStudionet(activeSession);
+  }
   const wallet = selected;
   if (!wallet) throw new Error("Choose a wallet before connecting");
   const account = accountList(await wallet.provider.request({ method: "eth_requestAccounts" }))[0];
@@ -175,6 +185,13 @@ export async function restoreStudionetWallet(): Promise<WalletSession | null> {
   const chainId = String(await wallet.provider.request({ method: "eth_chainId" })).toLowerCase();
   const session = { account, walletId, walletName: wallet.name, provider: wallet.provider, onStudionet: chainId === STUDIONET_CHAIN_ID };
   persist(session);
+  if (!session.onStudionet) {
+    try {
+      return await switchSessionToStudionet(session);
+    } catch {
+      return session;
+    }
+  }
   return session;
 }
 

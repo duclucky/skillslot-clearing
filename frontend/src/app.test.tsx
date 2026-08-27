@@ -386,6 +386,17 @@ describe("SkillSlot Clearing marketplace", () => {
     await waitFor(() => expect(adapter.loadWorkspace).toHaveBeenCalledTimes(2));
   });
 
+  it("uses the connected wallet control to switch wrong-network sessions to Studionet", async () => {
+    const wrongNetwork = { ...ready, availability: "wrong_network" as const };
+    const adapter = adapterFor(wrongNetwork);
+    render(<App adapter={adapter} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Switch to Studionet" }));
+
+    await waitFor(() => expect(adapter.connectWallet).toHaveBeenCalledWith(undefined));
+    expect(screen.queryByRole("menu", { name: "Wallet account" })).not.toBeInTheDocument();
+  });
+
   it("layers the connected-wallet account menu above the primary navigation", async () => {
     render(<App adapter={adapterFor(ready)} />);
 

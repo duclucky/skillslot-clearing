@@ -160,6 +160,22 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
     }
   }
 
+  async function switchToStudionet() {
+    setBusy(true);
+    setActionError(null);
+    setRecoveryMessage(null);
+    setAccountMenuOpen(false);
+    try {
+      await adapter.connectWallet(undefined);
+      await refresh();
+    } catch (error) {
+      if (isTransactionCancelled(error)) return;
+      setActionError(error instanceof Error ? error.message : "Wallet network switch failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function disconnect() {
     adapter.disconnectWallet?.();
     setAccountMenuOpen(false);
@@ -243,6 +259,10 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
               disabled={!canUseWalletControl}
               aria-expanded={snapshot.account ? accountMenuOpen : undefined}
               onClick={() => {
+                if (snapshot.account && snapshot.availability === "wrong_network") {
+                  void switchToStudionet();
+                  return;
+                }
                 if (snapshot.account) {
                   setAccountMenuOpen((open) => !open);
                 } else {
