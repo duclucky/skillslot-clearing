@@ -44,6 +44,13 @@
   --accent-mint: #aeeece;
   --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
   --font-display: "BubbledotICG-FinePos", "Geist Pixel Circle", monospace;
+  --z-background: 0;
+  --z-content: 1;
+  --z-nav: 20;
+  --z-topbar: 40;
+  --z-popover: 60;
+  --z-modal: 80;
+  --z-skip: 100;
 }
 
 * {
@@ -90,7 +97,7 @@ summary:focus-visible {
 
 .skip-link {
   position: fixed;
-  z-index: 100;
+  z-index: var(--z-skip);
   top: 8px;
   left: 8px;
   min-height: 44px;
@@ -189,7 +196,7 @@ summary:focus-visible {
 
 .account-menu {
   position: absolute;
-  z-index: 20;
+  z-index: var(--z-popover);
   top: calc(100% + 8px);
   right: 0;
   width: min(320px, calc(100vw - 32px));
@@ -360,7 +367,7 @@ summary:focus-visible {
 
 .modal-backdrop {
   position: fixed;
-  z-index: 50;
+  z-index: var(--z-modal);
   inset: 0;
   display: grid;
   place-items: center;
@@ -1569,7 +1576,7 @@ h2 {
 
 .bg {
   position: fixed;
-  z-index: 0;
+  z-index: var(--z-background);
   inset: 0;
   overflow: hidden;
   background: #000;
@@ -1594,7 +1601,7 @@ h2 {
 
 .app-shell {
   position: relative;
-  z-index: 1;
+  z-index: var(--z-content);
   min-height: 100dvh;
   color: var(--text);
   font-family: var(--font-sans);
@@ -1603,7 +1610,7 @@ h2 {
 .topbar,
 .primary-nav {
   position: relative;
-  z-index: 2;
+  z-index: var(--z-nav);
   width: min(100% - 28px, 720px);
   margin: 0 auto;
   background: transparent;
@@ -1611,6 +1618,7 @@ h2 {
 }
 
 .topbar {
+  z-index: var(--z-topbar);
   min-height: 62px;
   justify-content: center;
   padding: clamp(10px, 1.8vh, 22px) 0 0;

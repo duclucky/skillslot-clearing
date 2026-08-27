@@ -28,6 +28,12 @@ function walletProvider(handler: (method: string) => unknown): WalletProvider {
   return { request: vi.fn(({ method }) => Promise.resolve(handler(method))) };
 }
 
+function zIndexValue(element: Element) {
+  const value = getComputedStyle(element).zIndex.trim();
+  const variable = value.match(/^var\((--[\w-]+)\)$/)?.[1];
+  return Number(variable ? getComputedStyle(document.documentElement).getPropertyValue(variable) : value);
+}
+
 const ready: WorkspaceSnapshot = {
   availability: "ready",
   account: "0x0000000000000000000000000000000000000001",
@@ -378,6 +384,21 @@ describe("SkillSlot Clearing marketplace", () => {
 
     expect(adapter.disconnectWallet).toHaveBeenCalledTimes(1);
     await waitFor(() => expect(adapter.loadWorkspace).toHaveBeenCalledTimes(2));
+  });
+
+  it("layers the connected-wallet account menu above the primary navigation", async () => {
+    render(<App adapter={adapterFor(ready)} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "0x0000...0001" }));
+
+    const menu = screen.getByRole("menu", { name: "Wallet account" });
+    const topbar = document.querySelector(".topbar");
+    const nav = document.querySelector(".primary-nav");
+    expect(menu).toBeVisible();
+    expect(topbar).not.toBeNull();
+    expect(nav).not.toBeNull();
+    expect(zIndexValue(topbar!)).toBeGreaterThan(zIndexValue(nav!));
+    expect(zIndexValue(menu)).toBeGreaterThan(zIndexValue(nav!));
   });
 
   it("returns to connect wallet silently when the connection request is cancelled", async () => {
