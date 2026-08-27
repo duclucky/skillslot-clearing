@@ -5,6 +5,7 @@ import { App } from "./App";
 import { createUnconfiguredAdapter } from "./contractAdapter";
 import type { ContractAdapter, TransactionProgress, WorkspaceSnapshot } from "./domain";
 import { TransactionSubmissionUncertainError } from "./transactionRecovery";
+import { __resetWalletForTests, STUDIONET_CHAIN_ID, type WalletProvider } from "./wallet";
 
 function adapterFor(snapshot: WorkspaceSnapshot): ContractAdapter {
   return {
@@ -21,6 +22,10 @@ function adapterFor(snapshot: WorkspaceSnapshot): ContractAdapter {
     consumeGrant: vi.fn(async () => ({ hash: "0xconsume" })),
     withdrawCredit: vi.fn(async () => ({ hash: "0xwithdraw" })),
   };
+}
+
+function walletProvider(handler: (method: string) => unknown): WalletProvider {
+  return { request: vi.fn(({ method }) => Promise.resolve(handler(method))) };
 }
 
 const ready: WorkspaceSnapshot = {
@@ -286,15 +291,66 @@ describe("SkillSlot Clearing marketplace", () => {
   });
 
   it("connects a real wallet adapter and reloads canonical state", async () => {
+    __resetWalletForTests();
+    window.localStorage.clear();
+    window.ethereum = walletProvider((method) => {
+      if (method === "eth_chainId") return STUDIONET_CHAIN_ID;
+      if (method === "eth_requestAccounts") return ["0x0000000000000000000000000000000000000001"];
+      return [];
+    });
     const disconnected = adapterFor({ ...ready, account: null });
     render(<App adapter={disconnected} />);
 
     fireEvent.click(await screen.findByRole("button", { name: "Connect wallet" }));
+    expect(await screen.findByRole("dialog", { name: "Choose wallet" })).toBeVisible();
+    expect(disconnected.connectWallet).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Browser wallet" }));
+
     await waitFor(() => expect(disconnected.connectWallet).toHaveBeenCalledTimes(1));
+    expect(disconnected.connectWallet).toHaveBeenCalledWith(expect.objectContaining({
+      id: "browser-wallet",
+      name: "Browser wallet",
+    }));
     await waitFor(() => expect(disconnected.loadWorkspace).toHaveBeenCalledTimes(2));
   });
 
+  it("shows an honest no-wallet state in the wallet-selection modal", async () => {
+    __resetWalletForTests();
+    window.localStorage.clear();
+    delete window.ethereum;
+    const disconnected = adapterFor({ ...ready, account: null });
+    render(<App adapter={disconnected} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Connect wallet" }));
+
+    expect(await screen.findByRole("dialog", { name: "Choose wallet" })).toBeVisible();
+    expect(screen.getByText("No EVM wallet extension was detected. Install or unlock a Studionet-compatible wallet, then try again.")).toBeVisible();
+    expect(disconnected.connectWallet).not.toHaveBeenCalled();
+  });
+
+  it("opens an account menu and disconnects the connected wallet UI state", async () => {
+    const adapter = {
+      ...adapterFor(ready),
+      disconnectWallet: vi.fn(),
+    };
+    render(<App adapter={adapter} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "0x0000...0001" }));
+    expect(screen.getByRole("menu", { name: "Wallet account" })).toBeVisible();
+    fireEvent.click(screen.getByRole("menuitem", { name: "Disconnect" }));
+
+    expect(adapter.disconnectWallet).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(adapter.loadWorkspace).toHaveBeenCalledTimes(2));
+  });
+
   it("returns to connect wallet silently when the connection request is cancelled", async () => {
+    __resetWalletForTests();
+    window.localStorage.clear();
+    window.ethereum = walletProvider((method) => {
+      if (method === "eth_chainId") return STUDIONET_CHAIN_ID;
+      if (method === "eth_requestAccounts") return ["0x0000000000000000000000000000000000000001"];
+      return [];
+    });
     const disconnected = adapterFor({ ...ready, account: null });
     vi.mocked(disconnected.connectWallet).mockRejectedValue(
       Object.assign(new Error("User rejected the request"), { code: 4001 }),
@@ -303,6 +359,7 @@ describe("SkillSlot Clearing marketplace", () => {
 
     const connectButton = await screen.findByRole("button", { name: "Connect wallet" });
     fireEvent.click(connectButton);
+    fireEvent.click(await screen.findByRole("button", { name: "Browser wallet" }));
 
     await waitFor(() => expect(connectButton).toBeEnabled());
     expect(disconnected.connectWallet).toHaveBeenCalledTimes(1);

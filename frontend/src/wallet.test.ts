@@ -87,6 +87,19 @@ describe("browser wallet integration", () => {
     ]);
   });
 
+  it("requires an explicit wallet option before requesting account permission", async () => {
+    const injected = provider((method) => {
+      if (method === "eth_requestAccounts") return ["0x0000000000000000000000000000000000000002"];
+      if (method === "eth_chainId") return STUDIONET_CHAIN_ID;
+      return null;
+    });
+    window.ethereum = injected;
+
+    await expect(connectStudionetWallet()).rejects.toThrow("Choose a wallet before connecting");
+
+    expect(injected.request).not.toHaveBeenCalledWith(expect.objectContaining({ method: "eth_requestAccounts" }));
+  });
+
   it.each([undefined, "0x0", "0x00"])(
     "adds a one-gwei compatibility price when a Studionet wallet receives gasPrice %s",
     async (gasPrice) => {

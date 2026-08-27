@@ -157,6 +157,53 @@ summary:focus-visible {
   gap: 10px;
 }
 
+.account-control {
+  position: relative;
+}
+
+.account-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(320px, calc(100vw - 32px));
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  box-shadow: var(--shadow);
+}
+
+.account-menu p {
+  margin: 0 0 8px;
+  color: var(--ink-muted);
+  font-family: "IBM Plex Mono", "Cascadia Mono", monospace;
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.account-menu button,
+.account-menu a {
+  width: 100%;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  color: var(--ink);
+  text-align: left;
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.account-menu button:hover,
+.account-menu a:hover {
+  background: var(--surface-muted);
+}
+
 .network-state {
   min-height: 44px;
   gap: 8px;
@@ -283,6 +330,96 @@ summary:focus-visible {
   width: min(100% - 36px, 1340px);
   margin: 0 auto;
   padding: clamp(30px, 5vw, 64px) 0 80px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(28, 36, 31, 0.45);
+}
+
+.wallet-modal {
+  width: min(100%, 540px);
+  max-height: min(720px, calc(100dvh - 40px));
+  overflow: auto;
+  padding: clamp(20px, 4vw, 30px);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: calc(var(--radius) + 4px);
+  box-shadow: 0 24px 90px rgba(28, 36, 31, 0.28);
+}
+
+.modal-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.wallet-modal h2 {
+  margin-bottom: 0;
+}
+
+.wallet-modal-copy {
+  margin: 14px 0 18px;
+  color: var(--ink-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.wallet-list {
+  display: grid;
+  gap: 10px;
+}
+
+.wallet-option {
+  min-height: 64px;
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 4px 12px;
+  align-items: center;
+  padding: 11px;
+  color: var(--ink);
+  text-align: left;
+  background: #fbf8ef;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+
+.wallet-option:hover {
+  border-color: var(--signal);
+  box-shadow: inset 3px 0 0 var(--signal);
+}
+
+.wallet-option img,
+.wallet-option > span {
+  grid-row: 1 / 3;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+}
+
+.wallet-option > span {
+  display: grid;
+  place-items: center;
+  color: var(--surface);
+  background: var(--ink);
+  font-weight: 700;
+}
+
+.wallet-option strong,
+.wallet-option small {
+  display: block;
+}
+
+.wallet-option small {
+  color: var(--ink-muted);
+  font-family: "IBM Plex Mono", "Cascadia Mono", monospace;
+  font-size: 10px;
 }
 
 .marketplace-layout {

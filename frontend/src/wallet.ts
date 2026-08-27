@@ -147,14 +147,20 @@ function persist(session: WalletSession) {
 }
 
 export async function connectStudionetWallet(selected?: WalletOption): Promise<WalletSession> {
-  const wallet = selected ?? (activeSession ? { id: activeSession.walletId, name: activeSession.walletName, provider: activeSession.provider } : (await discoverWallets())[0]);
-  if (!wallet) throw new Error("No browser wallet was detected");
+  const wallet = selected;
+  if (!wallet) throw new Error("Choose a wallet before connecting");
   const account = accountList(await wallet.provider.request({ method: "eth_requestAccounts" }))[0];
   if (!account) throw new Error("Wallet did not return an account");
   await ensureStudionet(wallet.provider);
   const session = { account, walletId: wallet.id, walletName: wallet.name, provider: wallet.provider, onStudionet: true };
   persist(session);
   return session;
+}
+
+export function disconnectStudionetWallet() {
+  window.localStorage.removeItem(storageKeys.walletId);
+  window.localStorage.removeItem(storageKeys.account);
+  activeSession = null;
 }
 
 export async function restoreStudionetWallet(): Promise<WalletSession | null> {

@@ -296,6 +296,8 @@ function OfferForm({ roundId, account, adapter, busy, runWrite }: Pick<SharedPro
     };
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
+    const providerAccount = account;
+    if (!providerAccount) return;
     let generated = {
       metadataUri: checkedUri.value,
       metadataHash: checkedHash.value,
@@ -309,7 +311,7 @@ function OfferForm({ roundId, account, adapter, busy, runWrite }: Pick<SharedPro
         capabilityIdsCsv: checkedCapabilities.value,
         deliverySource: checkedDeliverySource.value,
         expiresAt: Number(checkedExpiresAt.value),
-        provider: account,
+        provider: providerAccount,
       });
       setMetadataUri(generated.metadataUri);
       setMetadataHash(generated.metadataHash);

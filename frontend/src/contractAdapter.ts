@@ -14,9 +14,11 @@ import type {
 } from "./domain";
 import {
   connectStudionetWallet,
+  disconnectStudionetWallet,
   getActiveWalletSession,
   restoreStudionetWallet,
   withStudionetFeeCompatibility,
+  type WalletOption,
   type WalletSession,
 } from "./wallet";
 import {
@@ -97,7 +99,8 @@ type Clients = {
 type AdapterOptions = {
   contractAddress: `0x${string}`;
   clients: () => Clients;
-  connect?: () => Promise<WalletSession>;
+  connect?: (selected?: WalletOption) => Promise<WalletSession>;
+  disconnect?: () => void;
   restore?: () => Promise<WalletSession | null>;
   onTransaction?: (progress: TransactionProgress) => void;
   pollIntervalMs?: number;
@@ -318,10 +321,11 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
       return () => transactionListeners.delete(listener);
     },
     loadWorkspace,
-    connectWallet: async () => {
+    connectWallet: async (selected) => {
       if (!options.connect) throw new Error("No browser wallet connector is configured");
-      return (await options.connect()).account;
+      return (await options.connect(selected as WalletOption | undefined)).account;
     },
+    disconnectWallet: options.disconnect,
     openRound: (input: OpenRoundInput) =>
       execute("open_round", [input.roundId, input.title, ONE_GEN_WEI, ONE_GEN_WEI, DEFAULT_OPEN_TIMEOUT_SECONDS, DEFAULT_CLEAR_TIMEOUT_SECONDS]),
     submitOffer: (input: OfferInput) =>
@@ -377,6 +381,7 @@ export function createUnconfiguredAdapter(): ContractAdapter {
     subscribeTransactions: () => () => undefined,
     loadWorkspace: async () => ({ ...unconfiguredWorkspace, positions: [] }),
     connectWallet: unavailable,
+    disconnectWallet: () => undefined,
     openRound: unavailable,
     submitOffer: unavailable,
     submitRequest: unavailable,
@@ -398,6 +403,7 @@ export function createConfiguredAdapter(
     contractAddress,
     restore: restoreStudionetWallet,
     connect: connectStudionetWallet,
+    disconnect: disconnectStudionetWallet,
     onTransaction,
     clients: () => {
       const session = getActiveWalletSession();

@@ -91,10 +91,18 @@ export interface TransactionProgress {
   error?: string;
 }
 
+export interface WalletChoice {
+  id: string;
+  name: string;
+  provider: unknown;
+  icon?: string;
+}
+
 export interface ContractAdapter {
   subscribeTransactions(listener: (progress: TransactionProgress) => void): () => void;
   loadWorkspace(): Promise<WorkspaceSnapshot>;
-  connectWallet(): Promise<string>;
+  connectWallet(selected?: WalletChoice): Promise<string>;
+  disconnectWallet?(): void;
   openRound(input: OpenRoundInput): Promise<TransactionReceipt>;
   submitOffer(input: OfferInput): Promise<TransactionReceipt>;
   submitRequest(input: RequestInput): Promise<TransactionReceipt>;

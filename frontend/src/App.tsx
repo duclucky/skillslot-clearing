@@ -16,7 +16,7 @@ import {
   createUnconfiguredAdapter,
 } from "./contractAdapter";
 import { Activity } from "./Activity";
-import type { ContractAdapter, TransactionProgress, WorkspaceSnapshot } from "./domain";
+import type { ContractAdapter, TransactionProgress, WalletChoice, WorkspaceSnapshot } from "./domain";
 import { getExplorerGuide, type ExplorerGuideStepState } from "./explorerGuide";
 import { CreateRound, Marketplace, type RunWrite } from "./Marketplace";
 import { defaultRoundId } from "./roundFilters";
@@ -24,6 +24,7 @@ import {
   isTransactionCancelled,
   isTransactionSubmissionUncertain,
 } from "./transactionRecovery";
+import { discoverWallets } from "./wallet";
 import "./styles.css";
 
 type Destination = "overview" | "rounds" | "create" | "activity";
@@ -64,6 +65,10 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
   const [actionError, setActionError] = useState<string | null>(null);
   const [recoveryMessage, setRecoveryMessage] = useState<string | null>(null);
   const [transaction, setTransaction] = useState<TransactionProgress | null>(null);
+  const [walletModalOpen, setWalletModalOpen] = useState(false);
+  const [walletOptions, setWalletOptions] = useState<WalletChoice[]>([]);
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const transactionRef = useRef<TransactionProgress | null>(null);
   const updateTransaction = useCallback((next: TransactionProgress | null) => {
     transactionRef.current = next;
@@ -121,12 +126,29 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
     };
   }, [refresh, updateTransaction]);
 
-  async function connect() {
+  async function openWalletModal() {
+    setWalletModalOpen(true);
+    setWalletLoading(true);
+    setActionError(null);
+    setRecoveryMessage(null);
+    try {
+      setWalletOptions(await discoverWallets());
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "Wallet discovery failed.");
+      setWalletOptions([]);
+    } finally {
+      setWalletLoading(false);
+    }
+  }
+
+  async function connect(selected: WalletChoice) {
     setBusy(true);
     setActionError(null);
     setRecoveryMessage(null);
     try {
-      await adapter.connectWallet();
+      await adapter.connectWallet(selected);
+      setWalletModalOpen(false);
+      setWalletOptions([]);
       await refresh();
     } catch (error) {
       if (isTransactionCancelled(error)) return;
@@ -134,6 +156,12 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function disconnect() {
+    adapter.disconnectWallet?.();
+    setAccountMenuOpen(false);
+    await refresh();
   }
 
   const runWrite: RunWrite = async (action, afterFinalized) => {
@@ -184,7 +212,7 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
   }
 
   const unconfigured = snapshot.availability === "unconfigured";
-  const canConnect = !unconfigured && !loading && !busy && (!snapshot.account || snapshot.availability === "wrong_network");
+  const canUseWalletControl = !unconfigured && !loading && !busy;
 
   return (
     <div className="app-shell">
@@ -200,12 +228,36 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
             <span className="status-dot" aria-hidden="true" />
             <span>{snapshot.networkName ?? "Network unavailable"}</span>
           </div>
-          <button className="button button-secondary" type="button" disabled={!canConnect} onClick={() => void connect()}>
-            <Wallet aria-hidden="true" />
-            {snapshot.availability === "wrong_network" ? "Switch to Studionet" : snapshot.account ? shortAddress(snapshot.account) : busy ? "Waiting for wallet" : "Connect wallet"}
-          </button>
+          <div className="account-control">
+            <button
+              className="button button-secondary"
+              type="button"
+              disabled={!canUseWalletControl}
+              aria-expanded={snapshot.account ? accountMenuOpen : undefined}
+              onClick={() => {
+                if (snapshot.account) {
+                  setAccountMenuOpen((open) => !open);
+                } else {
+                  void openWalletModal();
+                }
+              }}
+            >
+              <Wallet aria-hidden="true" />
+              {snapshot.availability === "wrong_network" ? "Switch to Studionet" : snapshot.account ? shortAddress(snapshot.account) : busy ? "Waiting for wallet" : "Connect wallet"}
+            </button>
+            {snapshot.account && accountMenuOpen ? <AccountMenu account={snapshot.account} onDisconnect={() => void disconnect()} /> : null}
+          </div>
         </div>
       </header>
+      {walletModalOpen ? (
+        <WalletModal
+          wallets={walletOptions}
+          loading={walletLoading}
+          busy={busy}
+          onClose={() => setWalletModalOpen(false)}
+          onChoose={(wallet) => void connect(wallet)}
+        />
+      ) : null}
 
       <nav className="primary-nav" aria-label="Workspace destinations">
         {destinations.map(({ id, label, icon: Icon }) => (
@@ -336,6 +388,66 @@ function Overview({
         </section>
       </div>
     </section>
+  );
+}
+
+function WalletModal({
+  wallets,
+  loading,
+  busy,
+  onClose,
+  onChoose,
+}: {
+  wallets: WalletChoice[];
+  loading: boolean;
+  busy: boolean;
+  onClose: () => void;
+  onChoose: (wallet: WalletChoice) => void;
+}) {
+  return (
+    <div className="modal-backdrop" role="presentation">
+      <section className="wallet-modal" role="dialog" aria-modal="true" aria-labelledby="wallet-modal-title">
+        <div className="modal-heading">
+          <div>
+            <p className="eyebrow">Wallet required for writes</p>
+            <h2 id="wallet-modal-title">Choose wallet</h2>
+          </div>
+          <button className="text-action" type="button" onClick={onClose}>Close</button>
+        </div>
+        <p className="wallet-modal-copy">Select the EVM wallet that should sign Studionet transactions. The app will not choose a provider automatically.</p>
+        {loading ? <p className="form-status">Detecting browser wallets...</p> : null}
+        {!loading && wallets.length === 0 ? (
+          <div className="empty-state compact-empty">
+            <ShieldWarning aria-hidden="true" />
+            <h2>No wallet detected</h2>
+            <p>No EVM wallet extension was detected. Install or unlock a Studionet-compatible wallet, then try again.</p>
+          </div>
+        ) : null}
+        {wallets.length ? (
+          <div className="wallet-list" aria-label="Detected wallets">
+            {wallets.map((wallet) => (
+              <button key={wallet.id} className="wallet-option" type="button" aria-label={wallet.name} disabled={busy} onClick={() => onChoose(wallet)}>
+                {wallet.icon ? <img src={wallet.icon} alt="" /> : <span aria-hidden="true">{wallet.name.slice(0, 1).toUpperCase()}</span>}
+                <strong>{wallet.name}</strong>
+                <small>{wallet.id}</small>
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </section>
+    </div>
+  );
+}
+
+function AccountMenu({ account, onDisconnect }: { account: string; onDisconnect: () => void }) {
+  const explorerUrl = `https://explorer-studio.genlayer.com/address/${account}`;
+  return (
+    <div className="account-menu" role="menu" aria-label="Wallet account">
+      <p>{account}</p>
+      <button role="menuitem" type="button" onClick={() => void navigator.clipboard?.writeText(account)}>Copy address</button>
+      <a role="menuitem" href={explorerUrl} target="_blank" rel="noreferrer">View account</a>
+      <button role="menuitem" type="button" onClick={onDisconnect}>Disconnect</button>
+    </div>
   );
 }
 
