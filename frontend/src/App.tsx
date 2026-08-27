@@ -212,7 +212,7 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
   }
 
   const unconfigured = snapshot.availability === "unconfigured";
-  const canUseWalletControl = !unconfigured && !loading && !busy;
+  const canUseWalletControl = !unconfigured && !busy;
 
   return (
     <div className="app-shell">
@@ -288,8 +288,7 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
           </section>
         ) : null}
         {unconfigured && !loading ? <ConfigurationNotice availability={snapshot.availability} /> : null}
-        {loading ? <LoadingState /> : null}
-        {!loading && destination === "overview" ? (
+        {destination === "overview" ? (
           <Overview
             snapshot={snapshot}
             selectedRoundId={selectedRoundId}
@@ -297,6 +296,7 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
             onCreateRound={openCreate}
           />
         ) : null}
+        {loading ? <LoadingState /> : null}
         {!loading && destination === "rounds" ? (
           <Marketplace
             snapshot={snapshot}
@@ -485,7 +485,7 @@ function TransactionNotice({ transaction }: { transaction: TransactionProgress }
 }
 
 function LoadingState() {
-  return <section className="loading-state" aria-label="Loading canonical marketplace"><div /><div /><div /></section>;
+  return <section className="loading-state" role="status" aria-label="Loading canonical marketplace"><span>Loading canonical marketplace…</span><div /><div /><div /></section>;
 }
 
 function ConfigurationNotice({ availability }: { availability: WorkspaceSnapshot["availability"] }) {

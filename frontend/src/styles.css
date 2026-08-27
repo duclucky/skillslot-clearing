@@ -1434,6 +1434,12 @@ h2 {
   gap: 12px;
 }
 
+.loading-state span {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 14px;
+}
+
 .loading-state div {
   height: 170px;
   background: var(--surface-muted);

@@ -62,6 +62,18 @@ describe("SkillSlot Clearing marketplace", () => {
     expect(screen.getByText("GenLayer validators inspect authenticated metadata, needs, capability IDs, and exclusions before deterministic settlement.")).toBeVisible();
   });
 
+  it("does not leave the overview blank while canonical state is still loading", () => {
+    const pendingAdapter = adapterFor(ready);
+    vi.mocked(pendingAdapter.loadWorkspace).mockReturnValue(new Promise(() => undefined));
+
+    render(<App adapter={pendingAdapter} />);
+
+    expect(screen.getByRole("heading", { name: "SkillSlot Clearing" })).toBeVisible();
+    expect(screen.getByText("A GenLayer marketplace for clearing scarce agent access.")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Connect wallet" })).toBeEnabled();
+    expect(screen.getByRole("status", { name: "Loading canonical marketplace" })).toBeVisible();
+  });
+
   it("provides permanent Rounds, Create round, and My activity destinations", async () => {
     render(<App adapter={adapterFor(ready)} />);
 
