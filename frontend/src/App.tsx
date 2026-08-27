@@ -374,7 +374,7 @@ function Overview({
       </div>
 
       <div className="overview-grid">
-        <section className="explainer-card" aria-labelledby="why-genlayer-title">
+        <section className="explainer-card immersive-card" aria-label="Why GenLayer" aria-labelledby="why-genlayer-title">
           <p className="eyebrow">Why GenLayer</p>
           <h2 id="why-genlayer-title">Semantic matching with bounded evidence</h2>
           <p>
@@ -387,7 +387,7 @@ function Overview({
           </ul>
         </section>
 
-        <section className="checklist-card" aria-labelledby="try-title">
+        <section className="checklist-card immersive-card" aria-label="Reviewer lifecycle checklist" aria-labelledby="try-title">
           <div className="section-heading compact-heading">
             <div>
               <p className="eyebrow">Try it end to end</p>

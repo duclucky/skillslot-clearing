@@ -64,6 +64,8 @@ describe("SkillSlot Clearing marketplace", () => {
     expect(screen.getByText("GenLayer validators")).toBeVisible();
     expect(screen.getByText("146")).toBeVisible();
     expect(screen.getByText("Checks Passing")).toBeVisible();
+    expect(screen.getByRole("region", { name: "Semantic matching with bounded evidence" })).toHaveClass("immersive-card");
+    expect(screen.getByRole("region", { name: "Reviewer lifecycle checklist" })).toHaveClass("immersive-card");
     expect(screen.getByRole("button", { name: "Overview" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("list", { name: "Project Explorer try-it checklist" })).toBeVisible();
     expect(screen.getByText("Submit provider offer")).toBeVisible();
