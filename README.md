@@ -14,7 +14,7 @@ The product reserves access. It does **not** certify agent performance, task com
 - Contract: one `SkillSlotClearing` Intelligent Contract with 9 writes and 8 views
 - Network: Studionet (`61999`)
 - Deployment: `0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`
-- Automated checks: 158 currently pass locally (8 static, 44 direct, 5 receipt parser, 7 deployment tooling, 94 frontend)
+- Automated checks: 159 currently pass locally (8 static, 44 direct, 5 receipt parser, 7 deployment tooling, 95 frontend)
 - Verified Windows CI: [`check` run 33035406150](https://github.com/duclucky/skillslot-clearing/actions/runs/33035406150) passed on commit `43dac5f`
 - Network lifecycle: the remediation deployment records a script-signed `FINALIZED_LIFECYCLE` with authenticated metadata, consumed grant, 2 GEN received, 2 GEN withdrawn, zero locked or credited liability, and invariant true
 - Timeout recovery proof: the remediation deployment records requester-called `recover_expired_round`, terminal `CANCELLED`, 4 GEN cumulative received/withdrawn across proofs, zero locked or credited liability, and invariant true

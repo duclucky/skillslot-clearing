@@ -76,6 +76,7 @@ function shortAddress(address: string) {
 }
 
 type WalletUiOverride = { kind: "connected"; account: string } | { kind: "disconnected" } | null;
+type RefreshOptions = { force?: boolean };
 
 function sameAccount(left: string | null, right: string) {
   return Boolean(left && left.toLowerCase() === right.toLowerCase());
@@ -124,6 +125,7 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const transactionRef = useRef<TransactionProgress | null>(null);
   const walletUiOverrideRef = useRef<WalletUiOverride>(null);
+  const refreshInFlightRef = useRef<Promise<WorkspaceSnapshot | null> | null>(null);
   const updateTransaction = useCallback((next: TransactionProgress | null) => {
     transactionRef.current = next;
     setTransaction(next);
@@ -141,20 +143,26 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
     [adapter, updateTransaction],
   );
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback((options?: RefreshOptions) => {
+    if (!options?.force && refreshInFlightRef.current) return refreshInFlightRef.current;
     setLoadError(null);
-    try {
-      const next = await adapter.loadWorkspace();
-      const visibleSnapshot = applyWalletUiOverride(next, walletUiOverrideRef.current);
-      setSnapshot(visibleSnapshot);
-      setSelectedRoundId((current) => current && visibleSnapshot.rounds.some((round) => round.id === current) ? current : defaultRoundId(visibleSnapshot.rounds));
-      return visibleSnapshot;
-    } catch (error) {
-      setLoadError(error instanceof Error ? error.message : "Workspace could not be loaded.");
-      return null;
-    } finally {
-      setLoading(false);
-    }
+    const request = adapter.loadWorkspace()
+      .then((next) => {
+        const visibleSnapshot = applyWalletUiOverride(next, walletUiOverrideRef.current);
+        setSnapshot(visibleSnapshot);
+        setSelectedRoundId((current) => current && visibleSnapshot.rounds.some((round) => round.id === current) ? current : defaultRoundId(visibleSnapshot.rounds));
+        return visibleSnapshot;
+      })
+      .catch((error) => {
+        setLoadError(error instanceof Error ? error.message : "Workspace could not be loaded.");
+        return null;
+      })
+      .finally(() => {
+        if (refreshInFlightRef.current === request) refreshInFlightRef.current = null;
+        setLoading(false);
+      });
+    refreshInFlightRef.current = request;
+    return request;
   }, [adapter]);
 
   useEffect(() => {
@@ -206,7 +214,7 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
       setSnapshot((current) => snapshotWithConnectedWallet(current, account));
       setWalletModalOpen(false);
       setWalletOptions([]);
-      void refresh();
+      void refresh({ force: true });
     } catch (error) {
       if (isTransactionCancelled(error)) return;
       setActionError(error instanceof Error ? error.message : "Wallet connection failed.");
@@ -224,7 +232,7 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
       const account = await adapter.connectWallet(undefined);
       walletUiOverrideRef.current = { kind: "connected", account };
       setSnapshot((current) => snapshotWithConnectedWallet(current, account));
-      void refresh();
+      void refresh({ force: true });
     } catch (error) {
       if (isTransactionCancelled(error)) return;
       setActionError(error instanceof Error ? error.message : "Wallet network switch failed.");
@@ -251,7 +259,7 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
       if (current) {
         updateTransaction({ ...current, stage: "recovering", reason: "canonical_sync" });
       }
-      const next = await refresh();
+      const next = await refresh({ force: true });
       if (next) {
         updateTransaction(null);
         if (afterFinalized) afterFinalized(next);
@@ -261,7 +269,7 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
         updateTransaction(null);
         return;
       }
-      const next = await refresh();
+      const next = await refresh({ force: true });
       if (transactionRef.current?.reason === "submission_uncertain" && next) {
         updateTransaction(null);
       }

@@ -531,7 +531,7 @@ describe("SkillSlot Clearing marketplace", () => {
     window.dispatchEvent(new Event("online"));
     window.dispatchEvent(new Event("focus"));
 
-    await waitFor(() => expect(adapter.loadWorkspace).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(adapter.loadWorkspace).toHaveBeenCalledTimes(2));
     expect(adapter.openRound).not.toHaveBeenCalled();
     expect(adapter.submitOffer).not.toHaveBeenCalled();
     expect(adapter.submitRequest).not.toHaveBeenCalled();
@@ -541,6 +541,25 @@ describe("SkillSlot Clearing marketplace", () => {
     expect(adapter.recoverExpiredRound).not.toHaveBeenCalled();
     expect(adapter.consumeGrant).not.toHaveBeenCalled();
     expect(adapter.withdrawCredit).not.toHaveBeenCalled();
+  });
+
+  it("coalesces overlapping canonical refresh triggers to avoid redundant RPC reads", async () => {
+    let resolveInitial: (snapshot: WorkspaceSnapshot) => void = () => undefined;
+    const adapter = adapterFor(ready);
+    vi.mocked(adapter.loadWorkspace)
+      .mockReturnValueOnce(new Promise((resolve) => {
+        resolveInitial = resolve;
+      }))
+      .mockResolvedValue(ready);
+
+    render(<App adapter={adapter} />);
+
+    window.dispatchEvent(new Event("online"));
+    window.dispatchEvent(new Event("focus"));
+
+    expect(adapter.loadWorkspace).toHaveBeenCalledTimes(1);
+    await act(async () => resolveInitial(ready));
+    await waitFor(() => expect(screen.getByRole("button", { name: "0x0000...0001" })).toBeVisible());
   });
 
   it("finishes canonical sync on reconnect without replaying the finalized write", async () => {
