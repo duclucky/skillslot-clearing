@@ -162,6 +162,10 @@ summary:focus-visible {
   border-radius: 7px;
 }
 
+.brand-mark-transparent {
+  background: transparent;
+}
+
 .brand-mark img {
   width: 100%;
   height: 100%;
@@ -543,7 +547,8 @@ summary:focus-visible {
 
 .proof-card,
 .explainer-card,
-.checklist-card {
+.checklist-card,
+.mechanism-card {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -601,7 +606,8 @@ summary:focus-visible {
 
 .proof-card p,
 .explainer-card p,
-.guide-step p {
+.guide-step p,
+.mechanism-step p {
   margin: 8px 0 0;
   color: var(--ink-muted);
   font-size: 13px;
@@ -609,7 +615,8 @@ summary:focus-visible {
 }
 
 .explainer-card,
-.checklist-card {
+.checklist-card,
+.mechanism-card {
   padding: clamp(20px, 3vw, 30px);
 }
 
@@ -626,7 +633,8 @@ summary:focus-visible {
 }
 
 .immersive-card p,
-.immersive-card .guide-step p {
+.immersive-card .guide-step p,
+.immersive-card .mechanism-step p {
   color: rgba(255, 255, 255, 0.68);
 }
 
@@ -664,6 +672,54 @@ summary:focus-visible {
 
 .compact-heading {
   margin-bottom: 18px;
+}
+
+.mechanism-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mechanism-step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  padding: 16px;
+  color: var(--ink);
+  background: #fbf8ef;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+}
+
+.immersive-card .mechanism-step {
+  color: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.mechanism-index {
+  width: 34px;
+  height: 34px;
+  display: inline-grid;
+  place-items: center;
+  color: #07110c;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.84);
+  border-radius: 999px;
+  font-family: "IBM Plex Mono", "Cascadia Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.mechanism-step strong {
+  display: block;
+  color: #fff;
+  font-size: clamp(15px, 1.8vw, 17px);
+  line-height: 1.25;
 }
 
 .guide-list {
@@ -1633,10 +1689,12 @@ h2 {
 .brand-mark {
   width: clamp(40px, 4.4vw, 46px);
   height: clamp(40px, 4.4vw, 46px);
-  background: #fff;
-  border-radius: 50%;
-  box-shadow: var(--nav-shadow);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 14px;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
   transition: transform 180ms ease;
+  backdrop-filter: blur(10px) saturate(1.08);
 }
 
 .brand:hover .brand-mark {
@@ -1644,11 +1702,11 @@ h2 {
 }
 
 .brand-mark img {
-  width: 72%;
-  height: 72%;
+  width: 100%;
+  height: 100%;
   margin: auto;
   object-fit: contain;
-  border-radius: 0;
+  border-radius: 12px;
 }
 
 .brand strong {
@@ -1928,43 +1986,6 @@ h2 {
   border-color: rgba(255, 255, 255, 0.44);
 }
 
-.landing-stats {
-  width: min(100%, 920px);
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: clamp(10px, 2vw, 22px);
-  margin-top: auto;
-  padding-top: clamp(8px, 2vh, 18px);
-}
-
-.stat-metric {
-  display: grid;
-  justify-items: center;
-  gap: 3px;
-  color: #fff;
-}
-
-.stat-symbol {
-  font-family: var(--font-display);
-  font-size: clamp(22px, 3vw, 33px);
-  line-height: 1;
-}
-
-.stat-metric strong {
-  font-size: clamp(18px, 2.2vw, 26px);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.025em;
-}
-
-.stat-metric strong small {
-  font-size: 0.55em;
-}
-
-.stat-metric > span:last-child {
-  color: var(--muted);
-  font-size: clamp(11px, 1.2vw, 12.5px);
-}
-
 .overview-grid {
   width: min(100%, 1040px);
   grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
@@ -1972,6 +1993,7 @@ h2 {
 
 .explainer-card,
 .checklist-card,
+.mechanism-card,
 .proof-card,
 .round-browser,
 .round-detail,
@@ -1982,7 +2004,8 @@ h2 {
 }
 
 .explainer-card.immersive-card,
-.checklist-card.immersive-card {
+.checklist-card.immersive-card,
+.mechanism-card.immersive-card {
   background:
     radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.13), transparent 32%),
     linear-gradient(145deg, rgba(16, 17, 19, 0.9), rgba(12, 12, 14, 0.78));
@@ -2313,17 +2336,6 @@ h2 {
     margin-top: 12px;
   }
 
-  .landing-stats {
-    padding-top: 0;
-  }
-
-  .stat-symbol {
-    font-size: 24px;
-  }
-
-  .stat-metric strong {
-    font-size: 20px;
-  }
 }
 
 @media (max-width: 980px) {
@@ -2395,10 +2407,6 @@ h2 {
 
   .hero-panel .lede {
     font-size: 16px;
-  }
-
-  .landing-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .section-heading {

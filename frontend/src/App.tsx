@@ -17,7 +17,6 @@ import {
 } from "./contractAdapter";
 import { Activity } from "./Activity";
 import type { ContractAdapter, TransactionProgress, WalletChoice, WorkspaceSnapshot } from "./domain";
-import { getExplorerGuide, type ExplorerGuideStepState } from "./explorerGuide";
 import { CreateRound, Marketplace, type RunWrite } from "./Marketplace";
 import { defaultRoundId } from "./roundFilters";
 import {
@@ -51,6 +50,25 @@ const destinations: Array<{ id: Destination; label: string; icon: typeof ArrowsL
   { id: "rounds", label: "Rounds", icon: ArrowsLeftRight },
   { id: "create", label: "Create round", icon: Plus },
   { id: "activity", label: "My activity", icon: LockKey },
+];
+
+const mechanismSteps = [
+  {
+    title: "Providers publish authenticated offers",
+    body: "Each provider binds wallet identity, agent metadata, capability IDs, expiry, and bond before a promise can participate in clearing.",
+  },
+  {
+    title: "Requesters escrow exact needs",
+    body: "A requester states the needed capabilities and locks value inside the round, so matching can settle without private side deals.",
+  },
+  {
+    title: "Validators clear semantic compatibility",
+    body: "GenLayer validators compare the authenticated offer with the requester need, exclusions, and objective capability fields.",
+  },
+  {
+    title: "Settlement releases value deterministically",
+    body: "Compatible matches issue grants and provider credits; unmatched or expired locked value has refund and permissionless recovery paths.",
+  },
 ];
 
 function shortAddress(address: string) {
@@ -244,7 +262,7 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
 
       <header className="topbar">
         <a className="brand" href="/" aria-label="SkillSlot Clearing home">
-          <span className="brand-mark"><img src="/skillslot-logo.svg" alt="SkillSlot Clearing logo" /></span>
+          <span className="brand-mark brand-mark-transparent"><img src="/skillslot-logo.svg" alt="SkillSlot Clearing logo" /></span>
           <span><strong>SkillSlot</strong><small>Semantic access clearing</small></span>
         </a>
         <div className="connection-cluster">
@@ -319,7 +337,6 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
         {destination === "overview" ? (
           <Overview
             snapshot={snapshot}
-            selectedRoundId={selectedRoundId}
             onOpenRounds={openRounds}
             onCreateRound={openCreate}
           />
@@ -345,16 +362,13 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
 
 function Overview({
   snapshot,
-  selectedRoundId,
   onOpenRounds,
   onCreateRound,
 }: {
   snapshot: WorkspaceSnapshot;
-  selectedRoundId: string | null;
   onOpenRounds: () => void;
   onCreateRound: () => void;
 }) {
-  const guide = getExplorerGuide(snapshot, selectedRoundId);
   return (
     <section className="overview-view" aria-labelledby="overview-title">
       <div className="landing-stage">
@@ -366,7 +380,6 @@ function Overview({
         </div>
 
         <div className="hero-panel">
-          <p className="eyebrow anim" style={{ "--d": "0.08s" } as CSSProperties}>Project Explorer preview</p>
           <h1 id="overview-title" className="headline">
             <span>SkillSlot</span>
             <span>Clearing</span>
@@ -384,13 +397,6 @@ function Overview({
             </button>
           </div>
         </div>
-
-        <div className="landing-stats" aria-label="Project proof metrics">
-          <StatMetric symbol="<" value="146" suffix="" label="Checks Passing" delay="0.5s" />
-          <StatMetric symbol="%" value="9" suffix="" label="Contract Writes" delay="0.58s" />
-          <StatMetric symbol="*" value="8" suffix="" label="Canonical Views" delay="0.66s" />
-          <StatMetric symbol="#" value="0" suffix=" GEN" label="Locked Liability" delay="0.74s" />
-        </div>
       </div>
 
       <div className="overview-grid">
@@ -407,37 +413,27 @@ function Overview({
           </ul>
         </section>
 
-        <section className="checklist-card immersive-card" aria-label="Reviewer lifecycle checklist" aria-labelledby="try-title">
+        <section className="mechanism-card immersive-card" aria-label="How SkillSlot clears access" aria-labelledby="mechanism-title">
           <div className="section-heading compact-heading">
             <div>
-              <p className="eyebrow">Try it end to end</p>
-              <h2 id="try-title">Reviewer lifecycle checklist</h2>
+              <p className="eyebrow">Clearing mechanism</p>
+              <h2 id="mechanism-title">How SkillSlot clears access</h2>
             </div>
-            {guide.nextStep ? <span className={`guide-state guide-${guide.nextStep.state}`}>Next: {guide.nextStep.title}</span> : null}
           </div>
-          <ol className="guide-list" aria-label="Project Explorer try-it checklist">
-            {guide.steps.map((step) => (
-              <li key={step.id} className={`guide-step guide-step-${step.state}`}>
-                <span className={`guide-state guide-${step.state}`}>{guideStateLabel(step.state)}</span>
-                <strong>{step.title}</strong>
-                <small>{step.role}</small>
-                <p>{step.detail}</p>
+          <ol className="mechanism-list" aria-label="SkillSlot clearing mechanism">
+            {mechanismSteps.map((step, index) => (
+              <li key={step.title} className="mechanism-step">
+                <span className="mechanism-index" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                <div>
+                  <strong>{step.title}</strong>
+                  <p>{step.body}</p>
+                </div>
               </li>
             ))}
           </ol>
         </section>
       </div>
     </section>
-  );
-}
-
-function StatMetric({ symbol, value, suffix, label, delay }: { symbol: string; value: string; suffix: string; label: string; delay: string }) {
-  return (
-    <div className="stat-metric anim" style={{ "--d": delay } as CSSProperties}>
-      <span className="stat-symbol">{symbol}</span>
-      <strong>{value}<small>{suffix}</small></strong>
-      <span>{label}</span>
-    </div>
   );
 }
 
@@ -499,16 +495,6 @@ function AccountMenu({ account, onDisconnect }: { account: string; onDisconnect:
       <button role="menuitem" type="button" onClick={onDisconnect}>Disconnect</button>
     </div>
   );
-}
-
-function guideStateLabel(state: ExplorerGuideStepState) {
-  const labels: Record<ExplorerGuideStepState, string> = {
-    done: "Done",
-    available: "Available",
-    blocked: "Blocked",
-    "not-applicable": "Later",
-  };
-  return labels[state];
 }
 
 function TransactionNotice({ transaction }: { transaction: TransactionProgress }) {

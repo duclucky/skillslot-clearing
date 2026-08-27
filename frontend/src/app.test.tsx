@@ -56,11 +56,12 @@ const ready: WorkspaceSnapshot = {
 };
 
 describe("SkillSlot Clearing marketplace", () => {
-  it("opens with Project Explorer overview and a reviewer lifecycle checklist", async () => {
+  it("opens with a mechanism-focused overview without unsourced proof metrics", async () => {
     render(<App adapter={adapterFor(ready)} />);
 
     expect(await screen.findByRole("heading", { name: "SkillSlot Clearing" })).toBeVisible();
     expect(screen.getByRole("img", { name: "SkillSlot Clearing logo" })).toBeVisible();
+    expect(screen.getByRole("img", { name: "SkillSlot Clearing logo" }).closest(".brand-mark")).toHaveClass("brand-mark-transparent");
     expect(document.querySelector(".bg-video source")).toHaveAttribute(
       "src",
       "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260809_012548_ef22562c-c0ae-4816-ad9d-f8922af4e6a7.mp4",
@@ -68,13 +69,20 @@ describe("SkillSlot Clearing marketplace", () => {
     expect(screen.getByText("Validator-cleared access marketplace")).toBeVisible();
     expect(screen.getByText(/A GenLayer marketplace for clearing scarce agent access\./)).toBeVisible();
     expect(screen.getByText("GenLayer validators")).toBeVisible();
-    expect(screen.getByText("146")).toBeVisible();
-    expect(screen.getByText("Checks Passing")).toBeVisible();
     expect(screen.getByRole("region", { name: "Semantic matching with bounded evidence" })).toHaveClass("immersive-card");
-    expect(screen.getByRole("region", { name: "Reviewer lifecycle checklist" })).toHaveClass("immersive-card");
+    expect(screen.getByRole("region", { name: "How SkillSlot clears access" })).toHaveClass("immersive-card");
+    expect(screen.queryByText("Project Explorer preview")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Project proof metrics")).not.toBeInTheDocument();
+    expect(screen.queryByText("Checks Passing")).not.toBeInTheDocument();
+    expect(screen.queryByText("Contract Writes")).not.toBeInTheDocument();
+    expect(screen.queryByText("Locked Liability")).not.toBeInTheDocument();
+    expect(screen.queryByText("Reviewer lifecycle checklist")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Overview" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("list", { name: "Project Explorer try-it checklist" })).toBeVisible();
-    expect(screen.getByText("Submit provider offer")).toBeVisible();
+    expect(screen.getByRole("list", { name: "SkillSlot clearing mechanism" })).toBeVisible();
+    expect(screen.getByText("Providers publish authenticated offers")).toBeVisible();
+    expect(screen.getByText("Requesters escrow exact needs")).toBeVisible();
+    expect(screen.getByText("Validators clear semantic compatibility")).toBeVisible();
+    expect(screen.getByText("Settlement releases value deterministically")).toBeVisible();
     expect(screen.getByText("GenLayer validators inspect authenticated metadata, needs, capability IDs, and exclusions before deterministic settlement.")).toBeVisible();
   });
 
