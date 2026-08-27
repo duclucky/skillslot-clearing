@@ -23,14 +23,14 @@ export function Activity({ snapshot, adapter, busy, runWrite, onOpenRound }: Act
       <p className="eyebrow">Wallet-scoped canonical state</p>
       <h1 id="activity-title">My activity</h1>
       <p className="lede">Offers, requests, grants, and withdrawable GEN across every clearing round.</p>
-      <div className="positions-summary">
+      <div className="positions-summary immersive-card operational-card">
         <div><span>Withdrawable credit</span><strong>{snapshot.account ? `${snapshot.creditGen} GEN` : "- GEN"}</strong></div>
         <button className="button button-primary" type="button" disabled={!snapshot.account || busy || snapshot.creditGen === "0"} onClick={() => void runWrite(() => adapter.withdrawCredit(genToWei(snapshot.creditGen)))}><Coins aria-hidden="true" />Withdraw {snapshot.creditGen} GEN</button>
       </div>
       {snapshot.positions.length ? (
         <div className="position-list">
           {snapshot.positions.map((position) => (
-            <article className="position-card" key={`${position.kind}:${position.id}`}>
+            <article className="position-card immersive-card operational-card" key={`${position.kind}:${position.id}`}>
               <button className="position-link" type="button" onClick={() => onOpenRound(position.roundId)}>
                 <span>{position.kind}</span><h2>{position.summary}</h2><p>{position.id} {position.status}</p>
               </button>

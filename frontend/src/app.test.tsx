@@ -96,6 +96,20 @@ describe("SkillSlot Clearing marketplace", () => {
     expect(screen.getByRole("heading", { name: "Start a clearing round" })).toBeVisible();
   });
 
+  it("renders the Rounds marketplace as a readable immersive operational panel", async () => {
+    render(<App adapter={adapterFor(ready)} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Rounds" }));
+
+    const marketplace = screen.getByRole("region", { name: "Find a clearing round" });
+    expect(marketplace).toHaveClass("operational-card", "immersive-card");
+    expect(within(marketplace).getByRole("heading", { name: "Find a clearing round" })).toBeVisible();
+    expect(within(marketplace).getByText("Create")).toBeVisible();
+    expect(within(marketplace).getByText("Provide")).toBeVisible();
+    expect(within(marketplace).getByText("Request")).toBeVisible();
+    expect(within(marketplace).getByRole("button", { name: "Open round Research access" })).toBeVisible();
+  });
+
   it("keeps creation available when every canonical round is terminal", async () => {
     const terminalAdapter = adapterFor({
       ...ready,

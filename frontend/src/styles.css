@@ -41,6 +41,7 @@
   --trust-bg: #28282a;
   --trust-border: rgba(255, 255, 255, 0.4);
   --trust-text: #c4c2c3;
+  --accent-mint: #aeeece;
   --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
   --font-display: "BubbledotICG-FinePos", "Geist Pixel Circle", monospace;
 }
@@ -1981,6 +1982,260 @@ h2 {
   backdrop-filter: blur(18px) saturate(1.15);
 }
 
+.operational-card.immersive-card {
+  color: rgba(255, 255, 255, 0.88);
+  background:
+    radial-gradient(circle at 16% 0%, rgba(255, 255, 255, 0.14), transparent 30%),
+    linear-gradient(145deg, rgba(15, 16, 18, 0.92), rgba(11, 12, 14, 0.82));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(18px) saturate(1.14);
+}
+
+.operational-card .eyebrow {
+  color: var(--accent-mint);
+}
+
+.operational-card h1,
+.operational-card h2,
+.operational-card h3 {
+  color: #fff;
+}
+
+.round-browser.operational-card h1,
+.create-view .create-intro h1,
+.positions-view > h1 {
+  max-width: 18ch;
+  font-family: var(--font-sans);
+  font-size: clamp(28px, 3.2vw, 40px);
+  font-weight: 680;
+  line-height: 1.05;
+  letter-spacing: -0.055em;
+}
+
+.create-view .create-intro h1,
+.positions-view > h1 {
+  color: #fff;
+}
+
+.create-view .create-intro .lede,
+.positions-view > .lede,
+.creator-responsibility p {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.creator-responsibility {
+  border-top: 1px solid rgba(255, 255, 255, 0.24);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.24);
+}
+
+.round-detail.operational-card h2,
+.operational-card .empty-state h2,
+.operational-card .position-link h2 {
+  font-family: var(--font-sans);
+  font-size: clamp(19px, 2vw, 25px);
+  font-weight: 680;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+
+.operational-card .lede,
+.operational-card p,
+.operational-card small,
+.operational-card .mono-meta,
+.operational-card .creator-line,
+.operational-card .round-row-capacity {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.operational-card .button-secondary {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.operational-card .button-secondary:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.operational-card .role-guide {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.operational-card .role-guide > div {
+  padding: 17px 16px;
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.operational-card .role-guide svg {
+  color: var(--accent-mint);
+}
+
+.operational-card .role-guide strong {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 760;
+}
+
+.operational-card .role-guide span {
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 12px;
+}
+
+.operational-card .filter-bar {
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.operational-card .filter-button {
+  color: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.operational-card .filter-button span {
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.operational-card .filter-button:hover {
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.operational-card .filter-button-active {
+  color: #07110c;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.84);
+}
+
+.operational-card .filter-button-active span {
+  color: #fff;
+  background: var(--signal);
+}
+
+.operational-card .round-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.operational-card .round-row {
+  min-height: 76px;
+  padding: 14px 14px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  box-shadow: none;
+}
+
+.operational-card .round-row:hover,
+.operational-card .round-row-active {
+  background: rgba(255, 255, 255, 0.11);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: inset 3px 0 0 var(--accent-mint);
+}
+
+.operational-card .round-row-main strong {
+  color: #fff;
+  font-size: 15px;
+  letter-spacing: -0.015em;
+}
+
+.operational-card .phase-badge {
+  color: #07110c;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+}
+
+.operational-card .phase-open,
+.operational-card .phase-cleared {
+  color: #062015;
+  background: rgba(174, 238, 206, 0.9);
+  border: 1px solid rgba(174, 238, 206, 0.9);
+}
+
+.operational-card .phase-cancelled {
+  color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.operational-card .phase-retryable {
+  color: #ffd8d4;
+  background: rgba(170, 57, 45, 0.25);
+  border: 1px solid rgba(255, 216, 212, 0.35);
+}
+
+.operational-card .detail-metrics {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.operational-card .metric {
+  border-right: 1px solid rgba(255, 255, 255, 0.16);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.operational-card .creator-controls,
+.operational-card .boundary-note,
+.operational-card .action-disclosure {
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.operational-card .action-disclosure:last-of-type {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.operational-card .metric span,
+.positions-summary.operational-card span {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.operational-card .metric strong,
+.positions-summary.operational-card strong {
+  color: #fff;
+}
+
+.operational-card .action-disclosure summary,
+.operational-card .field,
+.operational-card .creator-controls strong,
+.operational-card .position-link {
+  color: #fff;
+}
+
+.operational-card .field small,
+.operational-card .creator-controls p,
+.operational-card .terminal-action p,
+.operational-card .boundary-note p,
+.position-card.operational-card .position-link p {
+  color: rgba(255, 255, 255, 0.64);
+}
+
+.operational-card .advanced-metadata,
+.operational-card .generated-metadata-note,
+.operational-card .terminal-action,
+.operational-card .inline-guidance,
+.empty-state.operational-card {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.operational-card .advanced-metadata summary,
+.operational-card .generated-metadata-note strong {
+  color: #fff;
+}
+
+.operational-card .generated-metadata-note p,
+.operational-card .inline-guidance p {
+  color: rgba(255, 255, 255, 0.7);
+}
+
 @keyframes slideDown {
   from {
     opacity: 0;
@@ -2156,6 +2411,15 @@ h2 {
   }
 
   .role-guide > div:last-child {
+    border-bottom: 0;
+  }
+
+  .operational-card .role-guide > div {
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  }
+
+  .operational-card .role-guide > div:last-child {
     border-bottom: 0;
   }
 

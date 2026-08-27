@@ -59,7 +59,7 @@ export function Marketplace({
 
   return (
     <div className="marketplace-layout">
-      <section className="round-browser" aria-labelledby="rounds-title">
+      <section className="round-browser immersive-card operational-card" aria-labelledby="rounds-title">
         <div className="section-heading">
           <div>
             <p className="eyebrow">Canonical marketplace</p>
@@ -161,7 +161,7 @@ export function CreateRound({ snapshot, adapter, busy, runWrite, onCreated }: Sh
           <p>You become the round creator for normal operation. If a deadline passes, any wallet can trigger refund-only recovery.</p>
         </div>
       </div>
-      <form className="create-form" onSubmit={submit} noValidate>
+      <form className="create-form immersive-card operational-card" onSubmit={submit} noValidate>
         <Field id="create-round-id" label="Round ID" value={roundId} onChange={setRoundId} hint="3-80 characters. Letters, numbers, hyphen, underscore, or period." error={errors.roundId} maxLength={80} required />
         <Field id="create-round-title" label="Round title" value={title} onChange={setTitle} hint="Describe the access window in plain language." error={errors.title} maxLength={120} required />
         <button className="button button-primary button-full" disabled={!ready || busy} type="submit">
@@ -176,7 +176,7 @@ export function CreateRound({ snapshot, adapter, busy, runWrite, onCreated }: Sh
 function RoundDetail({ snapshot, adapter, busy, runWrite, round, onCreateRound }: SharedProps & { round: RoundView | null; onCreateRound: () => void }) {
   if (!round) {
     return (
-      <aside className="round-detail empty-detail" aria-label="Round detail">
+      <aside className="round-detail empty-detail immersive-card operational-card" aria-label="Round detail">
         <ArrowLeft aria-hidden="true" />
         <h2>Select a round</h2>
         <p>Choose a canonical round to inspect its economics and available actions.</p>
@@ -192,7 +192,7 @@ function RoundDetail({ snapshot, adapter, busy, runWrite, round, onCreateRound }
   const recoverable = Boolean(account && round.expired && (round.phase === "OPEN" || round.phase === "LOCKED" || round.phase === "RETRYABLE"));
 
   return (
-    <aside className="round-detail" aria-labelledby="selected-round-title">
+    <aside className="round-detail immersive-card operational-card" aria-labelledby="selected-round-title">
       <div className="detail-header">
         <span className={`phase-badge phase-${round.phase.toLowerCase()}`}>{round.phase}</span>
         <span className="mono-meta">{round.id}</span>
