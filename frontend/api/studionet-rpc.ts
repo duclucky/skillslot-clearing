@@ -10,6 +10,10 @@ type VercelResponse = {
   json(body: unknown): void;
 };
 
+declare const process: {
+  env: Record<string, string | undefined>;
+};
+
 const DEFAULT_STUDIONET_RPC_URL = "https://studio.genlayer.com/api";
 const ALLOWED_METHODS = new Set(["eth_chainId", "gen_call", "gen_getTransactionStatus"]);
 
