@@ -15,7 +15,7 @@ The product reserves access. It does **not** certify agent performance, task com
 - Network: Studionet (`61999`)
 - Deployment: `0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`
 - Automated checks: 131 currently pass locally (8 static, 44 direct, 5 receipt parser, 7 deployment tooling, 67 frontend)
-- Verified Windows CI: [`check` run 31883024625](https://github.com/duclucky/skillslot-clearing/actions/runs/31883024625) passed
+- Latest published baseline CI before the Project Explorer upgrade: [`check` run 31883306657](https://github.com/duclucky/skillslot-clearing/actions/runs/31883306657) passed
 - Network lifecycle: the remediation deployment records a script-signed `FINALIZED_LIFECYCLE` with authenticated metadata, consumed grant, 2 GEN received, 2 GEN withdrawn, zero locked or credited liability, and invariant true
 - Timeout recovery proof: the remediation deployment records requester-called `recover_expired_round`, terminal `CANCELLED`, 4 GEN cumulative received/withdrawn across proofs, zero locked or credited liability, and invariant true
 - Balance proof: a separate 1 GEN deposit/cancel/withdraw flow returned the actor balance from `2010.6399969999999882 GEN` to `2011.6399969999999882 GEN`
@@ -53,7 +53,7 @@ Browser wallet (EIP-6963 / EIP-1193)
   <- canonical round, position, grant, credit, and invariant views
 ```
 
-The frontend reconstructs every canonical round, provides permanent Rounds, Create round, and My activity destinations, and exposes all nine legal writes only to the relevant wallet and lifecycle state. It discovers injected wallets, restores authorization with `eth_accounts` without forcing a permission prompt, switches/adds Studionet on an explicit connect action, tracks wallet/submitted/accepted/finalized/failed states, preserves form data across wallet cancellation and uncertain submission, retries only transaction-status and canonical-state reads, never resubmits a known transaction, and reloads canonical contract state only after finalization. Local storage remembers only harmless wallet selection metadata.
+The frontend reconstructs every canonical round, opens with a Project Explorer-ready Overview checklist, provides permanent Rounds, Create round, and My activity destinations, and exposes legal writes only to the relevant wallet and lifecycle state. It discovers injected wallets, requires the user to choose a wallet from a centered selection modal, restores authorization with `eth_accounts` without forcing a permission prompt, switches/adds Studionet on an explicit connect action, and provides an account menu with disconnect. Provider offers default to generated metadata mode: the app prepares the authorized `/agents/` URI, SHA-256 body hash, registry issuer, registry proof, and expiry before calling `submit_offer`. Transaction handling tracks wallet/submitted/accepted/finalized/failed states, preserves form data across wallet cancellation and uncertain submission, retries only transaction-status and canonical-state reads, never resubmits a known transaction, and reloads canonical contract state only after finalization. Local storage remembers only harmless wallet selection metadata.
 
 ## Run locally
 
@@ -91,6 +91,7 @@ The demo uses exactly 1 GEN for each value-bearing position and stops at `RETRYA
 - `tests/direct/` — state, adversarial, authorization, recovery, and accounting tests
 - `frontend/` — wallet-enabled React/Vite product
 - `scripts/deploy_studionet.mjs` — idempotent deployment and lifecycle evidence tooling
+- `docs/PROJECT-EXPLORER-LISTING.md` — copy-ready Project Explorer listing and reviewer steps
 - `docs/README.md` — specification, safety cards, threat model, and claim-to-code matrix
 - `docs/evidence/studionet/` — sanitized network evidence only
 

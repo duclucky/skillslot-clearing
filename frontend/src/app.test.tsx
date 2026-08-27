@@ -54,6 +54,7 @@ describe("SkillSlot Clearing marketplace", () => {
     render(<App adapter={adapterFor(ready)} />);
 
     expect(await screen.findByRole("heading", { name: "SkillSlot Clearing" })).toBeVisible();
+    expect(screen.getByRole("img", { name: "SkillSlot Clearing logo" })).toBeVisible();
     expect(screen.getByText("A GenLayer marketplace for clearing scarce agent access.")).toBeVisible();
     expect(screen.getByRole("button", { name: "Overview" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("list", { name: "Project Explorer try-it checklist" })).toBeVisible();

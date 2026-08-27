@@ -220,7 +220,7 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
 
       <header className="topbar">
         <a className="brand" href="/" aria-label="SkillSlot Clearing home">
-          <span className="brand-mark" aria-hidden="true"><ArrowsLeftRight weight="bold" /></span>
+          <span className="brand-mark"><img src="/skillslot-logo.svg" alt="SkillSlot Clearing logo" /></span>
           <span><strong>SkillSlot</strong><small>Semantic access clearing</small></span>
         </a>
         <div className="connection-cluster">

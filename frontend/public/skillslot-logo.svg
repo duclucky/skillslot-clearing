@@ -1,0 +1,13 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">SkillSlot Clearing logo</title>
+  <desc id="desc">A four-slot marketplace grid clearing into one verified access path.</desc>
+  <rect width="512" height="512" rx="72" fill="#1C241F"/>
+  <rect x="86" y="94" width="118" height="118" rx="22" fill="#F4E6C7"/>
+  <rect x="86" y="300" width="118" height="118" rx="22" fill="#DCEBE2"/>
+  <rect x="308" y="94" width="118" height="118" rx="22" fill="#DCEBE2"/>
+  <rect x="308" y="300" width="118" height="118" rx="22" fill="#F4E6C7"/>
+  <path d="M204 153H258C292 153 320 181 320 215V300" stroke="#196548" stroke-width="28" stroke-linecap="round"/>
+  <path d="M204 359H258C292 359 320 331 320 297V212" stroke="#196548" stroke-width="28" stroke-linecap="round"/>
+  <path d="M286 256L340 202L394 256" stroke="#FFFDF7" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M286 256L340 310L394 256" stroke="#FFFDF7" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
