@@ -1,4 +1,4 @@
-import { canonicalProviderMetadataBody } from "./providerMetadata";
+import { canonicalProviderMetadataBody } from "./providerMetadata.js";
 
 const agentIdPattern = /^[A-Za-z0-9][A-Za-z0-9._-]{2,79}$/;
 const walletPattern = /^0x[0-9a-fA-F]{40}$/;

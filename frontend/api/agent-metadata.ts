@@ -1,4 +1,4 @@
-import { providerMetadataBodyFromQuery } from "../src/providerMetadataApi";
+import { providerMetadataBodyFromQuery } from "../src/providerMetadataApi.js";
 
 type VercelRequest = {
   query?: Record<string, string | string[] | undefined>;
