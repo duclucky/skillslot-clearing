@@ -55,7 +55,15 @@ describe("SkillSlot Clearing marketplace", () => {
 
     expect(await screen.findByRole("heading", { name: "SkillSlot Clearing" })).toBeVisible();
     expect(screen.getByRole("img", { name: "SkillSlot Clearing logo" })).toBeVisible();
-    expect(screen.getByText("A GenLayer marketplace for clearing scarce agent access.")).toBeVisible();
+    expect(document.querySelector(".bg-video source")).toHaveAttribute(
+      "src",
+      "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260809_012548_ef22562c-c0ae-4816-ad9d-f8922af4e6a7.mp4",
+    );
+    expect(screen.getByText("Validator-cleared access marketplace")).toBeVisible();
+    expect(screen.getByText(/A GenLayer marketplace for clearing scarce agent access\./)).toBeVisible();
+    expect(screen.getByText("GenLayer validators")).toBeVisible();
+    expect(screen.getByText("146")).toBeVisible();
+    expect(screen.getByText("Checks Passing")).toBeVisible();
     expect(screen.getByRole("button", { name: "Overview" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("list", { name: "Project Explorer try-it checklist" })).toBeVisible();
     expect(screen.getByText("Submit provider offer")).toBeVisible();
@@ -69,7 +77,7 @@ describe("SkillSlot Clearing marketplace", () => {
     render(<App adapter={pendingAdapter} />);
 
     expect(screen.getByRole("heading", { name: "SkillSlot Clearing" })).toBeVisible();
-    expect(screen.getByText("A GenLayer marketplace for clearing scarce agent access.")).toBeVisible();
+    expect(screen.getByText(/A GenLayer marketplace for clearing scarce agent access\./)).toBeVisible();
     expect(screen.getByRole("button", { name: "Connect wallet" })).toBeEnabled();
     expect(screen.getByRole("status", { name: "Loading canonical marketplace" })).toBeVisible();
   });
