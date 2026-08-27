@@ -354,13 +354,15 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
         />
       ) : null}
 
-      <nav className="primary-nav" aria-label="Workspace destinations">
-        {destinations.map(({ id, label, icon: Icon }) => (
-          <button key={id} className={destination === id ? "nav-item nav-item-active" : "nav-item"} type="button" aria-pressed={destination === id} onClick={() => setDestination(id)}>
-            <Icon aria-hidden="true" /> {label}
-          </button>
-        ))}
-      </nav>
+      {destination !== "overview" ? (
+        <nav className="primary-nav" aria-label="Workspace destinations">
+          {destinations.map(({ id, label, icon: Icon }) => (
+            <button key={id} className={destination === id ? "nav-item nav-item-active" : "nav-item"} type="button" aria-pressed={destination === id} onClick={() => setDestination(id)}>
+              <Icon aria-hidden="true" /> {label}
+            </button>
+          ))}
+        </nav>
+      ) : null}
 
       <main id="workspace" className="workspace" tabIndex={-1}>
         {transaction ? <TransactionNotice transaction={transaction} /> : null}
@@ -482,6 +484,47 @@ function Overview({
           </ol>
         </section>
       </div>
+
+      <section className="usage-card immersive-card" aria-label="How to use SkillSlot" aria-labelledby="usage-title">
+        <div className="section-heading compact-heading">
+          <div>
+            <p className="eyebrow">Start here</p>
+            <h2 id="usage-title">How to use SkillSlot</h2>
+          </div>
+          <p className="section-note">A clear path from discovery to a validator-cleared result.</p>
+        </div>
+        <ol className="usage-list">
+          <li className="usage-step">
+            <span className="mechanism-index" aria-hidden="true">01</span>
+            <div>
+              <strong>Browse an open round</strong>
+              <p>Explore a live access market and inspect its requirements before connecting a wallet.</p>
+            </div>
+          </li>
+          <li className="usage-step">
+            <span className="mechanism-index" aria-hidden="true">02</span>
+            <div>
+              <strong>Offer or request access</strong>
+              <p>Providers publish an authenticated offer; requesters escrow an exact capability need.</p>
+            </div>
+          </li>
+          <li className="usage-step">
+            <span className="mechanism-index" aria-hidden="true">03</span>
+            <div>
+              <strong>Review the finalized result</strong>
+              <p>GenLayer validators clear compatible positions, then the contract records grants, refunds, and credits.</p>
+            </div>
+          </li>
+        </ol>
+        <div className="landing-cta-row">
+          <button className="button button-primary" type="button" onClick={onOpenRounds}>
+            <ArrowsLeftRight aria-hidden="true" /> Browse rounds
+          </button>
+          <button className="button button-secondary" type="button" onClick={onCreateRound}>
+            <Plus aria-hidden="true" /> Create a round
+          </button>
+        </div>
+      </section>
     </section>
   );
 }

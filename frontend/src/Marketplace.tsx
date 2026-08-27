@@ -110,7 +110,7 @@ export function Marketplace({
             ))}
           </div>
         ) : (
-          <div className="empty-state compact-empty">
+          <div className="empty-state compact-empty high-contrast-surface">
             <ShieldWarning aria-hidden="true" />
             <h2>No rounds in this state</h2>
             <p>Create a round or choose another lifecycle filter.</p>
@@ -152,7 +152,7 @@ export function CreateRound({ snapshot, adapter, busy, runWrite, onCreated }: Sh
 
   return (
     <section className="create-view" aria-labelledby="create-title">
-      <div className="create-intro">
+      <div className="create-intro editorial-header-surface">
         <p className="eyebrow">Community-created markets</p>
         <h1 id="create-title">Start a clearing round</h1>
         <p className="lede">Choose a stable identity and invite providers and requesters into one bounded semantic decision.</p>
