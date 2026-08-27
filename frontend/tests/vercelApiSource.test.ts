@@ -1,10 +1,13 @@
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
+const testDir = dirname(fileURLToPath(import.meta.url));
+const frontendRoot = resolve(testDir, "..");
 const sourceFiles = [
-  resolve(__dirname, "../api/agent-metadata.ts"),
-  resolve(__dirname, "providerMetadataApi.ts"),
+  resolve(frontendRoot, "api/agent-metadata.ts"),
+  resolve(frontendRoot, "src/providerMetadataApi.ts"),
 ];
 
 describe("Vercel API source", () => {
