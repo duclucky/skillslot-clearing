@@ -5,12 +5,14 @@
 | Field | Value |
 | --- | --- |
 | Milestone ID | `MS-001` |
-| Status | `IMPLEMENTED_LOCAL` |
+| Status | `DEPLOYED_PENDING_LIFECYCLE` |
 | Selected on | `2026-08-29` |
 | Accepted Project baseline | Portal contribution `131883` (`Accepted`) |
 | Public evidence commit | `eec05516cdb9b1ff008fae900731eda6434d8392` |
 | Working-base commit | `67c531a` |
-| Current deployment | Studionet `0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834` |
+| Current deployment | Studionet `0x0c43822abD25a0247d0814E7dD501fA19b1C8958` |
+| Implementation commit | `be1a8cd309e797f99401e174490941c010d21c12` |
+| Deployment transaction | `0x9f89f92dffe12e9656e246659150914c9e181a0d92a6d645cc1dd21b17f6f785` (`FINALIZED`) |
 | Portal reference | `NOT_SUBMITTED` |
 | Planned A2A protocol pin | A2A `v1.0.1`, proto blob `400cdbad934654e27d7abbae1e145923eb40ac52` |
 

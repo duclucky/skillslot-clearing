@@ -14,19 +14,20 @@ The product reserves access. It does **not** certify agent performance, task com
 - Contract: one `SkillSlotClearing` Intelligent Contract with 10 writes and 9 views in the `MS-001` source
 - Network: Studionet (`61999`)
 - Accepted Project deployment: `0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`
-- Milestone `MS-001`: local implementation; new Studionet deployment and production evidence are required before submission
+- Milestone `MS-001` deployment: `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`; lifecycle and production evidence remain required before submission
 - Automated checks: 195 currently pass locally (9 static, 50 direct, 5 receipt parser, 11 deployment tooling, 120 frontend)
 - Verified Windows CI: [`check` run 33035406150](https://github.com/duclucky/skillslot-clearing/actions/runs/33035406150) passed on commit `43dac5f`
 - Network lifecycle: the remediation deployment records a script-signed `FINALIZED_LIFECYCLE` with authenticated metadata, consumed grant, 2 GEN received, 2 GEN withdrawn, zero locked or credited liability, and invariant true
 - Timeout recovery proof: the remediation deployment records requester-called `recover_expired_round`, terminal `CANCELLED`, 4 GEN cumulative received/withdrawn across proofs, zero locked or credited liability, and invariant true
 - Balance proof: a separate 1 GEN deposit/cancel/withdraw flow returned the actor balance from `2010.6399969999999882 GEN` to `2011.6399969999999882 GEN`
 
-## Accepted Project deployment
+## Deployments
 
-- Address: [`0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`](https://explorer-studio.genlayer.com/address/0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834)
-- Deployment transaction: [`0xeca9750f84152b5c0f0b3b71d7361a50fefe7e6005aa01b14b3281c7cac98962`](https://explorer-studio.genlayer.com/transactions/0xeca9750f84152b5c0f0b3b71d7361a50fefe7e6005aa01b14b3281c7cac98962)
-- Sanitized lifecycle evidence: [`docs/evidence/studionet/deployment.json`](docs/evidence/studionet/deployment.json)
-- Production browser-wallet evidence: [`docs/evidence/studionet/browser-lifecycle.json`](docs/evidence/studionet/browser-lifecycle.json)
+- MS-001 address: [`0x0c43822abD25a0247d0814E7dD501fA19b1C8958`](https://explorer-studio.genlayer.com/address/0x0c43822abD25a0247d0814E7dD501fA19b1C8958)
+- MS-001 deployment transaction: [`0x9f89f92dffe12e9656e246659150914c9e181a0d92a6d645cc1dd21b17f6f785`](https://explorer-studio.genlayer.com/transactions/0x9f89f92dffe12e9656e246659150914c9e181a0d92a6d645cc1dd21b17f6f785)
+- Current sanitized evidence: [`docs/evidence/studionet/deployment.json`](docs/evidence/studionet/deployment.json)
+- Accepted Project address: [`0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`](https://explorer-studio.genlayer.com/address/0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834)
+- Accepted production browser-wallet evidence: [`docs/evidence/studionet/browser-lifecycle.json`](docs/evidence/studionet/browser-lifecycle.json)
 
 ## Live app
 

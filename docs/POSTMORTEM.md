@@ -34,5 +34,6 @@ GEN accounting.
 
 This phase deliberately stops short of origin-signed third-party Agent Cards and external adoption.
 Those remain separate backlog candidates so they cannot be claimed from an unsigned same-origin
-discovery card. New Studionet, production-browser, repository, and CI evidence remain exit conditions
-before `MS-001` can become submission-ready.
+discovery card. The exact `be1a8cd` contract revision is now finalized on Studionet at
+`0x0c43822abD25a0247d0814E7dD501fA19b1C8958`. Live A2A lifecycle, production-browser, repository, and
+CI evidence remain exit conditions before `MS-001` can become submission-ready.
