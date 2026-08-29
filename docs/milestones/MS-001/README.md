@@ -5,7 +5,7 @@
 | Field | Value |
 | --- | --- |
 | Milestone ID | `MS-001` |
-| Status | `DEPLOYED_PENDING_LIFECYCLE` |
+| Status | `SUBMISSION_READY` |
 | Selected on | `2026-08-29` |
 | Accepted Project baseline | Portal contribution `131883` (`Accepted`) |
 | Public evidence commit | `eec05516cdb9b1ff008fae900731eda6434d8392` |
@@ -14,7 +14,7 @@
 | Implementation commit | `be1a8cd309e797f99401e174490941c010d21c12` |
 | Deployment transaction | `0x9f89f92dffe12e9656e246659150914c9e181a0d92a6d645cc1dd21b17f6f785` (`FINALIZED`) |
 | Portal reference | `NOT_SUBMITTED` |
-| Planned A2A protocol pin | A2A `v1.0.1`, proto blob `400cdbad934654e27d7abbae1e145923eb40ac52` |
+| A2A protocol pin | A2A `v1.0.1`, proto blob `400cdbad934654e27d7abbae1e145923eb40ac52` |
 
 The accepted evidence commit and current working base are intentionally separate. The range
 `eec0551..67c531a` contains pre-existing Project Explorer, wallet, metadata, proxy, UI, and reviewer
@@ -179,11 +179,13 @@ No existing value destination changes, so the accepted value-destination matrix 
 | Contract count | PASS | The accepted single contract remains the sole state owner; no pass-through consumer contract is added. |
 | Differentiation | PASS | This is a protocol execution boundary and task-specific state, not a visual change, rename, or raw registry. |
 | Claim-to-code | PASS | Every claim below maps to contract state, client/API code, tests, and network/browser evidence. |
-| Full lifecycle | PASS planned | Wallet write must reach finalized, canonical digest reload must match, live A2A request must return the bounded receipt, and consumed state must then reject. |
+| Full lifecycle | PASS | Finalized authorization produced the exact canonical digest; two live sends returned one task identity; finalized consumption then caused HTTP 403; withdrawal left zero liability. |
 | Scope honesty | PASS | The phase explicitly excludes service completion, arbitrary agents, signed third-party cards, adoption, and financial consequences. |
 
-`Full lifecycle` remains an exit condition: the dossier cannot advance to `VERIFIED` or
-`SUBMISSION_READY` until the planned Studionet and production-browser evidence exists.
+The full-lifecycle exit condition is satisfied by the sanitized Studionet dispatch proof and the
+production protocol/browser proof. Browser inspection proves canonical reads, responsive layout, and
+deployed protocol surfaces; script-signed transactions separately prove the new write, deterministic
+retry identity, consumption, post-consume denial, withdrawal, and accounting.
 
 ## Delta claim-to-code matrix
 
@@ -209,16 +211,54 @@ The selected `ui-ux-pro-max` guidance is applied without changing the accepted p
 - preserve task text during the in-page transaction and never present browser storage as canonical;
 - remain usable at 375 px without horizontal scrolling and respect reduced motion.
 
-## Planned evidence index
+## Verified evidence index
 
 | Evidence | Required proof |
 | --- | --- |
 | Local checks | `npm run check`: contract lint/schema; 9 static, 50 direct, 5 receipt-parser, 11 deployment-tooling, and 120 frontend tests; TypeScript and production build pass (195 tests total) |
-| Studionet deployment | New address tied to source commit, contract digest, runner, chain, deploy transaction, and finalized status |
-| Studionet lifecycle | Cleared reference grant, finalized `authorize_dispatch`, exact canonical digest, successful A2A request, deterministic retry identity, finalized consume, post-consume rejection, unchanged accounting |
-| Browser-local | No CORS/Failed-to-fetch, visible wallet/finality states, inline errors, canonical reload, 375 px and desktop |
-| Production | Vercel URL, Agent Card, A2A endpoint, task receipt, post-consume denial, and public GitHub/CI links |
-| Portal | Copy-ready Milestones packet and explicit action-time authorization before Submit |
+| CI | Windows run `33249385964` passed on deployment-evidence commit `f952f63` |
+| Studionet deployment | Address `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`, source `be1a8cd`, contract SHA-256 `1c1898...e2e1`, locked runner, chain `61999`, and finalized deployment transaction `0x9f89f9...f6f785` |
+| Studionet lifecycle | Round `slot-mtea1oa2`; finalized `authorize_dispatch` `0x510500...fcab8`; exact digest; two HTTP 200 responses with one task ID; finalized consume `0xba0b5f...5466c`; post-consume HTTP 403; handoff accounting unchanged |
+| Final accounting | Finalized withdrawal `0xde7fd9...5466c`; 2 GEN received and withdrawn; zero locked and credited; invariant true |
+| Production/browser | Vercel deployment `dpl_E2PfvkfVWi8vKm2zGfDV6Y7cGP6D` READY; canonical CLEARED round visible; desktop and 375x812 console clean; no mobile overflow or controls below 44 CSS px; Agent Card and endpoint reachable; arbitrary destination rejected with HTTP 400 |
+| Evidence files | `docs/evidence/studionet/deployment.json`, `docs/evidence/studionet/ms-001-a2a-dispatch.json`, and `docs/evidence/studionet/ms-001-production.json` |
+| Portal | `docs/MILESTONE-SUBMISSION-MS-001.md` is copy-ready; final Submit still requires explicit action-time authorization |
+
+## Delta result
+
+### What changed
+
+Compared with working base `67c531a`, implementation commit `be1a8cd` adds one non-payable contract
+write, one canonical view, dispatch fields, a fixed-origin A2A 1.0 endpoint, a discovery-only Agent
+Card, an in-app authorization/send/consume journey, resumable Studionet proof tooling, and focused
+negative, protocol, accessibility, and lifecycle tests.
+
+### Why it matters
+
+The accepted Project previously ended at a generic one-time route permission. This phase makes that
+permission usable at a protocol boundary: the matched requester must commit the exact task bytes, the
+reference endpoint fails closed against current contract state, retries deduplicate to one identity,
+and consumption revokes access.
+
+### Quantified metric and measurement method
+
+During the bounded Studionet proof window from `2026-08-29T11:13:38.441Z` through
+`2026-08-29T11:15:27.172Z`, one finalized requester authorization for round `slot-mtea1oa2` and request
+`request-flight` produced two HTTP 200 responses with exactly one deduplicated task ID; the identity
+rule is exact canonical request digest plus deterministic task ID. After one finalized grant
+consumption, the same request returned HTTP 403. Canonical accounting showed no handoff-induced change,
+then the finalized withdrawal left 2 GEN received, 2 GEN withdrawn, zero locked or credited, and the
+invariant true. The source is the sanitized Studionet evidence named above; actors are deduplicated by
+their public EOA addresses.
+
+### Real-usage signal and honest limitations
+
+The live production app, fixed endpoint, and public Agent Card make the new capability directly
+testable, but no independent external A2A router, marketplace, user count, or adoption is claimed. The
+proof uses script-signed Studionet transactions rather than a complete browser-wallet capture of every
+new-chain write. The unsigned Agent Card is discovery-only, Studionet is not mainnet, and a
+`TASK_STATE_SUBMITTED` receipt does not prove service completion, delivery quality, or provider
+performance.
 
 ## Deferred backlog after MS-001
 

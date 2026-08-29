@@ -1,0 +1,62 @@
+{
+  "network": "studionet",
+  "chainId": 61999,
+  "contractAddress": "0x0c43822abD25a0247d0814E7dD501fA19b1C8958",
+  "sourceCommit": "be1a8cd309e797f99401e174490941c010d21c12",
+  "contractSha256": "1c18989f4d4c28852b731ab624d74ed2cd93c4f154963143c0923ad2d07ce2e1",
+  "roundId": "slot-mtea1oa2",
+  "requestId": "request-flight",
+  "requester": "0x45aD397c438397A702B53a7499a78D08961D39Db",
+  "messageId": "message-c297eaa1635d19d9f2c35e3a",
+  "taskDigest": "002b1fddb156f2795c902ffb81808c1110c3c8d2deca217d8b1dc8b3e55185b7",
+  "status": "FINALIZED_A2A_DISPATCH_PROOF",
+  "transactions": {
+    "authorizeDispatch": {
+      "transactionHash": "0x5105005d4febc404b0937d86c7b9f5eef40100915d801db151cd584f684fcab8",
+      "status": "FINALIZED",
+      "execution": "FINISHED_WITH_RETURN",
+      "finalizedAt": "2026-08-29T11:13:38.441Z"
+    },
+    "consumeGrant": {
+      "transactionHash": "0xba0b5fd3dcd662cfa4562464b00f77dbed86af5588f2996bcc0c49024a1ed44d",
+      "status": "FINALIZED",
+      "execution": "FINISHED_WITH_RETURN",
+      "finalizedAt": "2026-08-29T11:14:29.443Z"
+    }
+  },
+  "endpointChecks": [
+    {
+      "phase": "authorized-1",
+      "httpStatus": 200,
+      "taskId": "skillslot-002b1fddb156f2795c902ffb81808c11",
+      "taskState": "TASK_STATE_SUBMITTED"
+    },
+    {
+      "phase": "authorized-2",
+      "httpStatus": 200,
+      "taskId": "skillslot-002b1fddb156f2795c902ffb81808c11",
+      "taskState": "TASK_STATE_SUBMITTED"
+    },
+    {
+      "phase": "post-consume",
+      "httpStatus": 403
+    }
+  ],
+  "accounting": {
+    "before": {
+      "invariant_holds": true,
+      "total_received_wei": "2000000000000000000",
+      "total_locked_wei": "0",
+      "total_credited_wei": "2000000000000000000",
+      "total_withdrawn_wei": "0"
+    },
+    "after": {
+      "invariant_holds": true,
+      "total_received_wei": "2000000000000000000",
+      "total_locked_wei": "0",
+      "total_credited_wei": "2000000000000000000",
+      "total_withdrawn_wei": "0"
+    },
+    "invariantUnchanged": true
+  }
+}

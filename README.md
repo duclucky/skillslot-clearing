@@ -14,9 +14,11 @@ The product reserves access. It does **not** certify agent performance, task com
 - Contract: one `SkillSlotClearing` Intelligent Contract with 10 writes and 9 views in the `MS-001` source
 - Network: Studionet (`61999`)
 - Accepted Project deployment: `0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`
-- Milestone `MS-001` deployment: `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`; lifecycle and production evidence remain required before submission
+- Milestone `MS-001` deployment: `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`; status `SUBMISSION_READY`
 - Automated checks: 195 currently pass locally (9 static, 50 direct, 5 receipt parser, 11 deployment tooling, 120 frontend)
-- Verified Windows CI: [`check` run 33035406150](https://github.com/duclucky/skillslot-clearing/actions/runs/33035406150) passed on commit `43dac5f`
+- Verified Windows CI: [`check` run 33249385964](https://github.com/duclucky/skillslot-clearing/actions/runs/33249385964) passed on deployment-evidence commit `f952f63`
+- MS-001 dispatch proof: one finalized authorization, two identical HTTP requests returning one deterministic task ID, finalized grant consumption, post-consume HTTP 403, and unchanged GEN accounting during the handoff
+- MS-001 final accounting: 2 GEN received and withdrawn, zero locked or credited liability, invariant true
 - Network lifecycle: the remediation deployment records a script-signed `FINALIZED_LIFECYCLE` with authenticated metadata, consumed grant, 2 GEN received, 2 GEN withdrawn, zero locked or credited liability, and invariant true
 - Timeout recovery proof: the remediation deployment records requester-called `recover_expired_round`, terminal `CANCELLED`, 4 GEN cumulative received/withdrawn across proofs, zero locked or credited liability, and invariant true
 - Balance proof: a separate 1 GEN deposit/cancel/withdraw flow returned the actor balance from `2010.6399969999999882 GEN` to `2011.6399969999999882 GEN`
@@ -26,6 +28,8 @@ The product reserves access. It does **not** certify agent performance, task com
 - MS-001 address: [`0x0c43822abD25a0247d0814E7dD501fA19b1C8958`](https://explorer-studio.genlayer.com/address/0x0c43822abD25a0247d0814E7dD501fA19b1C8958)
 - MS-001 deployment transaction: [`0x9f89f92dffe12e9656e246659150914c9e181a0d92a6d645cc1dd21b17f6f785`](https://explorer-studio.genlayer.com/transactions/0x9f89f92dffe12e9656e246659150914c9e181a0d92a6d645cc1dd21b17f6f785)
 - Current sanitized evidence: [`docs/evidence/studionet/deployment.json`](docs/evidence/studionet/deployment.json)
+- MS-001 dispatch evidence: [`docs/evidence/studionet/ms-001-a2a-dispatch.json`](docs/evidence/studionet/ms-001-a2a-dispatch.json)
+- Production protocol/browser evidence: [`docs/evidence/studionet/ms-001-production.json`](docs/evidence/studionet/ms-001-production.json)
 - Accepted Project address: [`0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`](https://explorer-studio.genlayer.com/address/0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834)
 - Accepted production browser-wallet evidence: [`docs/evidence/studionet/browser-lifecycle.json`](docs/evidence/studionet/browser-lifecycle.json)
 
@@ -33,8 +37,7 @@ The product reserves access. It does **not** certify agent performance, task com
 
 [`https://skillslot-clearing.vercel.app`](https://skillslot-clearing.vercel.app) is the verified production deployment. It returned HTTP 200, contained the project title and React root, and loaded the canonical `CLEARED` Studionet round on desktop and mobile browser QA. Production OKX Wallet testing finalized `consume_grant` and `withdraw_credit` through the webapp. The UI retained one transaction hash per action, recovered transient status reads without resubmission, and reloaded canonical grant `CONSUMED`, credit `0 GEN`, and accounting invariant true.
 
-The public URL above still represents the accepted Project until the `MS-001` deployment and browser
-evidence are recorded. The source now adds a fixed-origin A2A reference interface at
+The public URL above is configured for the `MS-001` deployment and exposes the fixed-origin A2A reference interface at
 `POST /a2a/v1/message:send` and a discovery-only Agent Card at
 `GET /.well-known/agent-card.json`.
 
@@ -109,6 +112,7 @@ The demo uses exactly 1 GEN for each value-bearing position and stops at `RETRYA
 - `frontend/` — wallet-enabled React/Vite product
 - `scripts/deploy_studionet.mjs` — idempotent deployment and lifecycle evidence tooling
 - `docs/milestones/MS-001/README.md` — accepted-baseline delta, gates, safety card, and evidence plan
+- `docs/MILESTONE-SUBMISSION-MS-001.md` — copy-ready Portal Milestones packet and evidence index
 - `docs/PROJECT-EXPLORER-LISTING.md` — copy-ready Project Explorer listing and reviewer steps
 - `docs/README.md` — specification, safety cards, threat model, and claim-to-code matrix
 - `docs/evidence/studionet/` — sanitized network evidence only

@@ -1,0 +1,51 @@
+{
+  "network": "studionet",
+  "chainId": 61999,
+  "capturedAt": "2026-08-29T11:18:21.4153834Z",
+  "evidenceType": "ms-001-production-protocol-and-browser",
+  "source": {
+    "implementationCommit": "be1a8cd309e797f99401e174490941c010d21c12",
+    "deploymentEvidenceCommit": "f952f63265ce59d2fdd30ca77f261b51c2daa2ac",
+    "ciRun": "https://github.com/duclucky/skillslot-clearing/actions/runs/33249385964",
+    "ciConclusion": "success"
+  },
+  "frontend": {
+    "url": "https://skillslot-clearing.vercel.app",
+    "deploymentId": "dpl_E2PfvkfVWi8vKm2zGfDV6Y7cGP6D",
+    "readyState": "READY",
+    "desktopCanonicalRoundVisible": "slot-mtea1oa2",
+    "desktopCanonicalRoundPhase": "CLEARED",
+    "desktopConsoleErrorsOrWarnings": 0,
+    "mobileViewportCssPx": "375x812",
+    "mobileHorizontalOverflow": false,
+    "mobileControlsBelow44CssPx": 0,
+    "mobileConsoleErrorsOrWarnings": 0
+  },
+  "agentCard": {
+    "url": "https://skillslot-clearing.vercel.app/.well-known/agent-card.json",
+    "interfaceCount": 1,
+    "interfaceUrl": "https://skillslot-clearing.vercel.app/a2a/v1",
+    "protocolBinding": "HTTP+JSON",
+    "protocolVersion": "1.0",
+    "skillId": "verify-skillslot-route",
+    "signaturesPresent": false,
+    "authorityScope": "Discovery only; canonical contract state authorizes dispatch."
+  },
+  "endpoint": {
+    "url": "https://skillslot-clearing.vercel.app/a2a/v1/message:send",
+    "arbitraryDestinationStatus": 400,
+    "arbitraryDestinationError": "Unsupported A2A request field: destination"
+  },
+  "contract": {
+    "address": "0x0c43822abD25a0247d0814E7dD501fA19b1C8958",
+    "deploymentTransaction": "0x9f89f92dffe12e9656e246659150914c9e181a0d92a6d645cc1dd21b17f6f785",
+    "roundId": "slot-mtea1oa2",
+    "requestId": "request-flight",
+    "dispatchProof": "ms-001-a2a-dispatch.json",
+    "finalGrantStatus": "CONSUMED",
+    "finalLockedWei": "0",
+    "finalCreditedWei": "0",
+    "finalAccountingInvariant": true
+  },
+  "scope": "Production browser verification proves canonical reads, responsive layout, console cleanliness, and the deployed protocol surfaces. Script-signed Studionet evidence separately proves authorize_dispatch, deterministic A2A retry identity, consume_grant, post-consume rejection, withdrawal, and canonical accounting. The submitted receipt does not prove service completion."
+}

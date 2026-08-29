@@ -19,11 +19,11 @@ The balance-proof round was created after the semantic round, so a naive “last
 
 ## Validated versus pending
 
-Validated: local contract behavior and adversarial tests; schema surface; deployment parser/tooling; exact source deployment; semantic consensus consequence; grant consumption; value accounting, withdrawal, and balance delta; public repository; current Windows CI; production canonical reads; responsive layout and console cleanliness.
+Validated: local contract behavior and adversarial tests; schema surface; deployment parser/tooling; exact source deployment; semantic consensus consequence; grant consumption; value accounting, withdrawal, and balance delta; public repository; current Windows CI; production canonical reads; responsive layout and console cleanliness; and the `MS-001` exact-task A2A authorization, deterministic retry identity, post-consume denial, and unchanged handoff accounting.
 
-Pending: a production browser-wallet write/finality capture; adoption by an external router or marketplace; any mainnet claim; any claim that a matched agent later performed successfully.
+Pending: complete browser-wallet write/finality coverage on the new deployment; adoption by an external router or marketplace; signed third-party Agent Cards; any mainnet claim; and any claim that a matched agent later performed successfully.
 
-## MS-001 work in progress
+## MS-001 submission-ready result
 
 The first Milestone increment is an onchain-bound A2A task handoff. It adds requester-only
 `authorize_dispatch`, exact `can_dispatch`, a fixed-origin `POST /a2a/v1/message:send` reference
@@ -34,6 +34,9 @@ GEN accounting.
 
 This phase deliberately stops short of origin-signed third-party Agent Cards and external adoption.
 Those remain separate backlog candidates so they cannot be claimed from an unsigned same-origin
-discovery card. The exact `be1a8cd` contract revision is now finalized on Studionet at
-`0x0c43822abD25a0247d0814E7dD501fA19b1C8958`. Live A2A lifecycle, production-browser, repository, and
-CI evidence remain exit conditions before `MS-001` can become submission-ready.
+discovery card. The exact `be1a8cd` contract revision is finalized on Studionet at
+`0x0c43822abD25a0247d0814E7dD501fA19b1C8958`. The bounded lifecycle finalized one authorization,
+returned one deterministic task ID for two identical requests, finalized consumption, rejected the
+same request afterward with HTTP 403, and withdrew all 2 GEN while preserving the accounting
+invariant. CI, production desktop/mobile inspection, the deployed Agent Card, and the fixed endpoint
+are verified. `MS-001` is therefore `SUBMISSION_READY`, not submitted or accepted.

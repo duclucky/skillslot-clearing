@@ -56,7 +56,9 @@ resolution are explicitly outside v1.
 - Trust problem: neutral semantic edge selection for capacity-constrained agent access.
 - Actors/adversary: round creator, competing providers, and competing requesters.
 - Evidence class + authenticity mechanism: wallet-authenticated canonical offers
-  and requests; A2A examples are non-consequential design evidence only.
+  and requests; for `MS-001`, the matched requester commits the exact canonical A2A request digest in
+  a finalized transaction while the active grant remains contract authority. Protocol examples remain
+  non-consequential design evidence only.
 - Consensus question: the exact compatible offer/request edge set, or
   `UNVERIFIABLE`, under locked requirements and exclusions.
 - State machine: `OPEN -> LOCKED -> CLEARING -> CLEARED`, with `RETRYABLE` and
@@ -83,7 +85,7 @@ resolution are explicitly outside v1.
 | Differentiation | PASS | Batch bipartite semantic clearing differs from succession, winner selection, overlap rewards, markets, and escrow. |
 | Claim-to-code | PASS | Every provisional visible action below maps to a capability/read/test/evidence boundary. |
 | Full lifecycle | PASS - feasible | Browser path includes writes, finality, canonical reload, failure/retry, access consumption, and withdrawal. |
-| Scope honesty | PASS | Design/source probe are the only completed evidence; performance/adoption are excluded. |
+| Scope honesty | PASS | Studionet lifecycle and production protocol/browser evidence are completed; service performance, signed third-party cards, mainnet, and external adoption are excluded. |
 
 ## Human users and jobs
 
@@ -98,9 +100,9 @@ resolution are explicitly outside v1.
 Human-visible writes are limited to: open a round; submit an offer with a
 provider bond; submit a request with a booking fee; lock a round; request or
 retry semantic clearing; cancel only from a safe open state; consume a matched
-one-time grant; withdraw canonical credit. Views expose round summary, the
-connected user's positions, a match outcome, route permission, withdrawable
-credit, and transaction-independent accounting.
+one-time grant; authorize one exact task against an active matched grant; and withdraw canonical
+credit. Views expose round summary, the connected user's positions, a match outcome, route and exact
+dispatch permission, withdrawable credit, and transaction-independent accounting.
 
 The intended lifecycle is:
 
@@ -441,6 +443,7 @@ surfaces convert base units to GEN and use only small whole-GEN demo values.
 | requester need/exclusions | requester call | sender authenticates it as that requester's own need | eligible for matching/refund of its own fee | write rejects; no inferred need |
 | received GEN | GenVM message value | runtime value semantics | locked liability only | exact-value write rejects |
 | semantic pair decisions | GenLayer equivalence principle | independent validator execution and normalized critical equality | deterministic grant/credit settlement | `UNVERIFIABLE`/rejected tx; non-penalizing |
+| exact A2A task authorization | canonical request SHA-256 committed by the matched requester | requester EOA plus active cleared grant in contract state | fixed-origin endpoint may return one deterministic `SUBMITTED` receipt for exact bytes only | HTTP rejection; no chain/accounting mutation or service-completion claim |
 | A2A Agent Cards and sample repo | official public source pinned for design research | repository commit and upstream provenance | none in v1 | omit from contract decision; no penalty |
 | transaction finality/result | Studionet receipt/explorer | network receipt, allowlisted safe projection | frontend may reload/show finalized state | failed/undetermined; no success claim |
 | screenshots/browser captures | project evidence package | public URL/time plus canonical state reference | reviewer evidence only | mark pending; never substitute for receipt/state |
@@ -461,6 +464,7 @@ authenticity gate.
 | unavailable judgment cannot penalize | `CLEARING -> RETRYABLE` | `get_round`, `get_accounting` | `test_semantic_clearing.py::test_unverifiable_attempt_preserves_funds_and_can_retry_successfully` | `PENDING_REAL_EVIDENCE`; local adversarial proof only, not needed for the successful lifecycle claim |
 | unmatched fees and all bonds are recoverable | clear/cancel credit moves | `get_credit`, `get_accounting` | `test_accounting.py`, `test_recovery_and_grants.py` | Separate 1 GEN balance proof finalized `CANCELLED`, credited, withdrawn, and returned the actor balance exactly |
 | route permission is one-time | `consume_grant` | `get_match`, `can_route` | `test_recovery_and_grants.py::test_matched_requester_consumes_active_grant_once` | Finalized consume transaction; canonical grant is `CONSUMED` |
+| one exact A2A task can enter the reference boundary | `authorize_dispatch`; immutable dispatch digest | `get_match`, `can_dispatch` | direct authorization/idempotency tests plus A2A route-handler tests | Finalized authorization; two identical sends return one task ID; finalized consume then causes HTTP 403; accounting unchanged |
 | withdrawals preserve exact accounting | `withdraw_credit` | `get_credit`, `get_accounting` | `test_recovery_and_grants.py::test_withdrawal_debits_before_external_send_and_preserves_invariant` | Aggregate canonical accounting is 5 GEN received/withdrawn, zero locked/credited, invariant true |
 
 ## Browser lifecycle coverage matrix
@@ -474,6 +478,8 @@ authenticity gate.
 | lock round | `lockRound` | creator action when both sides exist | `app.test.tsx` | finalized round reload | Production control/build verified; browser-wallet write pending |
 | clear or retry | `clearRound` | creator action in `LOCKED`/`RETRYABLE` | `contractAdapter.test.ts` and `app.test.tsx` | submitted/accepted/finalized or retryable, then full reload | Production control/build verified; browser-wallet write pending |
 | safe cancel | `cancelRound` | separated creator recovery action in `OPEN` | `contractAdapter.test.ts` and `app.test.tsx` | finalized round/credit/accounting reload | Production control/build verified; browser-wallet write pending |
+| authorize exact A2A task | `authorizeDispatch` | progressive handoff panel on an active grant | protocol, adapter, component, API, and app tests | finalized then exact `get_match`/`can_dispatch` reload | Script-signed Studionet proof; complete browser-wallet write capture pending |
+| send exact A2A task | same-origin `sendA2aMessage` | handoff panel receipt/retry state | protocol, API, component, and app tests | endpoint recomputes digest and reads canonical state | Two live HTTP 200 responses returned one task ID; post-consume request returned HTTP 403 |
 | consume route grant | `consumeGrant` | matched requester action | `contractAdapter.test.ts` and `app.test.tsx` | finalized match/route reload | Production OKX Wallet transaction `0x00b61d...22ace` finalized; canonical grant reloaded as `CONSUMED` |
 | withdraw canonical credit | `withdrawCredit` | credit action for positive balance | `contractAdapter.test.ts` and `app.test.tsx` | finalized receipt plus credit/accounting reload | Production OKX Wallet transaction `0x44f212...0de0b` finalized; canonical credit reloaded as `0 GEN` |
 
@@ -537,21 +543,22 @@ absence of fixture-as-live behavior.
 
 ## Three concrete downstream consumers
 
-1. A2A routers call `can_route(round_id, request_id, requester)` before sending a task.
+1. A2A routers call `can_dispatch(round_id, request_id, requester, task_digest)` before accepting the exact requester-authorized task.
 2. MCP marketplaces reserve limited tool seats using the round/order interface.
 3. DAO schedulers allocate contributor workflows to matched agent slots and
    consume the grant once assigned.
 
 ## Honest evidence status
 
-- Completed: all 14 idea gates; the one-contract 9-write/8-view schema; direct,
+- Completed: all 14 idea gates; the one-contract `MS-001` 10-write/9-view schema; direct,
   static, deployment, and frontend suites; safe receipt parsing; resumable
   Studionet deployment; finalized semantic, grant, accounting, recovery, and
   balance evidence; the real `genlayer-js` frontend adapter; the three-destination
   self-service marketplace; public GitHub and Windows CI; Vercel production; and
-  desktop/mobile browser inspection.
-- Pending: Portal submission, browser-wallet evidence for the other six writes,
-  and external adoption.
+  desktop/mobile browser inspection; plus finalized exact-task authorization, deterministic A2A retry
+  identity, post-consume denial, and zero-liability withdrawal evidence for `MS-001`.
+- Pending: final Portal submission authorization, complete browser-wallet evidence for all writes on
+  the new deployment, signed third-party Agent Cards, and external adoption.
 
 ## Kill criteria
 

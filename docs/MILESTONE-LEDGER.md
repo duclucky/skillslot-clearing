@@ -91,7 +91,7 @@ This inventory is the anti-double-counting reference for the first Milestone sel
 
 | Milestone ID | Title | Status | Baseline reference | Delta fingerprint | Commit range | Deployment identity | Evidence index | Portal reference | Outcome date | Supersedes/extends | Lessons and follow-up |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `MS-001` | Onchain-Bound A2A Task Handoff | `DEPLOYED_PENDING_LIFECYCLE` | Accepted Portal `131883`; public evidence `eec0551`; working base `67c531a` | Task-specific onchain authorization plus deployed A2A 1.0 reference endpoint | Starts after `67c531a`; implementation `be1a8cd` | Studionet `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`; deploy `0x9f89f9...f6f785` | `docs/milestones/MS-001/README.md` | `NOT_SUBMITTED` |  | Extends accepted grants and `can_route`; no earlier Milestone | 195 local checks pass; live lifecycle and production proof remain required |
+| `MS-001` | Onchain-Bound A2A Task Handoff | `SUBMISSION_READY` | Accepted Portal `131883`; public evidence `eec0551`; working base `67c531a` | Task-specific onchain authorization plus deployed A2A 1.0 reference endpoint | Implementation range `67c531a..be1a8cd`; deployment evidence `f952f63` | Studionet `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`; deploy `0x9f89f9...f6f785` | `docs/milestones/MS-001/README.md`; `docs/evidence/studionet/ms-001-a2a-dispatch.json`; `docs/evidence/studionet/ms-001-production.json` | `NOT_SUBMITTED` |  | Extends accepted grants and `can_route`; no earlier Milestone | 195 checks and CI pass; finalized dispatch/retry/consume/withdraw lifecycle; production desktop/mobile and protocol surfaces verified |
 
 ## Adaptive backlog
 
@@ -139,10 +139,11 @@ origins, or claim external adoption.
 ## Current phase pointer
 
 - Active Milestone: `MS-001`
-- Program state: `DEPLOYED_PENDING_LIFECYCLE`
+- Program state: `SUBMISSION_READY`
 - Last Portal reconciliation: `2026-08-29`
 - Reconciliation evidence: accepted public contribution `131883` and the signed-in Portal submission
   history showing `SkillSlot Clearing - Validator-Cleared Agent Access` as `Accepted`.
-- Next allowed action: publish the endpoint against the new Studionet deployment and collect A2A/browser
-  lifecycle evidence; do not absorb `BL-001B`, external adoption, arbitrary
-  destinations, or financial delivery consequences.
+- Next allowed action: present the copy-ready `MS-001` packet and request explicit action-time
+  authorization for the final Portal control. Do not select or detail the next phase until the Portal
+  outcome is logged; do not absorb `BL-001B`, external adoption, arbitrary destinations, or financial
+  delivery consequences.
