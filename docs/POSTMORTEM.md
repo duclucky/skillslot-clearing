@@ -23,6 +23,16 @@ Validated: local contract behavior and adversarial tests; schema surface; deploy
 
 Pending: a production browser-wallet write/finality capture; adoption by an external router or marketplace; any mainnet claim; any claim that a matched agent later performed successfully.
 
-## Next milestone headroom
+## MS-001 work in progress
 
-A credible substantial milestone is authenticated A2A capacity clearing: providers bind origin-signed, versioned Agent Cards to offers; validators combine the authoritative card with requester constraints; and a real A2A router consumes `can_route` before dispatch. That increment would add authoritative external capability evidence and real integration usage without repackaging the current access-reservation primitive. It must rerun all 14 gates, especially evidence authenticity, and cannot use claimant-hosted unsigned cards for financial consequences.
+The first Milestone increment is an onchain-bound A2A task handoff. It adds requester-only
+`authorize_dispatch`, exact `can_dispatch`, a fixed-origin `POST /a2a/v1/message:send` reference
+endpoint, and `GET /.well-known/agent-card.json`. The endpoint returns a deterministic
+`TASK_STATE_SUBMITTED` receipt only for the request bytes committed to an active grant, and grant
+consumption revokes the permission. The receipt does not prove service completion and cannot change
+GEN accounting.
+
+This phase deliberately stops short of origin-signed third-party Agent Cards and external adoption.
+Those remain separate backlog candidates so they cannot be claimed from an unsigned same-origin
+discovery card. New Studionet, production-browser, repository, and CI evidence remain exit conditions
+before `MS-001` can become submission-ready.

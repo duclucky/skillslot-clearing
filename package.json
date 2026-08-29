@@ -16,6 +16,7 @@
     "demo:studionet": "node scripts/deploy_studionet.mjs demo",
     "timeout:studionet": "node scripts/deploy_studionet.mjs timeout-proof",
     "balance:studionet": "node scripts/deploy_studionet.mjs balance-proof",
+    "dispatch:studionet": "node scripts/deploy_studionet.mjs dispatch-proof",
     "inspect:studionet": "node scripts/deploy_studionet.mjs inspect",
     "check": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1"
   },

@@ -27,6 +27,8 @@ export interface PositionView {
   summary: string;
   roundId: string;
   requestId?: string;
+  dispatchDigest?: string;
+  dispatchStatus?: string;
 }
 
 export interface WorkspaceSnapshot {
@@ -110,6 +112,7 @@ export interface ContractAdapter {
   clearRound(roundId: string): Promise<TransactionReceipt>;
   cancelRound(roundId: string): Promise<TransactionReceipt>;
   recoverExpiredRound(roundId: string): Promise<TransactionReceipt>;
+  authorizeDispatch(input: { roundId: string; requestId: string; taskDigest: string }): Promise<TransactionReceipt>;
   consumeGrant(input: { roundId: string; requestId: string }): Promise<TransactionReceipt>;
   withdrawCredit(amountWei: string): Promise<TransactionReceipt>;
 }

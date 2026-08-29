@@ -1,5 +1,26 @@
 # SkillSlot Clearing product and contract brief
 
+## MS-001 protocol handoff delta
+
+The accepted Project ends with a canonical one-time route grant. Milestone `MS-001` extends that state
+with one requester-only, immutable task authorization and a fixed-origin A2A HTTP+JSON boundary:
+
+1. `authorize_dispatch(round_id, request_id, task_digest)` commits the lowercase SHA-256 digest of one
+   bounded A2A `SendMessageRequest` while the validator-cleared grant is active.
+2. `can_dispatch(round_id, request_id, requester, task_digest)` fails closed unless the deployment,
+   entity IDs, requester, active grant, and exact digest all match canonical state.
+3. `POST /a2a/v1/message:send` recomputes that digest and returns one deterministic
+   `TASK_STATE_SUBMITTED` task identity for an authorized request.
+4. `GET /.well-known/agent-card.json` advertises the same-origin reference interface. The unsigned
+   card is discovery-only and is never authority for dispatch, settlement, credit, or value.
+5. Existing `consume_grant` invalidates `can_dispatch`; identical HTTP retries do not create a second
+   authorization or task identity.
+
+The receipt is informational: it does not prove service completion, certify provider performance, or
+move GEN. Arbitrary destinations, signed third-party cards, delivery evidence, and external adoption
+are intentionally outside `MS-001`. The phase dossier and claim-to-code matrix live in
+[`milestones/MS-001/README.md`](milestones/MS-001/README.md).
+
 ## Identity
 
 - Idea ID: `IDEA-012`

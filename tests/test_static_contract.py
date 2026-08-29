@@ -4,6 +4,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "contracts" / "skill_slot_clearing.py"
+PUBLIC_DOCS = [ROOT / "README.md", ROOT / "docs" / "README.md", ROOT / "docs" / "POSTMORTEM.md"]
 EXPECTED_HEADER = '# { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }'
 
 
@@ -73,6 +74,7 @@ def test_position_public_surface_and_nondeterminism_boundary_are_locked():
         "clear_round",
         "cancel_round",
         "recover_expired_round",
+        "authorize_dispatch",
         "consume_grant",
         "withdraw_credit",
         "get_round",
@@ -80,6 +82,7 @@ def test_position_public_surface_and_nondeterminism_boundary_are_locked():
         "get_request",
         "get_match",
         "can_route",
+        "can_dispatch",
         "get_credit",
         "get_accounting",
         "get_round_ids",
@@ -134,3 +137,25 @@ def test_withdrawal_uses_external_recipient_and_debits_before_transfer():
     assert rendered.index("self.credits[account]") < rendered.index("_ExternalRecipient(sender).emit_transfer")
     assert "_ExternalRecipient(sender).emit_transfer(value=u256(requested))" in rendered
     assert "gl.eth" not in rendered
+
+
+def test_public_docs_describe_the_a2a_milestone_without_overclaiming_delivery():
+    combined = "\n".join(path.read_text(encoding="utf8") for path in PUBLIC_DOCS)
+    for required in (
+        "authorize_dispatch",
+        "can_dispatch",
+        "/a2a/v1/message:send",
+        "/.well-known/agent-card.json",
+        "TASK_STATE_SUBMITTED",
+        "does not prove service completion",
+    ):
+        assert required in combined
+
+    lowered = combined.lower()
+    for forbidden in (
+        "a2a receipt proves service completion",
+        "uses signed third-party agent cards",
+        "external adoption achieved",
+        "a2a receipt moves value",
+    ):
+        assert forbidden not in lowered

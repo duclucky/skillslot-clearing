@@ -3,6 +3,14 @@
     {
       "source": "/agents/generated/:agentId.json",
       "destination": "/api/agent-metadata?agentId=:agentId"
+    },
+    {
+      "source": "/a2a/v1/message:send",
+      "destination": "/api/a2a-message"
+    },
+    {
+      "source": "/.well-known/agent-card.json",
+      "destination": "/api/agent-card"
     }
   ]
 }

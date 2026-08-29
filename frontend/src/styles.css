@@ -945,7 +945,7 @@ h2 {
 }
 
 .filter-button {
-  min-height: 42px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   gap: 9px;
@@ -1482,6 +1482,140 @@ h2 {
   font-size: 12px;
 }
 
+.position-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.a2a-handoff {
+  width: min(100%, 620px);
+  padding: 18px;
+  color: var(--text);
+  background: rgba(10, 12, 13, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 18px;
+}
+
+.a2a-handoff-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.a2a-handoff h3 {
+  margin: 4px 0 0;
+  font-size: 20px;
+}
+
+.icon-button {
+  width: 44px;
+  height: 44px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+}
+
+.a2a-progress {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 18px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.a2a-progress li {
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 12px;
+  text-align: center;
+}
+
+.a2a-progress li span {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  color: inherit;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+}
+
+.a2a-progress .is-current,
+.a2a-progress .is-done {
+  color: var(--accent-mint);
+}
+
+.a2a-handoff label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.a2a-handoff textarea {
+  width: 100%;
+  min-height: 116px;
+  resize: vertical;
+  padding: 12px 14px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.a2a-helper {
+  margin: 8px 0 14px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.a2a-handoff > .button {
+  min-height: 44px;
+}
+
+.a2a-receipt {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  color: var(--ink);
+  background: var(--signal-soft);
+  border: 1px solid var(--signal);
+  border-radius: 12px;
+}
+
+.a2a-receipt code,
+.a2a-receipt p {
+  display: block;
+  margin: 5px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.a2a-error {
+  margin-top: 12px;
+  padding: 12px;
+  color: #fff;
+  background: rgba(156, 56, 49, 0.28);
+  border: 1px solid rgba(244, 222, 217, 0.55);
+  border-radius: 12px;
+}
+
+.a2a-error p {
+  margin: 0 0 10px;
+}
+
 .empty-state {
   margin-top: 18px;
   padding: clamp(30px, 5vw, 54px);
@@ -1758,7 +1892,7 @@ h2 {
 
 .nav-item {
   position: relative;
-  min-height: 40px;
+  min-height: 44px;
   flex: 1 1 0;
   justify-content: center;
   padding: 0 10px 4px;
@@ -2562,6 +2696,15 @@ h2 {
     display: grid;
   }
 
+  .position-actions {
+    display: grid;
+    justify-content: stretch;
+  }
+
+  .a2a-handoff {
+    width: 100%;
+  }
+
   .positions-summary .button,
   .position-card .button {
     width: 100%;
@@ -2592,7 +2735,7 @@ h2 {
   }
 
   .connection-cluster .button {
-    min-height: 42px;
+    min-height: 44px;
     padding: 0 10px;
     font-size: 12px;
   }

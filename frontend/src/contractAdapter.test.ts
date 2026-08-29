@@ -48,7 +48,15 @@ function clients() {
       return { request_id: args?.[1], requester: account, label: "Need sources", matched_offer_id: "offer-1", outcome: "MATCHED" };
     }
     if (functionName === "get_match") {
-      return { request_id: args?.[1], requester: account, provider: account, offer_id: "offer-1", grant_status: "ACTIVE" };
+      return {
+        request_id: args?.[1],
+        requester: account,
+        provider: account,
+        offer_id: "offer-1",
+        grant_status: "ACTIVE",
+        dispatch_digest: "a".repeat(64),
+        dispatch_status: "AUTHORIZED",
+      };
     }
     if (functionName === "can_route") return true;
     if (functionName === "get_credit") return ONE_GEN_WEI.toString();
@@ -110,6 +118,10 @@ describe("GenLayer contract adapter", () => {
     expect(snapshot.rounds.map((round) => round.id)).toEqual(["round-1"]);
     expect(snapshot.creditGen).toBe("1");
     expect(snapshot.positions.map((item) => item.kind)).toEqual(["offer", "request", "grant"]);
+    expect(snapshot.positions.find((item) => item.kind === "grant")).toMatchObject({
+      dispatchDigest: "a".repeat(64),
+      dispatchStatus: "AUTHORIZED",
+    });
     expect(readClient.readContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "can_route" }));
     expect(readClient.readContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "get_accounting" }));
   });
@@ -161,7 +173,7 @@ describe("GenLayer contract adapter", () => {
     ]);
   });
 
-  it("maps all nine writes, exact GEN value, and submitted/accepted/finalized progress", async () => {
+  it("maps all ten writes, exact GEN value, and submitted/accepted/finalized progress", async () => {
     const { readClient, writeClient } = clients();
     const progress = vi.fn();
     const adapter = createGenLayerAdapter({
@@ -178,10 +190,16 @@ describe("GenLayer contract adapter", () => {
     await adapter.clearRound("round-1");
     await adapter.cancelRound("round-1");
     await adapter.recoverExpiredRound("round-1");
+    await adapter.authorizeDispatch({ roundId: "round-1", requestId: "request-1", taskDigest: "a".repeat(64) });
     await adapter.consumeGrant({ roundId: "round-1", requestId: "request-1" });
     await adapter.withdrawCredit(ONE_GEN_WEI.toString());
 
-    expect(writeClient.writeContract).toHaveBeenCalledTimes(9);
+    expect(writeClient.writeContract).toHaveBeenCalledTimes(10);
+    expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({
+      functionName: "authorize_dispatch",
+      args: ["round-1", "request-1", "a".repeat(64)],
+      value: 0n,
+    }));
     expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({
       functionName: "open_round",
       args: ["round-2", "New round", ONE_GEN_WEI, ONE_GEN_WEI, 3600n, 7200n],
@@ -260,6 +278,7 @@ describe("GenLayer contract adapter", () => {
     ["clear_round", (adapter: ContractAdapter) => adapter.clearRound("round-1")],
     ["cancel_round", (adapter: ContractAdapter) => adapter.cancelRound("round-1")],
     ["recover_expired_round", (adapter: ContractAdapter) => adapter.recoverExpiredRound("round-1")],
+    ["authorize_dispatch", (adapter: ContractAdapter) => adapter.authorizeDispatch({ roundId: "round-1", requestId: "request-1", taskDigest: "a".repeat(64) })],
     ["consume_grant", (adapter: ContractAdapter) => adapter.consumeGrant({ roundId: "round-1", requestId: "request-1" })],
     ["withdraw_credit", (adapter: ContractAdapter) => adapter.withdrawCredit(ONE_GEN_WEI.toString())],
   ])("routes %s through the shared cancellation policy", async (functionName, invoke) => {

@@ -8,7 +8,11 @@ const frontendRoot = resolve(testDir, "..");
 const sourceFiles = [
   resolve(frontendRoot, "api/agent-metadata.ts"),
   resolve(frontendRoot, "api/studionet-rpc.ts"),
+  resolve(frontendRoot, "api/a2a-message.ts"),
+  resolve(frontendRoot, "api/agent-card.ts"),
   resolve(frontendRoot, "src/providerMetadataApi.ts"),
+  resolve(frontendRoot, "src/a2aDispatchApi.ts"),
+  resolve(frontendRoot, "src/a2aAgentCard.ts"),
 ];
 
 describe("Vercel API source", () => {
@@ -26,5 +30,12 @@ describe("Vercel API source", () => {
     }
 
     expect(violations).toEqual([]);
+  });
+
+  it("requires the canonical dispatch view to return the boolean true", () => {
+    const source = readFileSync(resolve(frontendRoot, "api/a2a-message.ts"), "utf8");
+
+    expect(source).toContain("canonicalAllowed === true");
+    expect(source).not.toContain("Boolean(await client.readContract");
   });
 });

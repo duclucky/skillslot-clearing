@@ -87,6 +87,8 @@ interface MatchRecord {
   provider?: string;
   requester?: string;
   grant_status?: string;
+  dispatch_digest?: string;
+  dispatch_status?: string;
 }
 
 type Clients = {
@@ -238,6 +240,8 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
             kind: "grant",
             status: canRoute ? "ACTIVE" : match.grant_status || "INACTIVE",
             summary: `Route to ${match.offer_id || "matched provider"}`,
+            dispatchDigest: match.dispatch_digest || undefined,
+            dispatchStatus: match.dispatch_status || undefined,
           });
         }
       }
@@ -369,6 +373,7 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
     clearRound: (roundId: string) => execute("clear_round", [roundId]),
     cancelRound: (roundId: string) => execute("cancel_round", [roundId]),
     recoverExpiredRound: (roundId: string) => execute("recover_expired_round", [roundId]),
+    authorizeDispatch: ({ roundId, requestId, taskDigest }) => execute("authorize_dispatch", [roundId, requestId, taskDigest]),
     consumeGrant: ({ roundId, requestId }) => execute("consume_grant", [roundId, requestId]),
     withdrawCredit: (amountWei: string) => execute("withdraw_credit", [BigInt(amountWei)]),
   };
@@ -402,6 +407,7 @@ export function createUnconfiguredAdapter(): ContractAdapter {
     clearRound: unavailable,
     cancelRound: unavailable,
     recoverExpiredRound: unavailable,
+    authorizeDispatch: unavailable,
     consumeGrant: unavailable,
     withdrawCredit: unavailable,
   };

@@ -15,9 +15,11 @@ const CONTRACT_PATH = path.join(ROOT_DIR, "contracts", "skill_slot_clearing.py")
 const FRONTEND_PUBLIC_AGENTS_DIR = path.join(ROOT_DIR, "frontend", "public", "agents");
 const EVIDENCE_DIR = path.join(ROOT_DIR, "docs", "evidence", "studionet");
 const EVIDENCE_PATH = path.join(EVIDENCE_DIR, "deployment.json");
+const DISPATCH_EVIDENCE_PATH = path.join(EVIDENCE_DIR, "ms-001-a2a-dispatch.json");
 const ARCHIVE_DIR = path.join(EVIDENCE_DIR, "archive");
 const EXPLORER_URL = "https://explorer-studio.genlayer.com";
 const METADATA_PUBLIC_BASE_URL = "https://skillslot-clearing.vercel.app/agents/";
+const DEFAULT_A2A_PUBLIC_BASE_URL = "https://skillslot-clearing.vercel.app";
 const DEFAULT_RPC_URL = studionet.rpcUrls.default.http[0];
 const ONE_GEN = 10n ** 18n;
 const DEFAULT_OPEN_TIMEOUT_SECONDS = 3600n;
@@ -145,6 +147,175 @@ function sha256Text(value) {
   return createHash("sha256").update(value, "utf8").digest("hex");
 }
 
+function canonicalJson(value) {
+  if (value === null || typeof value === "string" || typeof value === "boolean" || typeof value === "number") {
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (!value || typeof value !== "object") throw new Error("Dispatch proof accepts JSON-compatible values only");
+  return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(",")}}`;
+}
+
+export function buildDispatchProofRequest({ contractAddress, roundId, requestId, requester }) {
+  const seed = sha256Text(`${contractAddress.toLowerCase()}:${roundId}:${requestId}:${requester.toLowerCase()}`);
+  return {
+    message: {
+      messageId: `message-${seed.slice(0, 24)}`,
+      role: "ROLE_USER",
+      parts: [{
+        text: "Verify the validator-cleared SkillSlot access handoff for this matched request.",
+        mediaType: "text/plain",
+      }],
+    },
+    configuration: { returnImmediately: true },
+    metadata: {
+      skillslot: {
+        chainId: studionet.id,
+        contract: contractAddress.toLowerCase(),
+        roundId,
+        requestId,
+        requester: requester.toLowerCase(),
+        protocolVersion: "1.0",
+        nonce: `nonce-${seed.slice(24, 56)}`,
+      },
+    },
+  };
+}
+
+function safeAccounting(value) {
+  if (!value || typeof value !== "object") return {};
+  const allowed = [
+    "invariant_holds",
+    "total_received_wei",
+    "total_locked_wei",
+    "total_credited_wei",
+    "total_withdrawn_wei",
+  ];
+  return Object.fromEntries(allowed.filter((key) => key in value).map((key) => [key, value[key]]));
+}
+
+function safeEndpointCheck(value) {
+  if (!value || typeof value !== "object") return {};
+  const allowed = ["phase", "httpStatus", "taskId", "taskState"];
+  return Object.fromEntries(allowed.filter((key) => key in value).map((key) => [key, value[key]]));
+}
+
+export function projectDispatchProofEvidence(value) {
+  const allowed = [
+    "network",
+    "chainId",
+    "contractAddress",
+    "sourceCommit",
+    "contractSha256",
+    "roundId",
+    "requestId",
+    "requester",
+    "messageId",
+    "taskDigest",
+    "status",
+  ];
+  const projected = Object.fromEntries(allowed.filter((key) => key in value).map((key) => [key, value[key]]));
+  projected.transactions = Object.fromEntries(
+    Object.entries(value?.transactions ?? {}).map(([key, record]) => [key, sanitizeEvidence(record)]),
+  );
+  projected.endpointChecks = (value?.endpointChecks ?? []).map(safeEndpointCheck);
+  if (value?.accounting?.before || value?.accounting?.after) {
+    projected.accounting = {
+      before: safeAccounting(value.accounting.before),
+      after: safeAccounting(value.accounting.after),
+      invariantUnchanged: value.accounting.invariantUnchanged === true,
+    };
+  } else {
+    projected.accounting = safeAccounting(value?.accounting);
+  }
+  return projected;
+}
+
+export async function executeDispatchProof(proof, context, dependencies) {
+  if (proof.status === "FINALIZED_A2A_DISPATCH_PROOF") return proof;
+  proof.transactions ??= {};
+  proof.endpointChecks ??= [];
+  const request = buildDispatchProofRequest(context);
+  const digest = sha256Text(canonicalJson(request));
+  if (proof.taskDigest && proof.taskDigest !== digest) throw new Error("Recorded dispatch proof digest does not match the deterministic request");
+  Object.assign(proof, {
+    chainId: studionet.id,
+    contractAddress: context.contractAddress,
+    roundId: context.roundId,
+    requestId: context.requestId,
+    requester: context.requester,
+    messageId: request.message.messageId,
+    taskDigest: digest,
+    status: "STARTED",
+  });
+  const persist = () => dependencies.persist(proof);
+  persist();
+
+  if (!proof.accounting?.before) {
+    proof.accounting = { before: safeAccounting(await dependencies.readAccounting()) };
+    persist();
+  }
+
+  let match = await dependencies.readMatch();
+  if (!match?.request_id && !match?.grant_status) throw new Error("Dispatch proof match is unavailable");
+  if (match.dispatch_digest && match.dispatch_digest !== digest) {
+    throw new Error("Canonical match is already bound to a different A2A task");
+  }
+  if (match.grant_status === "ACTIVE" && match.dispatch_status !== "AUTHORIZED") {
+    proof.transactions.authorizeDispatch = sanitizeEvidence(await dependencies.authorizeDispatch(digest));
+    persist();
+    match = await dependencies.readMatch();
+  }
+  if (match.dispatch_status !== "AUTHORIZED" || match.dispatch_digest !== digest) {
+    throw new Error("Canonical dispatch authorization did not finalize with the expected digest");
+  }
+  if (match.grant_status === "ACTIVE" && !(await dependencies.canDispatch(digest))) {
+    throw new Error("Canonical can_dispatch rejected the finalized authorization");
+  }
+
+  while (match.grant_status === "ACTIVE" && proof.endpointChecks.filter((item) => item.httpStatus === 200).length < 2) {
+    const response = await dependencies.postA2A(request, 200);
+    const taskId = response?.body?.task?.id;
+    const taskState = response?.body?.task?.status?.state;
+    if (response?.status !== 200 || typeof taskId !== "string" || taskState !== "TASK_STATE_SUBMITTED") {
+      throw new Error("A2A reference endpoint did not return a submitted task receipt");
+    }
+    proof.endpointChecks.push(safeEndpointCheck({
+      phase: `authorized-${proof.endpointChecks.filter((item) => item.httpStatus === 200).length + 1}`,
+      httpStatus: response.status,
+      taskId,
+      taskState,
+    }));
+    persist();
+  }
+  const acceptedTaskIds = proof.endpointChecks.filter((item) => item.httpStatus === 200).map((item) => item.taskId);
+  if (acceptedTaskIds.length !== 2 || acceptedTaskIds[0] !== acceptedTaskIds[1]) {
+    throw new Error("Repeated authorized A2A requests did not produce one deterministic task ID");
+  }
+
+  if (match.grant_status === "ACTIVE") {
+    proof.transactions.consumeGrant = sanitizeEvidence(await dependencies.consumeGrant());
+    persist();
+    match = await dependencies.readMatch();
+  }
+  if (match.grant_status !== "CONSUMED") throw new Error("Grant consumption did not finalize");
+
+  if (!proof.endpointChecks.some((item) => item.phase === "post-consume")) {
+    const rejected = await dependencies.postA2A(request, 403);
+    if (rejected?.status !== 403) throw new Error("Consumed grant was still dispatchable through the A2A endpoint");
+    proof.endpointChecks.push(safeEndpointCheck({ phase: "post-consume", httpStatus: rejected.status }));
+    persist();
+  }
+
+  const after = safeAccounting(await dependencies.readAccounting());
+  const invariantUnchanged = canonicalJson(proof.accounting.before) === canonicalJson(after) && after.invariant_holds === true;
+  proof.accounting = { before: proof.accounting.before, after, invariantUnchanged };
+  if (!invariantUnchanged) throw new Error("A2A authorization or dispatch changed canonical accounting");
+  proof.status = "FINALIZED_A2A_DISPATCH_PROOF";
+  persist();
+  return proof;
+}
+
 function git(args) {
   return execFileSync("git", args, { cwd: ROOT_DIR, encoding: "utf8" }).trim();
 }
@@ -179,6 +350,27 @@ function mergeEvidence(patch) {
     updatedAt: new Date().toISOString(),
     ...patch,
   });
+}
+
+function readDispatchEvidence() {
+  if (!existsSync(DISPATCH_EVIDENCE_PATH)) return {};
+  return JSON.parse(readFileSync(DISPATCH_EVIDENCE_PATH, "utf8"));
+}
+
+function writeDispatchEvidence(value) {
+  mkdirSync(EVIDENCE_DIR, { recursive: true });
+  writeFileSync(DISPATCH_EVIDENCE_PATH, `${JSON.stringify(jsonSafe(projectDispatchProofEvidence(value)), null, 2)}\n`, "utf8");
+}
+
+function archiveSupersededDispatchProof(proof) {
+  if (!proof?.contractAddress) return;
+  mkdirSync(ARCHIVE_DIR, { recursive: true });
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  writeFileSync(
+    path.join(ARCHIVE_DIR, `${timestamp}-ms-001-a2a-dispatch.json`),
+    `${JSON.stringify(jsonSafe(projectDispatchProofEvidence(proof)), null, 2)}\n`,
+    "utf8",
+  );
 }
 
 function archiveSuperseded(evidence, reason) {
@@ -787,6 +979,78 @@ async function timeoutProof(env) {
   console.log(JSON.stringify({ action: "timeout-proof", status: proof.status, finalReads: proof.finalReads }, null, 2));
 }
 
+async function dispatchProof(env) {
+  await deploy(env);
+  for (const step of ["open-round", "submit-demo-positions", "lock", "clear"]) {
+    const state = await runStep(env, step);
+    if (state.status === "RETRYABLE_REQUIRES_DIAGNOSIS") {
+      console.log(JSON.stringify({ action: "dispatch-proof", status: state.status, retryAttempt: state.retryAttempt }));
+      return;
+    }
+  }
+
+  const evidence = readEvidence();
+  const address = requireDeployment(evidence);
+  const requester = signingClient(env, REQUESTER_KEYS);
+  await assertStudionet(requester.client);
+  const roundId = evidence.demo?.roundId;
+  const requestId = "request-flight";
+  if (!roundId) throw new Error("The active deployment has no cleared demo round for dispatch proof");
+  const context = { contractAddress: address, roundId, requestId, requester: requester.account.address };
+  let proof = readDispatchEvidence();
+  if (proof.contractAddress && proof.contractAddress.toLowerCase() !== address.toLowerCase()) {
+    archiveSupersededDispatchProof(proof);
+    proof = {};
+  }
+  proof.network = "studionet";
+  proof.sourceCommit = evidence.identity?.sourceCommit;
+  proof.contractSha256 = evidence.identity?.contractSha256;
+  const endpoint = new URL("/a2a/v1/message:send", env.A2A_PUBLIC_BASE_URL?.trim() || DEFAULT_A2A_PUBLIC_BASE_URL).toString();
+  const postA2A = async (request) => {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    let body = {};
+    try {
+      body = await response.json();
+    } catch {
+      throw new Error(`A2A endpoint returned non-JSON status ${response.status}`);
+    }
+    return { status: response.status, body };
+  };
+  proof = await executeDispatchProof(proof, context, {
+    readMatch: () => readView(requester.client, address, "get_match", [roundId, requestId]),
+    authorizeDispatch: (digest) => writeContractFinalized(
+      requester.client,
+      address,
+      "authorize_dispatch",
+      [roundId, requestId, digest],
+    ),
+    canDispatch: (digest) => readView(
+      requester.client,
+      address,
+      "can_dispatch",
+      [roundId, requestId, requester.account.address, digest],
+    ),
+    postA2A,
+    consumeGrant: () => writeContractFinalized(requester.client, address, "consume_grant", [roundId, requestId]),
+    readAccounting: () => readView(requester.client, address, "get_accounting", []),
+    persist: writeDispatchEvidence,
+  });
+  console.log(JSON.stringify({
+    action: "dispatch-proof",
+    status: proof.status,
+    contractAddress: proof.contractAddress,
+    roundId: proof.roundId,
+    requestId: proof.requestId,
+    taskDigest: proof.taskDigest,
+    endpointChecks: proof.endpointChecks,
+    accounting: proof.accounting,
+  }, null, 2));
+}
+
 async function inspect(env) {
   const evidence = readEvidence();
   const report = {
@@ -817,6 +1081,7 @@ async function main() {
   else if (command === "demo") await demo(env);
   else if (command === "timeout-proof") await timeoutProof(env);
   else if (command === "balance-proof") await balanceProof(env);
+  else if (command === "dispatch-proof") await dispatchProof(env);
   else if (["open-round", "submit-demo-positions", "lock", "clear", "consume", "withdraw"].includes(command)) {
     await runStep(env, command);
   } else {

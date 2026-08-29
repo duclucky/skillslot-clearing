@@ -31,6 +31,8 @@ OUTCOME_UNMATCHED = "UNMATCHED"
 OUTCOME_CANCELLED = "CANCELLED"
 GRANT_ACTIVE = "ACTIVE"
 GRANT_CONSUMED = "CONSUMED"
+DISPATCH_NONE = "NONE"
+DISPATCH_AUTHORIZED = "AUTHORIZED"
 
 VERDICT_CLEARABLE = "CLEARABLE"
 VERDICT_UNVERIFIABLE = "UNVERIFIABLE"
@@ -102,6 +104,8 @@ class Match:
     provider: Address
     requester: Address
     grant_status: str
+    dispatch_digest: str
+    dispatch_status: str
 
 
 @gl.evm.contract_interface
@@ -130,6 +134,15 @@ def _is_same_address(left: Address, right: Address) -> bool:
 
 def _position_key(round_id: str, position_id: str) -> str:
     return round_id + "|" + position_id
+
+
+def _is_sha256_hex(value: str) -> bool:
+    if len(value) != 64:
+        return False
+    for char in value:
+        if char not in "0123456789abcdef":
+            return False
+    return True
 
 
 def _actor_key(round_id: str, role: str, actor: Address) -> str:
@@ -607,6 +620,8 @@ def _match_view(match_record: Match) -> dict:
         "provider": _addr_str(match_record.provider),
         "requester": _addr_str(match_record.requester),
         "grant_status": match_record.grant_status,
+        "dispatch_digest": match_record.dispatch_digest,
+        "dispatch_status": match_record.dispatch_status,
     }
 
 
@@ -1022,6 +1037,8 @@ class Contract(gl.Contract):
                     provider=offer.provider,
                     requester=request.requester,
                     grant_status=GRANT_ACTIVE,
+                    dispatch_digest="",
+                    dispatch_status=DISPATCH_NONE,
                 )
                 self._credit_locked(round_record, offer.provider, int(request.deposit_wei))
                 round_record.match_count = u256(int(round_record.match_count) + 1)
@@ -1091,6 +1108,27 @@ class Contract(gl.Contract):
         round_record.phase = PHASE_CANCELLED
 
     @gl.public.write
+    def authorize_dispatch(self, round_id: str, request_id: str, task_digest: str) -> None:
+        key = _position_key(round_id, request_id)
+        if key not in self.matches:
+            raise gl.vm.UserError("Grant does not exist")
+        match_record = self.matches[key]
+        if not _is_same_address(gl.message.sender_address, match_record.requester):
+            raise gl.vm.UserError("Only matched requester can authorize dispatch")
+        if match_record.grant_status != GRANT_ACTIVE:
+            raise gl.vm.UserError("Grant is not active")
+        if round_id not in self.rounds or self.rounds[round_id].phase != PHASE_CLEARED:
+            raise gl.vm.UserError("Round is not cleared")
+        if not _is_sha256_hex(task_digest):
+            raise gl.vm.UserError("Task digest must be lowercase SHA-256 hex")
+        if match_record.dispatch_status == DISPATCH_AUTHORIZED:
+            if match_record.dispatch_digest == task_digest:
+                return
+            raise gl.vm.UserError("A different task is already authorized")
+        match_record.dispatch_digest = task_digest
+        match_record.dispatch_status = DISPATCH_AUTHORIZED
+
+    @gl.public.write
     def consume_grant(self, round_id: str, request_id: str) -> None:
         key = _position_key(round_id, request_id)
         if key not in self.matches:
@@ -1156,6 +1194,20 @@ class Contract(gl.Contract):
             return False
         match_record = self.matches[key]
         return match_record.grant_status == GRANT_ACTIVE and _addr_key(match_record.requester) == requester.lower()
+
+    @gl.public.view
+    def can_dispatch(self, round_id: str, request_id: str, requester: str, task_digest: str) -> bool:
+        key = _position_key(round_id, request_id)
+        if key not in self.matches or round_id not in self.rounds:
+            return False
+        match_record = self.matches[key]
+        return (
+            self.rounds[round_id].phase == PHASE_CLEARED
+            and match_record.grant_status == GRANT_ACTIVE
+            and match_record.dispatch_status == DISPATCH_AUTHORIZED
+            and _addr_key(match_record.requester) == requester.lower()
+            and match_record.dispatch_digest == task_digest
+        )
 
     @gl.public.view
     def get_credit(self, owner: str) -> str:

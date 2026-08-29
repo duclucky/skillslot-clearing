@@ -1,6 +1,6 @@
 # SkillSlot Clearing
 
-SkillSlot Clearing uses GenLayer validators to clear scarce agent-access slots by meaning, then creates one-time route grants and settles native-GEN credits deterministically.
+SkillSlot Clearing uses GenLayer validators to clear scarce agent-access slots by meaning, then lets a matched requester bind one exact A2A task to the resulting one-time grant.
 
 ## Why GenLayer
 
@@ -11,16 +11,17 @@ The product reserves access. It does **not** certify agent performance, task com
 ## Verified status
 
 - Track: GenLayer **Projects**
-- Contract: one `SkillSlotClearing` Intelligent Contract with 9 writes and 8 views
+- Contract: one `SkillSlotClearing` Intelligent Contract with 10 writes and 9 views in the `MS-001` source
 - Network: Studionet (`61999`)
-- Deployment: `0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`
-- Automated checks: 161 currently pass locally (8 static, 44 direct, 5 receipt parser, 7 deployment tooling, 97 frontend)
+- Accepted Project deployment: `0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`
+- Milestone `MS-001`: local implementation; new Studionet deployment and production evidence are required before submission
+- Automated checks: 195 currently pass locally (9 static, 50 direct, 5 receipt parser, 11 deployment tooling, 120 frontend)
 - Verified Windows CI: [`check` run 33035406150](https://github.com/duclucky/skillslot-clearing/actions/runs/33035406150) passed on commit `43dac5f`
 - Network lifecycle: the remediation deployment records a script-signed `FINALIZED_LIFECYCLE` with authenticated metadata, consumed grant, 2 GEN received, 2 GEN withdrawn, zero locked or credited liability, and invariant true
 - Timeout recovery proof: the remediation deployment records requester-called `recover_expired_round`, terminal `CANCELLED`, 4 GEN cumulative received/withdrawn across proofs, zero locked or credited liability, and invariant true
 - Balance proof: a separate 1 GEN deposit/cancel/withdraw flow returned the actor balance from `2010.6399969999999882 GEN` to `2011.6399969999999882 GEN`
 
-## Deployed contract
+## Accepted Project deployment
 
 - Address: [`0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`](https://explorer-studio.genlayer.com/address/0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834)
 - Deployment transaction: [`0xeca9750f84152b5c0f0b3b71d7361a50fefe7e6005aa01b14b3281c7cac98962`](https://explorer-studio.genlayer.com/transactions/0xeca9750f84152b5c0f0b3b71d7361a50fefe7e6005aa01b14b3281c7cac98962)
@@ -31,6 +32,11 @@ The product reserves access. It does **not** certify agent performance, task com
 
 [`https://skillslot-clearing.vercel.app`](https://skillslot-clearing.vercel.app) is the verified production deployment. It returned HTTP 200, contained the project title and React root, and loaded the canonical `CLEARED` Studionet round on desktop and mobile browser QA. Production OKX Wallet testing finalized `consume_grant` and `withdraw_credit` through the webapp. The UI retained one transaction hash per action, recovered transient status reads without resubmission, and reloaded canonical grant `CONSUMED`, credit `0 GEN`, and accounting invariant true.
 
+The public URL above still represents the accepted Project until the `MS-001` deployment and browser
+evidence are recorded. The source now adds a fixed-origin A2A reference interface at
+`POST /a2a/v1/message:send` and a discovery-only Agent Card at
+`GET /.well-known/agent-card.json`.
+
 ## Product flow
 
 1. A creator opens a bounded round with a fixed 1 GEN booking fee and 1 GEN provider bond.
@@ -38,9 +44,14 @@ The product reserves access. It does **not** certify agent performance, task com
 3. The creator locks the round.
 4. Validators independently judge every offer/request pair and agree on critical meaning, not prose wording.
 5. The contract deterministically assigns unit-capacity matches, creates route grants, and credits fees/refunds.
-6. A matched requester consumes the one-time grant; actors withdraw canonical credits.
-7. If evidence or consensus is unavailable, the round becomes non-penalizing `RETRYABLE` with funds still locked until retry or timeout recovery.
-8. If the creator stops acting after a deadline, any wallet can call refund-only recovery; provider fees are not released on timeout.
+6. A matched requester may canonicalize one bounded A2A request and finalize
+   `authorize_dispatch(round_id, request_id, task_digest)`.
+7. The fixed SkillSlot endpoint recomputes the request digest and calls
+   `can_dispatch`; an exact active authorization returns a deterministic
+   `TASK_STATE_SUBMITTED` receipt.
+8. The requester consumes the one-time grant; later dispatch attempts fail and actors withdraw canonical credits.
+9. If evidence or consensus is unavailable, the round becomes non-penalizing `RETRYABLE` with funds still locked until retry or timeout recovery.
+10. If the creator stops acting after a deadline, any wallet can call refund-only recovery; provider fees are not released on timeout.
 
 ## Architecture
 
@@ -50,7 +61,11 @@ Browser wallet (EIP-6963 / EIP-1193)
   -> SkillSlotClearing on Studionet
        -> bounded semantic consensus
        -> deterministic matching and accounting
-  <- canonical round, position, grant, credit, and invariant views
+       -> requester-bound A2A task digest
+  <- canonical round, position, grant, dispatch, credit, and invariant views
+  -> fixed same-origin A2A reference endpoint
+       -> canonical can_dispatch read
+       -> deterministic submitted-task receipt
 ```
 
 The frontend reconstructs every canonical round, opens with a Project Explorer-ready mechanism explainer, provides Rounds, Create round, and My activity destinations once a visitor enters the operational workspace, and exposes legal writes only to the relevant wallet and lifecycle state. It discovers injected wallets, requires the user to choose a wallet from a centered selection modal, restores authorization with `eth_accounts` without forcing a permission prompt, switches/adds Studionet on an explicit connect action, and provides an account menu with disconnect. Canonical reads route through a same-origin Studionet RPC proxy while wallet transaction writes stay on the selected wallet provider. Provider offers default to generated metadata mode: the app prepares the authorized `/agents/` URI, SHA-256 body hash, registry issuer, registry proof, and expiry before calling `submit_offer`. Transaction handling tracks wallet/submitted/accepted/finalized/failed states, preserves form data across wallet cancellation and uncertain submission, retries only transaction-status and canonical-state reads, never resubmits a known transaction, and reloads canonical contract state only after finalization. Local storage remembers only harmless wallet selection metadata.
@@ -81,6 +96,7 @@ npm run deploy:studionet    # exact contract/API revision; resumable
 npm run timeout:studionet   # expired locked round -> permissionless refund-only recovery
 npm run demo:studionet      # semantic match -> grant -> withdrawal
 npm run balance:studionet   # deposit -> cancel -> withdraw balance proof
+npm run dispatch:studionet  # authorize -> repeated A2A receipt -> consume -> reject
 ```
 
 The demo uses exactly 1 GEN for each value-bearing position and stops at `RETRYABLE` instead of blindly repeating nondeterministic adjudication.
@@ -91,6 +107,7 @@ The demo uses exactly 1 GEN for each value-bearing position and stops at `RETRYA
 - `tests/direct/` — state, adversarial, authorization, recovery, and accounting tests
 - `frontend/` — wallet-enabled React/Vite product
 - `scripts/deploy_studionet.mjs` — idempotent deployment and lifecycle evidence tooling
+- `docs/milestones/MS-001/README.md` — accepted-baseline delta, gates, safety card, and evidence plan
 - `docs/PROJECT-EXPLORER-LISTING.md` — copy-ready Project Explorer listing and reviewer steps
 - `docs/README.md` — specification, safety cards, threat model, and claim-to-code matrix
 - `docs/evidence/studionet/` — sanitized network evidence only
@@ -100,6 +117,8 @@ The demo uses exactly 1 GEN for each value-bearing position and stops at `RETRYA
 - The remediation lifecycle and timeout recovery are script-signed Studionet evidence. Production OKX Wallet evidence separately covers finalized grant consumption and credit withdrawal from the earlier browser run, not all nine writes on the remediation deployment.
 - Studionet is a hosted development network, not production mainnet.
 - External agent routers have not adopted the reusable interface yet.
+- The reference Agent Card is unsigned and discovery-only. It cannot authorize a hard consequence.
+- A `TASK_STATE_SUBMITTED` receipt proves the bounded handoff was accepted; it does not prove service completion, delivery quality, or provider performance.
 - Compatibility is bounded to authenticated metadata, the round's submitted statements, and stable fact IDs; the contract does not verify later service performance.
 
 See the [full specification](docs/README.md), [research record](docs/RESEARCH.md), and [design system](design-system/skillslot-clearing/MASTER.md).

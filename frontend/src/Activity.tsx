@@ -3,6 +3,7 @@ import { Coins, LockKey } from "@phosphor-icons/react";
 import { ONE_GEN_WEI } from "./contractAdapter";
 import type { ContractAdapter, WorkspaceSnapshot } from "./domain";
 import type { RunWrite } from "./Marketplace";
+import { A2AHandoff } from "./A2AHandoff";
 
 interface ActivityProps {
   snapshot: WorkspaceSnapshot;
@@ -35,7 +36,19 @@ export function Activity({ snapshot, adapter, busy, runWrite, onOpenRound }: Act
                 <span>{position.kind}</span><h2>{position.summary}</h2><p>{position.id} {position.status}</p>
               </button>
               {position.kind === "grant" && position.status === "ACTIVE" && position.requestId ? (
-                <button className="button button-secondary" type="button" disabled={busy} onClick={() => void runWrite(() => adapter.consumeGrant({ roundId: position.roundId, requestId: position.requestId! }))}>Consume grant</button>
+                <div className="position-actions">
+                  {snapshot.account && snapshot.contractAddress ? (
+                    <A2AHandoff
+                      position={position}
+                      account={snapshot.account}
+                      contractAddress={snapshot.contractAddress}
+                      adapter={adapter}
+                      busy={busy}
+                      runWrite={runWrite}
+                    />
+                  ) : null}
+                  <button className="button button-secondary" type="button" disabled={busy} onClick={() => void runWrite(() => adapter.consumeGrant({ roundId: position.roundId, requestId: position.requestId! }))}>Consume grant</button>
+                </div>
               ) : null}
             </article>
           ))}
