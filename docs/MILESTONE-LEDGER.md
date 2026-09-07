@@ -6,8 +6,9 @@
 - Track: `Projects`
 - Repository: `https://github.com/duclucky/skillslot-clearing`
 - Live app: `https://skillslot-clearing.vercel.app`
-- Portal contribution: `https://portal.genlayer.foundation/contribution/131883`
-- Portal status: `ACCEPTED`
+- Original Project contribution: `https://portal.genlayer.foundation/contribution/131883`
+- Latest accepted Milestone: `https://portal.genlayer.foundation/contribution/185631`
+- Portal status: `MS-001 ACCEPTED`
 - Portal contribution date: `2026-08-12`
 - Portal award: `320 points`
 - Ledger initialized: `2026-08-29`
@@ -16,20 +17,23 @@
 
 | Field | Verified value |
 | --- | --- |
-| Portal record | Contribution `131883`, status `Accepted` |
-| Public evidence commit | `eec05516cdb9b1ff008fae900731eda6434d8392` |
-| Evidence basis | Accepted Portal record links CI run `31883306657`; that successful run pins `eec05516cdb9b1ff008fae900731eda6434d8392` |
-| Deployment source commit | `446e8ede30cb5d91ef8ca3b6b92e0a646ba2adc8` |
-| Contract | `0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834` on Studionet chain `61999` |
-| Contract source digest | `0c6203a72fcc1c33f27a70cffd7ff4b1c5fea3621a81123e4e8592fe7f32ad94` |
+| Portal record | Original Project `131883` plus Milestone `185631`, both `Accepted` |
+| Public accepted commit | `69fded8b7b20f0eef18b659702967af8ea61faac` |
+| Evidence basis | Accepted Milestone `185631` links the final CI run `33250187578`, dossier, lifecycle proof, deployment transaction, and contract explorer |
+| Deployment source commit | `be1a8cd309e797f99401e174490941c010d21c12` |
+| Contract | `0x0c43822abD25a0247d0814E7dD501fA19b1C8958` on Studionet chain `61999` |
+| Contract source digest | `1c18989f4d4c28852b731ab624d74ed2cd93c4f154963143c0923ad2d07ce2e1` |
 | Runner family | `py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6` |
 | Deployment evidence | `docs/evidence/studionet/deployment.json` |
-| Accepted CI | `https://github.com/duclucky/skillslot-clearing/actions/runs/31883306657` (`success`) |
+| Accepted CI | `https://github.com/duclucky/skillslot-clearing/actions/runs/33250187578` (`success`) |
 
-The Portal does not expose a dedicated accepted Git commit field. The public evidence commit above is
-the strongest pinned repository reference because it is the head SHA of the CI run linked from the
-accepted contribution. The deployed contract has its own earlier source-identity commit and digest;
-both references are retained rather than collapsed into one guessed baseline.
+The Portal does not expose a dedicated accepted Git commit field. Commit `69fded8` is the strongest
+pinned repository reference because it is the head SHA of the successful CI run linked from accepted
+Milestone `185631`. The deployed contract retains its separate source-identity commit and digest.
+
+The prior accepted Project baseline remains preserved in the `MS-001` phase row and dossier: Portal
+`131883`, public evidence `eec0551`, deployment source `446e8ed`, and contract
+`0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`.
 
 The accepted Portal notes still describe an eight-write surface, while the linked remediation
 deployment and current specification expose nine writes including permissionless timeout recovery.
@@ -51,6 +55,9 @@ The following work is already accepted and cannot be counted again:
    consumption and withdrawal, kept separate from the script-signed remediation lifecycle.
 7. One deployed `SkillSlotClearing` contract and the public Vercel product/repository/CI surfaces linked
    by contribution `131883`.
+8. Requester-authenticated immutable task digests, exact `can_dispatch`, the fixed-origin A2A 1.0
+   endpoint, deterministic retry identity, post-consume rejection, and the in-app handoff flow accepted
+   as Milestone `185631`.
 
 ## Pre-existing post-acceptance work
 
@@ -91,7 +98,7 @@ This inventory is the anti-double-counting reference for the first Milestone sel
 
 | Milestone ID | Title | Status | Baseline reference | Delta fingerprint | Commit range | Deployment identity | Evidence index | Portal reference | Outcome date | Supersedes/extends | Lessons and follow-up |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `MS-001` | Onchain-Bound A2A Task Handoff | `SUBMISSION_READY` | Accepted Portal `131883`; public evidence `eec0551`; working base `67c531a` | Task-specific onchain authorization plus deployed A2A 1.0 reference endpoint | Implementation range `67c531a..be1a8cd`; deployment evidence `f952f63` | Studionet `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`; deploy `0x9f89f9...f6f785` | `docs/milestones/MS-001/README.md`; `docs/evidence/studionet/ms-001-a2a-dispatch.json`; `docs/evidence/studionet/ms-001-production.json` | `NOT_SUBMITTED` |  | Extends accepted grants and `can_route`; no earlier Milestone | 195 checks and CI pass; finalized dispatch/retry/consume/withdraw lifecycle; production desktop/mobile and protocol surfaces verified |
+| `MS-001` | Onchain-Bound A2A Task Handoff | `ACCEPTED` | Accepted Portal `131883`; public evidence `eec0551`; working base `67c531a` | Task-specific onchain authorization plus deployed A2A 1.0 reference endpoint | Implementation range `67c531a..be1a8cd`; accepted evidence head `69fded8` | Studionet `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`; source `be1a8cd`; deploy `0x9f89f9...f6f785` | `docs/milestones/MS-001/README.md`; `docs/evidence/studionet/ms-001-a2a-dispatch.json`; `docs/evidence/studionet/ms-001-production.json` | Portal contribution `185631`; submission ID `612ee13c-eaec-4352-a262-0e16748ece97` | `2026-09-06` | Extends original Project grants and `can_route`; no earlier Milestone | Awarded 300 points; staff: “This is a meaningful update to the project and qualifies as a Milestone.” Keep third-party card authentication and adoption separate. |
 
 ## Adaptive backlog
 
@@ -138,12 +145,11 @@ origins, or claim external adoption.
 
 ## Current phase pointer
 
-- Active Milestone: `MS-001`
-- Program state: `SUBMISSION_READY`
-- Last Portal reconciliation: `2026-08-29`
-- Reconciliation evidence: accepted public contribution `131883` and the signed-in Portal submission
-  history showing `SkillSlot Clearing - Validator-Cleared Agent Access` as `Accepted`.
-- Next allowed action: present the copy-ready `MS-001` packet and request explicit action-time
-  authorization for the final Portal control. Do not select or detail the next phase until the Portal
-  outcome is logged; do not absorb `BL-001B`, external adoption, arbitrary destinations, or financial
-  delivery consequences.
+- Active Milestone: none while the MS-002 candidate audit is in progress
+- Program state: `MS-001 ACCEPTED / MS-002 NOT_YET_SELECTED`
+- Last Portal reconciliation: `2026-09-08`
+- Reconciliation evidence: authenticated Portal history shows Milestone v1 `Onchain-Bound A2A Task
+  Handoff` as `Accepted`, contribution `185631`, reviewed `2026-09-06`, awarded 300 points, with staff
+  confirmation that the update qualifies as a Milestone.
+- Next allowed action: refresh the backlog against the promoted `69fded8` accepted baseline and select
+  exactly one non-overlapping `MS-002` vertical slice.

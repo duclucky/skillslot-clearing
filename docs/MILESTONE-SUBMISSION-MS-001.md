@@ -36,7 +36,7 @@ SkillSlot Clearing now turns a validator-cleared one-time grant into one exact A
 
 | Fact | Verified value |
 | --- | --- |
-| Milestone status | `MS-001 / SUBMISSION_READY`; not yet submitted or accepted |
+| Milestone status | `MS-001 / ACCEPTED`; Portal contribution `185631`, reviewed `2026-09-06` |
 | Contract surface | One `SkillSlotClearing` contract, 10 writes, 9 views |
 | Automated verification | 195 checks: 9 static, 50 direct, 5 receipt-parser, 11 deployment-tooling, 120 frontend; TypeScript and production build pass |
 | Network identity | Studionet chain `61999`; source `be1a8cd`; contract SHA-256 `1c18989f4d4c28852b731ab624d74ed2cd93c4f154963143c0923ad2d07ce2e1` |
@@ -72,7 +72,8 @@ endpoint, deterministic receipt identity, and revocation proof are new. The phas
 contribution `131883`, documents the exact delta from working base `67c531a`, and moves the grant from a
 dashboard permission toward an executable protocol handoff.
 
-## Submission control
+## Submission outcome
 
-Do not click the final Portal Submit control without fresh explicit action-time authorization. Earlier
-approval of the roadmap, implementation, deployment, or this copy is not submission authorization.
+Portal accepted this Milestone as contribution `185631` and awarded 300 points. The authenticated
+submission history records the staff response: “Thanks for the submission. This is a meaningful update
+to the project and qualifies as a Milestone.”

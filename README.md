@@ -14,7 +14,7 @@ The product reserves access. It does **not** certify agent performance, task com
 - Contract: one `SkillSlotClearing` Intelligent Contract with 10 writes and 9 views in the `MS-001` source
 - Network: Studionet (`61999`)
 - Accepted Project deployment: `0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`
-- Milestone `MS-001` deployment: `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`; status `SUBMISSION_READY`
+- Milestone `MS-001` deployment: `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`; accepted as Portal contribution `185631`
 - Automated checks: 195 currently pass locally (9 static, 50 direct, 5 receipt parser, 11 deployment tooling, 120 frontend)
 - Verified Windows CI: [`check` run 33249385964](https://github.com/duclucky/skillslot-clearing/actions/runs/33249385964) passed on deployment-evidence commit `f952f63`
 - MS-001 dispatch proof: one finalized authorization, two identical HTTP requests returning one deterministic task ID, finalized grant consumption, post-consume HTTP 403, and unchanged GEN accounting during the handoff

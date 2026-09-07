@@ -5,7 +5,7 @@
 | Field | Value |
 | --- | --- |
 | Milestone ID | `MS-001` |
-| Status | `SUBMISSION_READY` |
+| Status | `ACCEPTED` |
 | Selected on | `2026-08-29` |
 | Accepted Project baseline | Portal contribution `131883` (`Accepted`) |
 | Public evidence commit | `eec05516cdb9b1ff008fae900731eda6434d8392` |
@@ -13,7 +13,7 @@
 | Current deployment | Studionet `0x0c43822abD25a0247d0814E7dD501fA19b1C8958` |
 | Implementation commit | `be1a8cd309e797f99401e174490941c010d21c12` |
 | Deployment transaction | `0x9f89f92dffe12e9656e246659150914c9e181a0d92a6d645cc1dd21b17f6f785` (`FINALIZED`) |
-| Portal reference | `NOT_SUBMITTED` |
+| Portal reference | Contribution `185631`; submission `612ee13c-eaec-4352-a262-0e16748ece97` |
 | A2A protocol pin | A2A `v1.0.1`, proto blob `400cdbad934654e27d7abbae1e145923eb40ac52` |
 
 The accepted evidence commit and current working base are intentionally separate. The range
@@ -268,3 +268,19 @@ performance.
 
 These items are not promised by `MS-001` and may be reordered only after the verified Portal outcome is
 logged.
+
+## Portal outcome
+
+- Submitted: `2026-08-29`
+- Reviewed: `2026-09-06`
+- Outcome: `ACCEPTED`
+- Award: 300 points
+- Public contribution: `https://portal.genlayer.foundation/contribution/185631`
+- Submission ID: `612ee13c-eaec-4352-a262-0e16748ece97`
+- Staff response: “Thanks for the submission. This is a meaningful update to the project and qualifies
+  as a Milestone.”
+
+This accepted result promotes repository commit `69fded8b7b20f0eef18b659702967af8ea61faac`, the
+Studionet deployment and sanitized lifecycle evidence above, and the corresponding live product state
+to the baseline for the next phase. It does not promote any deferred claim about signed third-party
+Agent Cards, external adoption, service completion, or mainnet.
