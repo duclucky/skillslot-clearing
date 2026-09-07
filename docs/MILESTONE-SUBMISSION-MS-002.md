@@ -1,6 +1,6 @@
 # MS-002 Portal submission packet
 
-Submission status: **READY AFTER GITHUB CI — DO NOT SUBMIT WITHOUT EXPLICIT ACTION-TIME AUTHORIZATION**
+Submission status: **READY — DO NOT SUBMIT WITHOUT EXPLICIT ACTION-TIME AUTHORIZATION**
 
 ## Title
 
@@ -13,10 +13,10 @@ SkillSlot now lets a matched requester delegate one already-authorized A2A task 
 ## Evidence & Supporting Information
 
 1. Full commit comparison  
-   https://github.com/duclucky/skillslot-clearing/compare/c0bf0818e85e3f04517bbaec190397159c2ef399...FINAL_HEAD
+   https://github.com/duclucky/skillslot-clearing/compare/c0bf0818e85e3f04517bbaec190397159c2ef399...21d72a1481ff33f84d9732ff8ddbfd906dcd3450
 
 2. Successful GitHub Actions run  
-   CI_RUN_URL
+   https://github.com/duclucky/skillslot-clearing/actions/runs/34170508545
 
 3. MS-002 milestone dossier  
    https://github.com/duclucky/skillslot-clearing/blob/main/docs/milestones/MS-002/README.md

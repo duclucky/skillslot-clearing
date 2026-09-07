@@ -211,7 +211,7 @@ The existing immersive visual system remains unchanged. Focused `ui-ux-pro-max` 
 - [x] Studionet proves authorize, signed retry, revoke, denial, and unchanged accounting.
 - [x] Vercel exposes the same contract identity and required protocol extension.
 - [x] Production browser checks pass at desktop and 375 px without horizontal document overflow.
-- [ ] GitHub main and CI are verified before the copy-ready Portal packet is produced.
+- [x] GitHub `main` evidence commit `21d72a1` and CI run `34170508545` are verified.
 - [ ] Final Portal Submit remains untouched until explicit action-time authorization.
 
 ## Verified evidence index

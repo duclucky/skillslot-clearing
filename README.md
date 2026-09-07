@@ -17,7 +17,7 @@ The product reserves access. It does **not** certify agent performance, task com
 - Milestone `MS-001` deployment: `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`; accepted as Portal contribution `185631`
 - Milestone `MS-002` deployment: `0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b`; Portal submission not yet sent
 - Automated checks: 222 currently pass locally (9 static, 60 direct, 5 receipt parser, 15 deployment tooling, 133 frontend)
-- Verified Windows CI: [`check` run 33249385964](https://github.com/duclucky/skillslot-clearing/actions/runs/33249385964) passed on deployment-evidence commit `f952f63`
+- Verified Windows CI: [`check` run 34170508545](https://github.com/duclucky/skillslot-clearing/actions/runs/34170508545) passed on MS-002 evidence commit `21d72a1`
 - MS-001 dispatch proof: one finalized authorization, two identical HTTP requests returning one deterministic task ID, finalized grant consumption, post-consume HTTP 403, and unchanged GEN accounting during the handoff
 - MS-002 executor proof: finalized task and executor authorizations, two signed HTTP requests returning one deterministic task ID, wrong-signer HTTP 401, post-revoke HTTP 403, and unchanged GEN accounting
 - MS-001 final accounting: 2 GEN received and withdrawn, zero locked or credited liability, invariant true
