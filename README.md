@@ -1,6 +1,6 @@
 # SkillSlot Clearing
 
-SkillSlot Clearing uses GenLayer validators to clear scarce agent-access slots by meaning, then lets a matched requester bind one exact A2A task to the resulting one-time grant.
+SkillSlot Clearing uses GenLayer validators to clear scarce agent-access slots by meaning, then lets a matched requester bind one exact A2A task and delegate its invocation to a bounded, revocable executor wallet.
 
 ## Why GenLayer
 
@@ -11,13 +11,15 @@ The product reserves access. It does **not** certify agent performance, task com
 ## Verified status
 
 - Track: GenLayer **Projects**
-- Contract: one `SkillSlotClearing` Intelligent Contract with 10 writes and 9 views in the `MS-001` source
+- Contract: one `SkillSlotClearing` Intelligent Contract with 12 writes and 10 views in the `MS-002` source
 - Network: Studionet (`61999`)
 - Accepted Project deployment: `0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`
 - Milestone `MS-001` deployment: `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`; accepted as Portal contribution `185631`
-- Automated checks: 195 currently pass locally (9 static, 50 direct, 5 receipt parser, 11 deployment tooling, 120 frontend)
+- Milestone `MS-002` deployment: `0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b`; Portal submission not yet sent
+- Automated checks: 222 currently pass locally (9 static, 60 direct, 5 receipt parser, 15 deployment tooling, 133 frontend)
 - Verified Windows CI: [`check` run 33249385964](https://github.com/duclucky/skillslot-clearing/actions/runs/33249385964) passed on deployment-evidence commit `f952f63`
 - MS-001 dispatch proof: one finalized authorization, two identical HTTP requests returning one deterministic task ID, finalized grant consumption, post-consume HTTP 403, and unchanged GEN accounting during the handoff
+- MS-002 executor proof: finalized task and executor authorizations, two signed HTTP requests returning one deterministic task ID, wrong-signer HTTP 401, post-revoke HTTP 403, and unchanged GEN accounting
 - MS-001 final accounting: 2 GEN received and withdrawn, zero locked or credited liability, invariant true
 - Network lifecycle: the remediation deployment records a script-signed `FINALIZED_LIFECYCLE` with authenticated metadata, consumed grant, 2 GEN received, 2 GEN withdrawn, zero locked or credited liability, and invariant true
 - Timeout recovery proof: the remediation deployment records requester-called `recover_expired_round`, terminal `CANCELLED`, 4 GEN cumulative received/withdrawn across proofs, zero locked or credited liability, and invariant true
@@ -25,6 +27,11 @@ The product reserves access. It does **not** certify agent performance, task com
 
 ## Deployments
 
+- MS-002 address: [`0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b`](https://explorer-studio.genlayer.com/address/0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b)
+- MS-002 deployment transaction: [`0xc4fc26710d2f9e28f5db83cc3ad48fbc4d42e0d1949f80e10dc897e290f0bbe8`](https://explorer-studio.genlayer.com/transactions/0xc4fc26710d2f9e28f5db83cc3ad48fbc4d42e0d1949f80e10dc897e290f0bbe8)
+- MS-002 executor evidence: [`docs/evidence/studionet/ms-002-executor-permit.json`](docs/evidence/studionet/ms-002-executor-permit.json)
+- MS-002 production evidence: [`docs/evidence/studionet/ms-002-production.json`](docs/evidence/studionet/ms-002-production.json)
+- Reviewer inventory: [`docs/evidence/studionet/project-explorer-open-rounds.json`](docs/evidence/studionet/project-explorer-open-rounds.json)
 - MS-001 address: [`0x0c43822abD25a0247d0814E7dD501fA19b1C8958`](https://explorer-studio.genlayer.com/address/0x0c43822abD25a0247d0814E7dD501fA19b1C8958)
 - MS-001 deployment transaction: [`0x9f89f92dffe12e9656e246659150914c9e181a0d92a6d645cc1dd21b17f6f785`](https://explorer-studio.genlayer.com/transactions/0x9f89f92dffe12e9656e246659150914c9e181a0d92a6d645cc1dd21b17f6f785)
 - Current sanitized evidence: [`docs/evidence/studionet/deployment.json`](docs/evidence/studionet/deployment.json)
@@ -37,9 +44,9 @@ The product reserves access. It does **not** certify agent performance, task com
 
 [`https://skillslot-clearing.vercel.app`](https://skillslot-clearing.vercel.app) is the verified production deployment. It returned HTTP 200, contained the project title and React root, and loaded the canonical `CLEARED` Studionet round on desktop and mobile browser QA. Production OKX Wallet testing finalized `consume_grant` and `withdraw_credit` through the webapp. The UI retained one transaction hash per action, recovered transient status reads without resubmission, and reloaded canonical grant `CONSUMED`, credit `0 GEN`, and accounting invariant true.
 
-The public URL above is configured for the `MS-001` deployment and exposes the fixed-origin A2A reference interface at
+The public URL above is configured for the `MS-002` deployment and exposes the fixed-origin A2A reference interface at
 `POST /a2a/v1/message:send` and a discovery-only Agent Card at
-`GET /.well-known/agent-card.json`.
+`GET /.well-known/agent-card.json`. The send endpoint requires the advertised delegated-executor extension, a valid EIP-191 executor signature, and the exact current onchain executor, epoch, expiry, and task digest.
 
 ## Product flow
 
@@ -50,12 +57,12 @@ The public URL above is configured for the `MS-001` deployment and exposes the f
 5. The contract deterministically assigns unit-capacity matches, creates route grants, and credits fees/refunds.
 6. A matched requester may canonicalize one bounded A2A request and finalize
    `authorize_dispatch(round_id, request_id, task_digest)`.
-7. The fixed SkillSlot endpoint recomputes the request digest and calls
-   `can_dispatch`; an exact active authorization returns a deterministic
-   `TASK_STATE_SUBMITTED` receipt.
-8. The requester consumes the one-time grant; later dispatch attempts fail and actors withdraw canonical credits.
-9. If evidence or consensus is unavailable, the round becomes non-penalizing `RETRYABLE` with funds still locked until retry or timeout recovery.
-10. If the creator stops acting after a deadline, any wallet can call refund-only recovery; provider fees are not released on timeout.
+7. The requester authorizes a separate EOA executor for at most seven days and exports the public execution package.
+8. The executor imports the package, signs the domain-separated EIP-191 message, and sends the exact request to the fixed SkillSlot endpoint.
+9. The endpoint verifies the signature and calls `can_execute_dispatch`; an exact active permit returns a deterministic `TASK_STATE_SUBMITTED` receipt, while wrong signers, stale epochs, expiry, and revocation fail closed.
+10. The requester can revoke the executor or consume the one-time grant; later dispatch attempts fail and actors withdraw canonical credits.
+11. If evidence or consensus is unavailable, the round becomes non-penalizing `RETRYABLE` with funds still locked until retry or timeout recovery.
+12. If the creator stops acting after a deadline, any wallet can call refund-only recovery; provider fees are not released on timeout.
 
 ## Architecture
 
@@ -66,9 +73,10 @@ Browser wallet (EIP-6963 / EIP-1193)
        -> bounded semantic consensus
        -> deterministic matching and accounting
        -> requester-bound A2A task digest
-  <- canonical round, position, grant, dispatch, credit, and invariant views
+       -> requester-controlled executor address, epoch, expiry, and revocation
+  <- canonical round, position, grant, dispatch, executor, credit, and invariant views
   -> fixed same-origin A2A reference endpoint
-       -> canonical can_dispatch read
+       -> EIP-191 signer recovery + canonical can_execute_dispatch read
        -> deterministic submitted-task receipt
 ```
 
@@ -101,6 +109,8 @@ npm run timeout:studionet   # expired locked round -> permissionless refund-only
 npm run demo:studionet      # semantic match -> grant -> withdrawal
 npm run balance:studionet   # deposit -> cancel -> withdraw balance proof
 npm run dispatch:studionet  # authorize -> repeated A2A receipt -> consume -> reject
+npm run executor:studionet  # delegated signer -> retry identity -> wrong signer -> revoke
+npm run seed:studionet      # maintain six OPEN Project Explorer reviewer rounds
 ```
 
 The demo uses exactly 1 GEN for each value-bearing position and stops at `RETRYABLE` instead of blindly repeating nondeterministic adjudication.
@@ -112,6 +122,7 @@ The demo uses exactly 1 GEN for each value-bearing position and stops at `RETRYA
 - `frontend/` — wallet-enabled React/Vite product
 - `scripts/deploy_studionet.mjs` — idempotent deployment and lifecycle evidence tooling
 - `docs/milestones/MS-001/README.md` — accepted-baseline delta, gates, safety card, and evidence plan
+- `docs/milestones/MS-002/README.md` — delegated-executor delta, gates, safety card, and evidence index
 - `docs/MILESTONE-SUBMISSION-MS-001.md` — copy-ready Portal Milestones packet and evidence index
 - `docs/PROJECT-EXPLORER-LISTING.md` — copy-ready Project Explorer listing and reviewer steps
 - `docs/README.md` — specification, safety cards, threat model, and claim-to-code matrix

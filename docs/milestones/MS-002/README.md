@@ -5,14 +5,14 @@
 | Field | Value |
 | --- | --- |
 | Milestone ID | `MS-002` |
-| Status | `BUILDING` |
+| Status | `VERIFIED — PORTAL NOT SUBMITTED` |
 | Selected on | `2026-09-08` |
 | Accepted baseline | Portal contribution `185631` (`ACCEPTED`) |
 | Baseline commit | `69fded8b7b20f0eef18b659702967af8ea61faac` |
 | Outcome reconciliation commit | `c0bf0818e85e3f04517bbaec190397159c2ef399` |
 | Baseline deployment | Studionet `0x0c43822abD25a0247d0814E7dD501fA19b1C8958` |
-| Implementation commit | `PENDING` |
-| MS-002 deployment | `PENDING` |
+| Implementation commit | `7a5047e0b4e50a9e93d52488c68fd17441c051e8` |
+| MS-002 deployment | Studionet `0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b` |
 | Portal reference | `NOT_SUBMITTED` |
 
 ## Exact new capability
@@ -176,8 +176,8 @@ withdraws, or transfers GEN.
 | Reuse | PASS | Canonical view and signed HTTP extension are reusable by autonomous executor clients. |
 | Contract count | PASS | One existing contract remains the sole state owner. |
 | Differentiation | PASS | Delegated execution authority is not UI polish or another task digest. |
-| Claim-to-code | PENDING | Every claim must map to implementation, tests, deployment, and browser evidence. |
-| Full lifecycle | PENDING | Must prove authorize, signed retry, revoke, denial, and accounting on new deployment. |
+| Claim-to-code | PASS | Contract, endpoint, UI, tests, Studionet receipts, and production QA are linked below. |
+| Full lifecycle | PASS | Studionet proves authorize, identical signed retry, wrong signer denial, revoke, post-revoke denial, and unchanged accounting. |
 | Scope honesty | PASS | EOA-only, fixed origin, no delivery/value/adoption claims are explicit. |
 
 ## Claim-to-code and evidence plan
@@ -203,16 +203,28 @@ The existing immersive visual system remains unchanged. Focused `ui-ux-pro-max` 
 
 ## Exit evidence checklist
 
-- [ ] New contract behavior has RED-first direct/static tests and GenVM lint passes.
-- [ ] API verifies a real EIP-191 signature and fails closed for every mismatch.
-- [ ] Adapter and UI implement requester and executor journeys with regression coverage.
-- [ ] Full local `npm run check` passes with fresh counts.
-- [ ] Source identity, contract digest, runner, deployment transaction, and address are recorded.
-- [ ] Studionet proves authorize, signed retry, revoke, denial, and unchanged accounting.
-- [ ] Vercel exposes the same contract identity and protocol extension.
-- [ ] Production browser checks pass at desktop and 375 px.
+- [x] New contract behavior has RED-first direct/static tests and GenVM lint passes.
+- [x] API verifies a real EIP-191 signature and fails closed for every mismatch.
+- [x] Adapter and UI implement requester and executor journeys with regression coverage.
+- [x] Full local `npm run check` passes with 222 tests across the recorded suites.
+- [x] Source identity, contract digest, runner, deployment transaction, and address are recorded.
+- [x] Studionet proves authorize, signed retry, revoke, denial, and unchanged accounting.
+- [x] Vercel exposes the same contract identity and required protocol extension.
+- [x] Production browser checks pass at desktop and 375 px without horizontal document overflow.
 - [ ] GitHub main and CI are verified before the copy-ready Portal packet is produced.
 - [ ] Final Portal Submit remains untouched until explicit action-time authorization.
+
+## Verified evidence index
+
+- Source commit: `7a5047e0b4e50a9e93d52488c68fd17441c051e8`.
+- Contract SHA-256: `b65fa8b169cf99f4f518c19a6a8dcdb2d65a7aa43812bcab1e28d63fe52542ae`.
+- Pinned runner: `py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6`.
+- Deployment transaction: `0xc4fc26710d2f9e28f5db83cc3ad48fbc4d42e0d1949f80e10dc897e290f0bbe8`.
+- Contract: `0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b`.
+- Canonical deployment/lifecycle: `docs/evidence/studionet/deployment.json`.
+- Delegated executor lifecycle: `docs/evidence/studionet/ms-002-executor-permit.json`.
+- Production endpoint/browser QA: `docs/evidence/studionet/ms-002-production.json`.
+- Six live reviewer rounds: `docs/evidence/studionet/project-explorer-open-rounds.json`.
 
 ## Long-term backlog retained
 

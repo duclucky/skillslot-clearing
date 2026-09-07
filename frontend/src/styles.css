@@ -2887,11 +2887,24 @@ h2 {
   }
 
   .filter-bar {
-    overflow-x: auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    overflow: visible;
   }
 
   .filter-button {
-    flex: 0 0 auto;
+    min-width: 0;
+    justify-content: center;
+    gap: 5px;
+    padding-inline: 5px;
+    font-size: 11px;
+  }
+
+  .filter-button span {
+    min-width: 20px;
+    width: 20px;
+    height: 20px;
   }
 
   .phase-badge {

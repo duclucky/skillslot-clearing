@@ -304,3 +304,12 @@ test("executor-proof is exposed as a resumable deployment command", () => {
   assert.match(source, /command === "executor-proof"/);
   assert.equal(packageJson.scripts["executor:studionet"], "node scripts/deploy_studionet.mjs executor-proof");
 });
+
+test("reviewer open-round inventory is exposed as a resumable deployment command", () => {
+  const root = path.resolve(import.meta.dirname, "..");
+  const source = readFileSync(path.join(root, "scripts", "deploy_studionet.mjs"), "utf8");
+  const packageJson = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"));
+
+  assert.match(source, /command === "seed-open-rounds"/);
+  assert.equal(packageJson.scripts["seed:studionet"], "node scripts/deploy_studionet.mjs seed-open-rounds");
+});

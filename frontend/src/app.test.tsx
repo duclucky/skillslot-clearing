@@ -486,6 +486,7 @@ describe("SkillSlot Clearing marketplace", () => {
     fireEvent.change(await screen.findByLabelText("Executor wallet address"), { target: { value: ready.account } });
     fireEvent.click(screen.getByRole("button", { name: "Authorize executor" }));
     const exported = await screen.findByLabelText("Executor package") as HTMLTextAreaElement;
+    await waitFor(() => expect(exported.value).toContain('"version": "skillslot-executor-permit-v1"'));
     fireEvent.change(screen.getByLabelText("Paste executor package"), { target: { value: exported.value } });
     fireEvent.click(screen.getByRole("button", { name: "Inspect permit" }));
     fireEvent.click(await screen.findByRole("button", { name: "Sign and send task" }));

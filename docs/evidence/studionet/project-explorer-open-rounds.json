@@ -1,62 +1,96 @@
 {
   "network": "studionet",
   "chainId": 61999,
-  "contractAddress": "0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834",
-  "createdAt": "2026-08-27T05:19:00Z",
+  "contractAddress": "0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b",
+  "sourceCommit": "7a5047e0b4e50a9e93d52488c68fd17441c051e8",
+  "contractSha256": "b65fa8b169cf99f4f518c19a6a8dcdb2d65a7aa43812bcab1e28d63fe52542ae",
+  "createdAt": "2026-09-07T23:17:12.647Z",
+  "updatedAt": "2026-09-07T23:21:16.334Z",
   "purpose": "Project Explorer reviewer inventory: public rounds intentionally left OPEN so fresh users can join as provider or requester from the production web app.",
-  "summary": {
-    "created": 6,
-    "totalRoundsAfterCreation": 8,
-    "openRoundsAfterCreation": 6
-  },
   "rounds": [
     {
-      "roundId": "explorer-mtb2g37w-1",
+      "roundId": "explorer-7edbd2e1-1",
       "title": "Project Explorer live analyst access",
-      "transactionHash": "0x9530dc6e4f64b40fe3ce9c87657fd37b18c1c930fd29c229a02017beed617c1d",
+      "transaction": {
+        "transactionHash": "0x733ec3fb87e141d01587f3d7045fe68635a7f48257d255ccaf73946e4907bbd6",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-09-07T23:17:50.457Z"
+      },
       "phase": "OPEN",
       "expired": false,
-      "openDeadline": "1790399538"
+      "openDeadline": "1790637435"
     },
     {
-      "roundId": "explorer-mtb2g37w-2",
+      "roundId": "explorer-7edbd2e1-2",
       "title": "Project Explorer travel agent access",
-      "transactionHash": "0x1280add301f4613565e206aced7c9832b8b676139f17b2619fda497beb4aca41",
+      "transaction": {
+        "transactionHash": "0xa60c53b5f54ed415de97130695f39d606029a4301686ae1d7c874a663951c029",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-09-07T23:18:29.486Z"
+      },
       "phase": "OPEN",
       "expired": false,
-      "openDeadline": "1790399579"
+      "openDeadline": "1790637474"
     },
     {
-      "roundId": "explorer-mtb2g37w-3",
+      "roundId": "explorer-7edbd2e1-3",
       "title": "Project Explorer calendar agent access",
-      "transactionHash": "0x814f3859f0a88c1f56bbebf85a8abadf967eff8fa792784edce17cf8bab4b7a5",
+      "transaction": {
+        "transactionHash": "0xacee7466e5fe4ce81f6776a4aeb104f88f00ae7cdcc10078ef37e000fa9af716",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-09-07T23:19:08.548Z"
+      },
       "phase": "OPEN",
       "expired": false,
-      "openDeadline": "1790399620"
+      "openDeadline": "1790637513"
     },
     {
-      "roundId": "explorer-mtb2g37w-4",
+      "roundId": "explorer-7edbd2e1-4",
       "title": "Project Explorer research assistant access",
-      "transactionHash": "0xa264a38fe269ee6737ab2122f1367f74cb7f797dfc4263c40279fdeaa1715617",
+      "transaction": {
+        "transactionHash": "0xf0697659a14e134a94493db1f18635b4818e0d1f69afd317544358233d548465",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-09-07T23:19:47.286Z"
+      },
       "phase": "OPEN",
       "expired": false,
-      "openDeadline": "1790399660"
+      "openDeadline": "1790637552"
     },
     {
-      "roundId": "explorer-mtb2g37w-5",
+      "roundId": "explorer-7edbd2e1-5",
       "title": "Project Explorer procurement agent access",
-      "transactionHash": "0xe9ef95173a542de6afa5c99bd3434b022ce0cba6d099795f38622cbdd26eb2f3",
+      "transaction": {
+        "transactionHash": "0xccd7e004002790bb6f807ae372205686818cdb21f020db32edfcf3c276279905",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-09-07T23:20:34.540Z"
+      },
       "phase": "OPEN",
       "expired": false,
-      "openDeadline": "1790399700"
+      "openDeadline": "1790637590"
     },
     {
-      "roundId": "explorer-mtb2g37w-6",
+      "roundId": "explorer-7edbd2e1-6",
       "title": "Project Explorer support triage access",
-      "transactionHash": "0x3f5df561338b621bc4da8ce158fcf5f602c75f988e629b3ffd7d011ee3b203f6",
+      "transaction": {
+        "transactionHash": "0x744f988a66bff929baae5b702f922d9c96d36d34d61be3144aebd9e8c0d43a52",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-09-07T23:21:13.662Z"
+      },
       "phase": "OPEN",
       "expired": false,
-      "openDeadline": "1790399740"
+      "openDeadline": "1790637638"
     }
-  ]
+  ],
+  "summary": {
+    "created": 6,
+    "totalRoundsAfterCreation": 7,
+    "openRoundsAfterCreation": 6
+  },
+  "status": "FINALIZED_OPEN_INVENTORY"
 }

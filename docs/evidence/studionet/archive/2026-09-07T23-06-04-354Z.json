@@ -1,0 +1,139 @@
+{
+  "identity": {
+    "network": "studionet",
+    "sourceCommit": "be1a8cd309e797f99401e174490941c010d21c12",
+    "contractSha256": "1c18989f4d4c28852b731ab624d74ed2cd93c4f154963143c0923ad2d07ce2e1",
+    "runner": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6"
+  },
+  "deployment": {
+    "transactionHash": "0x9f89f92dffe12e9656e246659150914c9e181a0d92a6d645cc1dd21b17f6f785",
+    "status": "FINALIZED",
+    "execution": "FINISHED_WITH_RETURN",
+    "finalizedAt": "2026-08-29T11:04:27.778Z",
+    "contractAddress": "0x0c43822abD25a0247d0814E7dD501fA19b1C8958"
+  },
+  "demo": {
+    "contractAddress": "0x0c43822abD25a0247d0814E7dD501fA19b1C8958",
+    "roundId": "slot-mtea1oa2",
+    "actors": {
+      "creatorProvider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "requester": "0x45aD397c438397A702B53a7499a78D08961D39Db"
+    },
+    "transactions": {
+      "openRound": {
+        "transactionHash": "0x4d4deb429253fbeac680d4b137bc234478554820c88907e269cb53625755bad9",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-08-29T11:08:56.517Z"
+      },
+      "submitOffer": {
+        "transactionHash": "0x411da0f27da022d0ba6002139aad10197754b9850e8d13f6d62553ab2e524a54",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-08-29T11:09:52.864Z"
+      },
+      "submitRequest": {
+        "transactionHash": "0x895e6f934b8026805be7fbcdaae23bc5e5df6316d4870f487f766e108ea3d34c",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-08-29T11:10:30.255Z"
+      },
+      "lock": {
+        "transactionHash": "0x9cdeea95323f099b80d32c818e0f7b6e9b30e93f201e34156d0c4ec686bdcb91",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-08-29T11:11:26.574Z"
+      },
+      "clear": {
+        "transactionHash": "0xf91e48b5b8d11611446b3fda9426bc31571f9cb6b4f5883eae4d02990c80aa84",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-08-29T11:12:39.582Z"
+      },
+      "withdrawPrimary": {
+        "transactionHash": "0xde7fd9d27394a8d3ab413466be81e48df53d17f06868bdeaaf3446d2ac45466c",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-08-29T11:15:27.172Z"
+      }
+    },
+    "status": "FINALIZED_LIFECYCLE",
+    "finalReads": {
+      "round": {
+        "attempt_count": "1",
+        "booking_fee_wei": "1000000000000000000",
+        "clear_deadline": "1788008904",
+        "creator": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+        "expired": false,
+        "locked_liability_wei": "0",
+        "match_count": "1",
+        "offer_count": "1",
+        "offer_ids_csv": "offer-flight",
+        "open_deadline": "1788005304",
+        "phase": "CLEARED",
+        "provider_bond_wei": "1000000000000000000",
+        "request_count": "1",
+        "request_ids_csv": "request-flight",
+        "round_id": "slot-mtea1oa2",
+        "title": "Studionet agent access window"
+      },
+      "offer": {
+        "active": false,
+        "agent_id": "studionet-flight-agent",
+        "capability_ids_csv": "FLIGHT.BOOK,CALENDAR.WRITE",
+        "deposit_wei": "1000000000000000000",
+        "label": "Flight scheduling agent",
+        "matched_request_id": "request-flight",
+        "metadata_authenticated": true,
+        "metadata_expires_at": "1800000000",
+        "metadata_hash": "71f4c22ded677ae9079fdfb5a2b994d823bf607da877da949c05bb46c5d0ba71",
+        "metadata_issuer": "SkillSlotAgentRegistry",
+        "metadata_uri": "https://skillslot-clearing.vercel.app/agents/studionet-flight-agent.json",
+        "offer_id": "offer-flight",
+        "promise_text": "Books air tickets and writes confirmed itineraries to a calendar.",
+        "provider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+        "round_id": "slot-mtea1oa2"
+      },
+      "request": {
+        "deposit_wei": "1000000000000000000",
+        "excluded_ids_csv": "HOTEL.BOOK",
+        "label": "Flight reservation need",
+        "matched_offer_id": "offer-flight",
+        "need_text": "Reserve an air ticket and add it to the calendar without hotel booking.",
+        "outcome": "MATCHED",
+        "request_id": "request-flight",
+        "requester": "0x45aD397c438397A702B53a7499a78D08961D39Db",
+        "required_ids_csv": "FLIGHT.BOOK,CALENDAR.WRITE",
+        "round_id": "slot-mtea1oa2"
+      },
+      "match": {
+        "dispatch_digest": "002b1fddb156f2795c902ffb81808c1110c3c8d2deca217d8b1dc8b3e55185b7",
+        "dispatch_status": "AUTHORIZED",
+        "grant_status": "CONSUMED",
+        "offer_id": "offer-flight",
+        "provider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+        "request_id": "request-flight",
+        "requester": "0x45aD397c438397A702B53a7499a78D08961D39Db",
+        "round_id": "slot-mtea1oa2"
+      },
+      "primaryCreditWei": "0",
+      "requesterCreditWei": "0",
+      "accounting": {
+        "invariant_holds": true,
+        "total_credited_wei": "0",
+        "total_locked_wei": "0",
+        "total_received_wei": "2000000000000000000",
+        "total_withdrawn_wei": "2000000000000000000"
+      }
+    },
+    "offerMetadata": {
+      "agentId": "studionet-flight-agent",
+      "metadataUri": "https://skillslot-clearing.vercel.app/agents/studionet-flight-agent.json",
+      "metadataHash": "71f4c22ded677ae9079fdfb5a2b994d823bf607da877da949c05bb46c5d0ba71",
+      "metadataIssuer": "SkillSlotAgentRegistry",
+      "metadataExpiresAt": 1800000000
+    }
+  },
+  "archivedAt": "2026-09-07T23:06:04.355Z",
+  "reason": "MS-002 delegated executor permit contract revision"
+}

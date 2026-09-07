@@ -8,7 +8,7 @@
 - Live app: `https://skillslot-clearing.vercel.app`
 - Original Project contribution: `https://portal.genlayer.foundation/contribution/131883`
 - Latest accepted Milestone: `https://portal.genlayer.foundation/contribution/185631`
-- Portal status: `MS-001 ACCEPTED`
+- Portal status: `MS-001 ACCEPTED / MS-002 VERIFIED, NOT SUBMITTED`
 - Portal contribution date: `2026-08-12`
 - Portal award: `320 points`
 - Ledger initialized: `2026-08-29`
@@ -24,7 +24,7 @@
 | Contract | `0x0c43822abD25a0247d0814E7dD501fA19b1C8958` on Studionet chain `61999` |
 | Contract source digest | `1c18989f4d4c28852b731ab624d74ed2cd93c4f154963143c0923ad2d07ce2e1` |
 | Runner family | `py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6` |
-| Deployment evidence | `docs/evidence/studionet/deployment.json` |
+| Deployment evidence | `docs/evidence/studionet/archive/2026-09-07T23-06-04-354Z.json` |
 | Accepted CI | `https://github.com/duclucky/skillslot-clearing/actions/runs/33250187578` (`success`) |
 
 The Portal does not expose a dedicated accepted Git commit field. Commit `69fded8` is the strongest
@@ -99,6 +99,7 @@ baseline context only; neither class may be presented as the new phase delta.
 | Milestone ID | Title | Status | Baseline reference | Delta fingerprint | Commit range | Deployment identity | Evidence index | Portal reference | Outcome date | Supersedes/extends | Lessons and follow-up |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `MS-001` | Onchain-Bound A2A Task Handoff | `ACCEPTED` | Accepted Portal `131883`; public evidence `eec0551`; working base `67c531a` | Task-specific onchain authorization plus deployed A2A 1.0 reference endpoint | Implementation range `67c531a..be1a8cd`; accepted evidence head `69fded8` | Studionet `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`; source `be1a8cd`; deploy `0x9f89f9...f6f785` | `docs/milestones/MS-001/README.md`; `docs/evidence/studionet/ms-001-a2a-dispatch.json`; `docs/evidence/studionet/ms-001-production.json` | Portal contribution `185631`; submission ID `612ee13c-eaec-4352-a262-0e16748ece97` | `2026-09-06` | Extends original Project grants and `can_route`; no earlier Milestone | Awarded 300 points; staff: “This is a meaningful update to the project and qualifies as a Milestone.” Keep third-party card authentication and adoption separate. |
+| `MS-002` | Delegated Agent Execution Permits | `VERIFIED — NOT SUBMITTED` | Accepted MS-001 Portal `185631`; reconciliation `c0bf081` | Requester-controlled executor EOA, bounded epoch/expiry, EIP-191 invocation, and revocation | Implementation `7a5047e`; final evidence head `PENDING` | Studionet `0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b`; source `7a5047e`; deploy `0xc4fc267...f0bbe8` | `docs/milestones/MS-002/README.md`; `docs/evidence/studionet/ms-002-executor-permit.json`; `docs/evidence/studionet/ms-002-production.json` | `NOT_SUBMITTED` | — | Extends exact-task dispatch with a distinct authenticated executor boundary; no value, delivery, adoption, or third-party-card claim | Await explicit Portal submission authorization and outcome before locking MS-003. |
 
 ## Adaptive backlog
 
@@ -161,11 +162,12 @@ Agent Cards.
 ## Current phase pointer
 
 - Active Milestone: `MS-002 — Delegated Agent Execution Permits`
-- Program state: `MS-001 ACCEPTED / MS-002 BUILDING`
+- Program state: `MS-001 ACCEPTED / MS-002 VERIFIED — PORTAL NOT SUBMITTED`
 - Last Portal reconciliation: `2026-09-08`
 - Reconciliation evidence: authenticated Portal history shows Milestone v1 `Onchain-Bound A2A Task
   Handoff` as `Accepted`, contribution `185631`, reviewed `2026-09-06`, awarded 300 points, with staff
   confirmation that the update qualifies as a Milestone.
-- Next allowed action: implement and verify only the bounded `MS-002` vertical slice in
-  `docs/milestones/MS-002/README.md`; keep signed Agent Cards, arbitrary destinations, service delivery,
-  financial consequences, and external adoption in backlog.
+- Next allowed action: push the verified MS-002 evidence, verify GitHub CI, prepare the copy-ready
+  Portal packet, and stop before final Portal Submit until explicit action-time authorization. Keep
+  signed Agent Cards, arbitrary destinations, service delivery, financial consequences, and external
+  adoption in backlog; do not lock MS-003 until the MS-002 Portal outcome is recorded.

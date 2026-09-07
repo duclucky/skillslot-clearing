@@ -17,6 +17,7 @@ const EVIDENCE_DIR = path.join(ROOT_DIR, "docs", "evidence", "studionet");
 const EVIDENCE_PATH = path.join(EVIDENCE_DIR, "deployment.json");
 const DISPATCH_EVIDENCE_PATH = path.join(EVIDENCE_DIR, "ms-001-a2a-dispatch.json");
 const EXECUTOR_EVIDENCE_PATH = path.join(EVIDENCE_DIR, "ms-002-executor-permit.json");
+const OPEN_ROUNDS_EVIDENCE_PATH = path.join(EVIDENCE_DIR, "project-explorer-open-rounds.json");
 const ARCHIVE_DIR = path.join(EVIDENCE_DIR, "archive");
 const EXPLORER_URL = "https://explorer-studio.genlayer.com";
 const METADATA_PUBLIC_BASE_URL = "https://skillslot-clearing.vercel.app/agents/";
@@ -1356,6 +1357,92 @@ async function executorProof(env) {
   }, null, 2));
 }
 
+async function seedOpenRounds(env) {
+  await deploy(env);
+  const evidence = readEvidence();
+  const address = requireDeployment(evidence);
+  const creator = signingClient(env, PRIMARY_KEYS);
+  await assertStudionet(creator.client);
+  const previous = existsSync(OPEN_ROUNDS_EVIDENCE_PATH)
+    ? JSON.parse(readFileSync(OPEN_ROUNDS_EVIDENCE_PATH, "utf8"))
+    : null;
+  if (previous?.contractAddress && previous.contractAddress.toLowerCase() !== address.toLowerCase()) {
+    mkdirSync(ARCHIVE_DIR, { recursive: true });
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    writeFileSync(
+      path.join(ARCHIVE_DIR, `${timestamp}-project-explorer-open-rounds.json`),
+      `${JSON.stringify(jsonSafe(previous), null, 2)}\n`,
+      "utf8",
+    );
+  }
+  const suffix = address.slice(2, 10).toLowerCase();
+  const titles = [
+    "Project Explorer live analyst access",
+    "Project Explorer travel agent access",
+    "Project Explorer calendar agent access",
+    "Project Explorer research assistant access",
+    "Project Explorer procurement agent access",
+    "Project Explorer support triage access",
+  ];
+  const inventory = {
+    network: "studionet",
+    chainId: studionet.id,
+    contractAddress: address,
+    sourceCommit: evidence.identity?.sourceCommit,
+    contractSha256: evidence.identity?.contractSha256,
+    createdAt: previous?.contractAddress?.toLowerCase() === address.toLowerCase()
+      ? previous.createdAt
+      : new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    purpose: "Project Explorer reviewer inventory: public rounds intentionally left OPEN so fresh users can join as provider or requester from the production web app.",
+    rounds: [],
+  };
+  for (let index = 0; index < titles.length; index += 1) {
+    const roundId = `explorer-${suffix}-${index + 1}`;
+    let round = await readView(creator.client, address, "get_round", [roundId]);
+    let transaction = previous?.contractAddress?.toLowerCase() === address.toLowerCase()
+      ? previous.rounds?.find((item) => item.roundId === roundId)?.transaction
+      : undefined;
+    if (!round?.round_id) {
+      transaction = sanitizeEvidence(await writeContractFinalized(
+        creator.client,
+        address,
+        "open_round",
+        [roundId, titles[index], ONE_GEN, ONE_GEN, 21n * 24n * 60n * 60n, 30n * 24n * 60n * 60n],
+      ));
+      round = await readView(creator.client, address, "get_round", [roundId]);
+    }
+    if (round?.phase !== "OPEN" || round?.expired === true) {
+      throw new Error(`Reviewer inventory round ${roundId} is not open`);
+    }
+    inventory.rounds.push({
+      roundId,
+      title: titles[index],
+      transaction,
+      phase: round.phase,
+      expired: round.expired === true,
+      openDeadline: round.open_deadline,
+    });
+    writeFileSync(OPEN_ROUNDS_EVIDENCE_PATH, `${JSON.stringify(jsonSafe(inventory), null, 2)}\n`, "utf8");
+  }
+  const roundIds = await readView(creator.client, address, "get_round_ids", []);
+  inventory.summary = {
+    created: inventory.rounds.length,
+    totalRoundsAfterCreation: Array.isArray(roundIds) ? roundIds.length : null,
+    openRoundsAfterCreation: inventory.rounds.length,
+  };
+  inventory.status = "FINALIZED_OPEN_INVENTORY";
+  inventory.updatedAt = new Date().toISOString();
+  writeFileSync(OPEN_ROUNDS_EVIDENCE_PATH, `${JSON.stringify(jsonSafe(inventory), null, 2)}\n`, "utf8");
+  console.log(JSON.stringify({
+    action: "seed-open-rounds",
+    status: inventory.status,
+    contractAddress: address,
+    summary: inventory.summary,
+    rounds: inventory.rounds.map(({ roundId, phase, expired }) => ({ roundId, phase, expired })),
+  }, null, 2));
+}
+
 async function inspect(env) {
   const evidence = readEvidence();
   const report = {
@@ -1388,6 +1475,7 @@ async function main() {
   else if (command === "balance-proof") await balanceProof(env);
   else if (command === "dispatch-proof") await dispatchProof(env);
   else if (command === "executor-proof") await executorProof(env);
+  else if (command === "seed-open-rounds") await seedOpenRounds(env);
   else if (["open-round", "submit-demo-positions", "lock", "clear", "consume", "withdraw"].includes(command)) {
     await runStep(env, command);
   } else {

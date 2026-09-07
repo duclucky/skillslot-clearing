@@ -1,0 +1,75 @@
+{
+  "network": "studionet",
+  "chainId": 61999,
+  "contractAddress": "0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b",
+  "sourceCommit": "7a5047e0b4e50a9e93d52488c68fd17441c051e8",
+  "contractSha256": "b65fa8b169cf99f4f518c19a6a8dcdb2d65a7aa43812bcab1e28d63fe52542ae",
+  "roundId": "slot-mtruqi88",
+  "requestId": "request-flight",
+  "requester": "0x45ad397c438397a702b53a7499a78d08961d39db",
+  "executor": "0xc495ef51618d03267a1f227afe5b27b38c748272",
+  "messageId": "message-9b5390efce36b368f4ac5f6c",
+  "taskDigest": "5c23c36d458a8546cdbe79bc6dea8212c3c662732b9fbd62f1628db2f95f1579",
+  "epoch": 1,
+  "expiresAt": 1788826367,
+  "status": "FINALIZED_EXECUTOR_PERMIT_PROOF",
+  "transactions": {
+    "authorizeDispatch": {
+      "transactionHash": "0xf9eaeda8d8632800cf05c3e99a20f2f3e39c2b9d727cd2915376ccc3ae55e5ff",
+      "status": "FINALIZED",
+      "execution": "FINISHED_WITH_RETURN",
+      "finalizedAt": "2026-09-07T23:13:26.512Z"
+    },
+    "authorizeExecutor": {
+      "transactionHash": "0x836d74c78208899e9e30bc132a89376ffd160eecaa723321817f9d71ca67d64a",
+      "status": "FINALIZED",
+      "execution": "FINISHED_WITH_RETURN",
+      "finalizedAt": "2026-09-07T23:14:04.999Z"
+    },
+    "revokeExecutor": {
+      "transactionHash": "0xcc7d3fa3ae90824e19b9e50599056685dc1ab7b11ff5caa43547418b398d967b",
+      "status": "FINALIZED",
+      "execution": "FINISHED_WITH_RETURN",
+      "finalizedAt": "2026-09-07T23:14:50.934Z"
+    }
+  },
+  "endpointChecks": [
+    {
+      "phase": "authorized-1",
+      "httpStatus": 200,
+      "taskId": "skillslot-5c23c36d458a8546cdbe79bc6dea8212",
+      "taskState": "TASK_STATE_SUBMITTED"
+    },
+    {
+      "phase": "authorized-2",
+      "httpStatus": 200,
+      "taskId": "skillslot-5c23c36d458a8546cdbe79bc6dea8212",
+      "taskState": "TASK_STATE_SUBMITTED"
+    },
+    {
+      "phase": "wrong-signer",
+      "httpStatus": 401
+    },
+    {
+      "phase": "post-revoke",
+      "httpStatus": 403
+    }
+  ],
+  "accounting": {
+    "before": {
+      "invariant_holds": true,
+      "total_received_wei": "2000000000000000000",
+      "total_locked_wei": "0",
+      "total_credited_wei": "2000000000000000000",
+      "total_withdrawn_wei": "0"
+    },
+    "after": {
+      "invariant_holds": true,
+      "total_received_wei": "2000000000000000000",
+      "total_locked_wei": "0",
+      "total_credited_wei": "2000000000000000000",
+      "total_withdrawn_wei": "0"
+    },
+    "invariantUnchanged": true
+  }
+}

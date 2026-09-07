@@ -1,0 +1,38 @@
+{
+  "network": "studionet",
+  "chainId": 61999,
+  "testedAt": "2026-09-07T23:27:27Z",
+  "contractAddress": "0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b",
+  "sourceCommit": "7a5047e0b4e50a9e93d52488c68fd17441c051e8",
+  "contractSha256": "b65fa8b169cf99f4f518c19a6a8dcdb2d65a7aa43812bcab1e28d63fe52542ae",
+  "productionUrl": "https://skillslot-clearing.vercel.app",
+  "vercelDeploymentId": "dpl_AsA2F7EtxBHwrNEG7t46TPGH5BEy",
+  "agentCard": {
+    "httpStatus": 200,
+    "version": "1.1.0",
+    "requiredExtension": "https://skillslot-clearing.vercel.app/extensions/delegated-executor/v1"
+  },
+  "endpoint": {
+    "missingRequiredExtensionHttpStatus": 400,
+    "signedRetryHttpStatuses": [200, 200],
+    "wrongSignerHttpStatus": 401,
+    "postRevokeHttpStatus": 403
+  },
+  "browser": {
+    "desktop": {
+      "appLoaded": true,
+      "openRoundsVisible": 6,
+      "walletChoiceVisible": "OKX Wallet"
+    },
+    "mobile": {
+      "requestedViewportWidth": 375,
+      "documentClientWidth": 360,
+      "documentScrollWidth": 360,
+      "bodyScrollWidth": 360,
+      "openRoundsVisible": 6,
+      "lifecycleFiltersVisible": ["Open now", "In decision", "History"],
+      "horizontalOverflow": false
+    }
+  },
+  "status": "PRODUCTION_PROTOCOL_AND_RESPONSIVE_QA_PASSED"
+}

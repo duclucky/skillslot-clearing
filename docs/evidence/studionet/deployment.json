@@ -2,87 +2,81 @@
   "network": "studionet",
   "chainId": 61999,
   "explorer": "https://explorer-studio.genlayer.com",
-  "updatedAt": "2026-08-29T11:20:02.822Z",
+  "updatedAt": "2026-09-07T23:12:47.445Z",
   "identity": {
     "network": "studionet",
-    "sourceCommit": "be1a8cd309e797f99401e174490941c010d21c12",
-    "contractSha256": "1c18989f4d4c28852b731ab624d74ed2cd93c4f154963143c0923ad2d07ce2e1",
+    "sourceCommit": "7a5047e0b4e50a9e93d52488c68fd17441c051e8",
+    "contractSha256": "b65fa8b169cf99f4f518c19a6a8dcdb2d65a7aa43812bcab1e28d63fe52542ae",
     "runner": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6"
   },
   "actors": {
     "creatorProvider": "0xC495ef51618D03267A1f227aFe5b27B38c748272"
   },
   "deployment": {
-    "transactionHash": "0x9f89f92dffe12e9656e246659150914c9e181a0d92a6d645cc1dd21b17f6f785",
+    "transactionHash": "0xc4fc26710d2f9e28f5db83cc3ad48fbc4d42e0d1949f80e10dc897e290f0bbe8",
     "status": "FINALIZED",
     "execution": "FINISHED_WITH_RETURN",
-    "finalizedAt": "2026-08-29T11:04:27.778Z",
-    "contractAddress": "0x0c43822abD25a0247d0814E7dD501fA19b1C8958"
+    "finalizedAt": "2026-09-07T23:06:46.437Z",
+    "contractAddress": "0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b"
   },
   "status": "DEPLOYED",
   "demo": {
-    "contractAddress": "0x0c43822abD25a0247d0814E7dD501fA19b1C8958",
-    "roundId": "slot-mtea1oa2",
+    "contractAddress": "0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b",
+    "roundId": "slot-mtruqi88",
     "actors": {
       "creatorProvider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
       "requester": "0x45aD397c438397A702B53a7499a78D08961D39Db"
     },
     "transactions": {
       "openRound": {
-        "transactionHash": "0x4d4deb429253fbeac680d4b137bc234478554820c88907e269cb53625755bad9",
+        "transactionHash": "0x9d74059e97bf64753e07d50551a2158db9cde5ba7488f042277bc83511e76100",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-08-29T11:08:56.517Z"
+        "finalizedAt": "2026-09-07T23:09:08.992Z"
       },
       "submitOffer": {
-        "transactionHash": "0x411da0f27da022d0ba6002139aad10197754b9850e8d13f6d62553ab2e524a54",
+        "transactionHash": "0x498d28b1931239bb6995cf71686ee94891eb4f1deca0f4f5386410ff958ca0fc",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-08-29T11:09:52.864Z"
+        "finalizedAt": "2026-09-07T23:10:05.953Z"
       },
       "submitRequest": {
-        "transactionHash": "0x895e6f934b8026805be7fbcdaae23bc5e5df6316d4870f487f766e108ea3d34c",
+        "transactionHash": "0x29cc9d48ab5e7a337803910a921a5031bf66b0611936d1cb95bb179f8d4d8f29",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-08-29T11:10:30.255Z"
+        "finalizedAt": "2026-09-07T23:10:43.464Z"
       },
       "lock": {
-        "transactionHash": "0x9cdeea95323f099b80d32c818e0f7b6e9b30e93f201e34156d0c4ec686bdcb91",
+        "transactionHash": "0xaf1a443bcd25247896b3fb9d45c042e07afe371f71337925a93fd0cffe427784",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-08-29T11:11:26.574Z"
+        "finalizedAt": "2026-09-07T23:11:32.650Z"
       },
       "clear": {
-        "transactionHash": "0xf91e48b5b8d11611446b3fda9426bc31571f9cb6b4f5883eae4d02990c80aa84",
+        "transactionHash": "0xaebdfd8b89944de14f8acfa80a322eb4b0c39d678b9ab2063be2ed5fcdc62f19",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-08-29T11:12:39.582Z"
-      },
-      "withdrawPrimary": {
-        "transactionHash": "0xde7fd9d27394a8d3ab413466be81e48df53d17f06868bdeaaf3446d2ac45466c",
-        "status": "FINALIZED",
-        "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-08-29T11:15:27.172Z"
+        "finalizedAt": "2026-09-07T23:12:36.914Z"
       }
     },
-    "status": "FINALIZED_LIFECYCLE",
+    "status": "STARTED",
     "finalReads": {
       "round": {
         "attempt_count": "1",
         "booking_fee_wei": "1000000000000000000",
-        "clear_deadline": "1788008904",
+        "clear_deadline": "1788829712",
         "creator": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
         "expired": false,
         "locked_liability_wei": "0",
         "match_count": "1",
         "offer_count": "1",
         "offer_ids_csv": "offer-flight",
-        "open_deadline": "1788005304",
+        "open_deadline": "1788826112",
         "phase": "CLEARED",
         "provider_bond_wei": "1000000000000000000",
         "request_count": "1",
         "request_ids_csv": "request-flight",
-        "round_id": "slot-mtea1oa2",
+        "round_id": "slot-mtruqi88",
         "title": "Studionet agent access window"
       },
       "offer": {
@@ -100,7 +94,7 @@
         "offer_id": "offer-flight",
         "promise_text": "Books air tickets and writes confirmed itineraries to a calendar.",
         "provider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
-        "round_id": "slot-mtea1oa2"
+        "round_id": "slot-mtruqi88"
       },
       "request": {
         "deposit_wei": "1000000000000000000",
@@ -112,26 +106,30 @@
         "request_id": "request-flight",
         "requester": "0x45aD397c438397A702B53a7499a78D08961D39Db",
         "required_ids_csv": "FLIGHT.BOOK,CALENDAR.WRITE",
-        "round_id": "slot-mtea1oa2"
+        "round_id": "slot-mtruqi88"
       },
       "match": {
-        "dispatch_digest": "002b1fddb156f2795c902ffb81808c1110c3c8d2deca217d8b1dc8b3e55185b7",
-        "dispatch_status": "AUTHORIZED",
-        "grant_status": "CONSUMED",
+        "dispatch_digest": "",
+        "dispatch_status": "NONE",
+        "executor": "",
+        "executor_epoch": "0",
+        "executor_expires_at": "0",
+        "executor_status": "NONE",
+        "grant_status": "ACTIVE",
         "offer_id": "offer-flight",
         "provider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
         "request_id": "request-flight",
         "requester": "0x45aD397c438397A702B53a7499a78D08961D39Db",
-        "round_id": "slot-mtea1oa2"
+        "round_id": "slot-mtruqi88"
       },
-      "primaryCreditWei": "0",
+      "primaryCreditWei": "2000000000000000000",
       "requesterCreditWei": "0",
       "accounting": {
         "invariant_holds": true,
-        "total_credited_wei": "0",
+        "total_credited_wei": "2000000000000000000",
         "total_locked_wei": "0",
         "total_received_wei": "2000000000000000000",
-        "total_withdrawn_wei": "2000000000000000000"
+        "total_withdrawn_wei": "0"
       }
     },
     "offerMetadata": {
