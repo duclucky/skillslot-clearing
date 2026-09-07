@@ -103,6 +103,10 @@ def test_complete_two_by_two_graph_creates_two_grants_and_exact_credits(
         "grant_status": "ACTIVE",
         "dispatch_digest": "",
         "dispatch_status": "NONE",
+        "executor": "",
+        "executor_status": "NONE",
+        "executor_expires_at": "0",
+        "executor_epoch": "0",
     }
     assert contract.get_match("round-alpha", "request-hotel")["offer_id"] == "offer-hotel"
     assert contract.can_route("round-alpha", "request-flight", to_hex(requester_one)) is True

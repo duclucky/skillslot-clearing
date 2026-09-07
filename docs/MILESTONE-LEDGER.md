@@ -78,21 +78,21 @@ that dossier, and their UI/UX or onboarding work must not be presented as newly 
 
 ## Cross-phase claim and evidence inventory
 
-This inventory is the anti-double-counting reference for the first Milestone selection. `Accepted` and
-`pre-existing` rows are baseline context only; neither class may be presented as the new phase delta.
+This inventory is the anti-double-counting reference for `MS-002`. `Accepted` and pre-existing rows are
+baseline context only; neither class may be presented as the new phase delta.
 
 | Dimension | Accepted or pre-existing surface | Evidence reference | Available new headroom |
 | --- | --- | --- | --- |
-| User capability | Create, join, clear, recover, inspect, consume, and withdraw through the marketplace | Accepted Portal record, README, production app | Turn a cleared grant into a protocol-level agent handoff |
-| Contract state | Rounds, offers, requests, matches, active/consumed grants, credits, and accounting | `contracts/skill_slot_clearing.py` | Bind one exact task digest to one cleared grant |
-| Write methods | Nine accepted writes including timeout recovery and grant consumption | Contract source and direct tests | A bounded, requester-authorized dispatch transition |
-| Canonical views | Eight accepted views including `can_route` | Contract source and frontend adapter | Task-specific dispatch authorization read |
+| User capability | Create, join, clear, recover, inspect, consume, withdraw, and authorize/send one exact A2A task | Accepted Portal records, README, production app | Delegate execution of that exact task to a separate agent wallet without transferring ownership |
+| Contract state | Rounds, offers, requests, matches, active/consumed grants, credits, accounting, and immutable dispatch digest/status | `contracts/skill_slot_clearing.py` | Add bounded executor address, epoch, expiry, and revocation state to a match |
+| Write methods | Ten accepted writes including `authorize_dispatch` | Contract source and direct tests | Requester-only authorize/revoke executor transitions |
+| Canonical views | Nine accepted views including `can_dispatch` | Contract source and frontend adapter | Exact executor eligibility read with epoch and expiry |
 | Evidence authority | Accepted metadata URI/digest/issuer/provider/capability/expiry checks | Remediation deployment and lifecycle evidence | Requester-authored onchain task digest and protocol receipt |
 | Consequence | Deterministic grants, refunds, credits, withdrawal, and one-time grant consumption | Studionet lifecycle and accounting evidence | Permit exactly the committed task to enter an A2A handoff boundary |
 | Value surface | Whole-GEN deposits, provider credits, refunds, and withdrawals | `get_accounting` plus lifecycle evidence | None planned for the first dispatch phase |
-| External integration | Reusable `can_route` interface; no adopted router | README, submission notes, postmortem | Deployed A2A reference adapter consuming canonical authorization |
-| Frontend journey | Marketplace and wallet lifecycle, including production consume/withdraw proof | Browser evidence and current frontend | Authorize a task, send it, and inspect a bounded receipt |
-| Test/evidence | Contract/direct/frontend/deployment/browser suites for accepted behavior | CI, project tests, Studionet evidence | Replay, digest mismatch, wrong requester, wrong grant, adapter, and live handoff proof |
+| External integration | Fixed-origin A2A 1.0 endpoint consumes canonical `can_dispatch`; no adopted third-party router | Accepted MS-001 dossier and live endpoint | Signed delegated execution request against canonical permit state |
+| Frontend journey | Marketplace, wallet lifecycle, and requester-authored A2A handoff | Browser evidence and current frontend | Requester exports a permit; executor imports, signs, sends, and proves revocation |
+| Test/evidence | Contract/direct/frontend/deployment/browser suites for accepted behavior | CI, accepted dossiers, Studionet evidence | Wrong signer, stale epoch, expiry boundary, revocation, replay identity, and unchanged accounting |
 
 ## Phase history
 
@@ -112,6 +112,7 @@ after every verified Portal outcome.
 | `BL-002` | Browser-complete multi-wallet lifecycle on the remediation deployment | `REMEDIATES` an evidence gap; not independently substantial | Two funded roles, safe manual signing, all changed canonical states, no write replay | `SUPPORTING_ONLY` |
 | `BL-003` | Verified external adoption/traction by an A2A router, MCP marketplace, or scheduler | `NEW` only when independently sourced usage exists | Real consumer, deduplicated usage metrics, public integration evidence | `BACKLOG` |
 | `BL-004` | Architecture/security increment that creates a new authenticated consumer boundary | `UNASSESSED`; routine refactor is ineligible | Threat model, new enforcement consequence, regression/property evidence | `BACKLOG` |
+| `BL-005` | Delegated agent execution permits for an exact requester-authorized A2A task | `EXTENDS` accepted task dispatch with a new authenticated executor boundary | EOA signature verification, bounded expiry/epoch, revocation, import/export UX, live signed proof | `SELECTED_AS_MS-002` |
 
 The A2A research reference was refreshed on `2026-08-29`: upstream release `v1.0.1` was published on
 `2026-05-28`, and upstream `main` was observed at commit
@@ -134,6 +135,20 @@ and a deployed A2A reference adapter that refuses mismatched/replayed/unauthoriz
 phase does not certify provider performance, add financial consequences, support arbitrary outbound
 origins, or claim external adoption.
 
+### MS-002 selection audit (2026-09-08)
+
+| Candidate | Quality bar | Anti-overlap result | Decision |
+| --- | --- | --- | --- |
+| `BL-005` | Complete user capability, new contract state/writes/view, authenticated API boundary, revocation and live proof | `EXTENDS`: separate executor identity, epoch/expiry/revocation, signed invocation, import/export UI, negative tests, and deployment evidence are absent from MS-001 | Select as `MS-002` |
+| `BL-001B` | Important origin security, but authoritative third-party key rotation and GenVM-compatible verification remain unresolved | `EXTENDS`, but risks a signed-card facade while backend trust remains authoritative | Keep in backlog |
+| `BL-003` | Strong only with real independent adoption | `NEW`, but no independent consumer evidence exists | Keep in backlog; do not manufacture traction |
+| `BL-004` | Directional architecture idea without a bounded user consequence | `UNASSESSED` | Keep in backlog |
+
+`MS-002` is intentionally narrower than general delegated authorization. It permits one EOA executor to
+invoke one already-authorized exact task until a bounded deadline and current epoch. It does not move
+the grant, release value, certify delivery, accept arbitrary destinations, or authenticate third-party
+Agent Cards.
+
 ## Retired or reserved claims
 
 - Project Explorer visual redesign, wallet selection, network switching, disconnect, generated metadata,
@@ -145,11 +160,12 @@ origins, or claim external adoption.
 
 ## Current phase pointer
 
-- Active Milestone: none while the MS-002 candidate audit is in progress
-- Program state: `MS-001 ACCEPTED / MS-002 NOT_YET_SELECTED`
+- Active Milestone: `MS-002 — Delegated Agent Execution Permits`
+- Program state: `MS-001 ACCEPTED / MS-002 BUILDING`
 - Last Portal reconciliation: `2026-09-08`
 - Reconciliation evidence: authenticated Portal history shows Milestone v1 `Onchain-Bound A2A Task
   Handoff` as `Accepted`, contribution `185631`, reviewed `2026-09-06`, awarded 300 points, with staff
   confirmation that the update qualifies as a Milestone.
-- Next allowed action: refresh the backlog against the promoted `69fded8` accepted baseline and select
-  exactly one non-overlapping `MS-002` vertical slice.
+- Next allowed action: implement and verify only the bounded `MS-002` vertical slice in
+  `docs/milestones/MS-002/README.md`; keep signed Agent Cards, arbitrary destinations, service delivery,
+  financial consequences, and external adoption in backlog.

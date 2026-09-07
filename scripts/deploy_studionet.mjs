@@ -16,10 +16,13 @@ const FRONTEND_PUBLIC_AGENTS_DIR = path.join(ROOT_DIR, "frontend", "public", "ag
 const EVIDENCE_DIR = path.join(ROOT_DIR, "docs", "evidence", "studionet");
 const EVIDENCE_PATH = path.join(EVIDENCE_DIR, "deployment.json");
 const DISPATCH_EVIDENCE_PATH = path.join(EVIDENCE_DIR, "ms-001-a2a-dispatch.json");
+const EXECUTOR_EVIDENCE_PATH = path.join(EVIDENCE_DIR, "ms-002-executor-permit.json");
 const ARCHIVE_DIR = path.join(EVIDENCE_DIR, "archive");
 const EXPLORER_URL = "https://explorer-studio.genlayer.com";
 const METADATA_PUBLIC_BASE_URL = "https://skillslot-clearing.vercel.app/agents/";
 const DEFAULT_A2A_PUBLIC_BASE_URL = "https://skillslot-clearing.vercel.app";
+const EXECUTOR_PERMIT_VERSION = "skillslot-executor-permit-v1";
+const EXECUTOR_EXTENSION_URI = "https://skillslot-clearing.vercel.app/extensions/delegated-executor/v1";
 const DEFAULT_RPC_URL = studionet.rpcUrls.default.http[0];
 const ONE_GEN = 10n ** 18n;
 const DEFAULT_OPEN_TIMEOUT_SECONDS = 3600n;
@@ -316,6 +319,183 @@ export async function executeDispatchProof(proof, context, dependencies) {
   return proof;
 }
 
+export function buildExecutorPermitMessage({ request, executor, epoch, expiresAt }) {
+  const binding = request?.metadata?.skillslot;
+  if (!binding) throw new Error("Executor permit request is missing its SkillSlot binding");
+  const digest = sha256Text(canonicalJson(request));
+  return [
+    "SkillSlot Delegated Execution Permit",
+    `version:${EXECUTOR_PERMIT_VERSION}`,
+    `chainId:${studionet.id}`,
+    `contract:${String(binding.contract).toLowerCase()}`,
+    `roundId:${binding.roundId}`,
+    `requestId:${binding.requestId}`,
+    `requester:${String(binding.requester).toLowerCase()}`,
+    `taskDigest:${digest}`,
+    `executor:${String(executor).toLowerCase()}`,
+    `epoch:${epoch}`,
+    `expiresAt:${expiresAt}`,
+  ].join("\n");
+}
+
+export function projectExecutorPermitProofEvidence(value) {
+  const allowed = [
+    "network",
+    "chainId",
+    "contractAddress",
+    "sourceCommit",
+    "contractSha256",
+    "roundId",
+    "requestId",
+    "requester",
+    "executor",
+    "messageId",
+    "taskDigest",
+    "epoch",
+    "expiresAt",
+    "status",
+  ];
+  const projected = Object.fromEntries(allowed.filter((key) => key in value).map((key) => [key, value[key]]));
+  projected.transactions = Object.fromEntries(
+    Object.entries(value?.transactions ?? {}).map(([key, record]) => [key, sanitizeEvidence(record)]),
+  );
+  projected.endpointChecks = (value?.endpointChecks ?? []).map(safeEndpointCheck);
+  projected.accounting = {
+    before: safeAccounting(value?.accounting?.before),
+    after: safeAccounting(value?.accounting?.after),
+    invariantUnchanged: value?.accounting?.invariantUnchanged === true,
+  };
+  return projected;
+}
+
+export async function executeExecutorPermitProof(proof, context, dependencies) {
+  if (proof.status === "FINALIZED_EXECUTOR_PERMIT_PROOF") return proof;
+  proof.transactions ??= {};
+  proof.endpointChecks ??= [];
+  const request = buildDispatchProofRequest(context);
+  const digest = sha256Text(canonicalJson(request));
+  if (proof.taskDigest && proof.taskDigest !== digest) {
+    throw new Error("Recorded executor proof digest does not match the deterministic request");
+  }
+  const now = dependencies.now();
+  const expiresAt = Number(proof.expiresAt ?? now + 3600);
+  if (!Number.isSafeInteger(expiresAt) || expiresAt <= now) throw new Error("Executor proof permit expiry is invalid or stale");
+  Object.assign(proof, {
+    chainId: studionet.id,
+    contractAddress: context.contractAddress,
+    roundId: context.roundId,
+    requestId: context.requestId,
+    requester: context.requester.toLowerCase(),
+    executor: context.executor.toLowerCase(),
+    messageId: request.message.messageId,
+    taskDigest: digest,
+    expiresAt,
+    status: "STARTED",
+  });
+  const persist = () => dependencies.persist(proof);
+  persist();
+
+  if (!proof.accounting?.before) {
+    proof.accounting = { before: safeAccounting(await dependencies.readAccounting()) };
+    persist();
+  }
+
+  let match = await dependencies.readMatch();
+  if (!match?.request_id && !match?.grant_status) throw new Error("Executor proof match is unavailable");
+  if (match.grant_status !== "ACTIVE") throw new Error("Executor proof requires an active cleared grant");
+  if (match.dispatch_digest && match.dispatch_digest !== digest) {
+    throw new Error("Canonical match is already bound to a different A2A task");
+  }
+  if (match.dispatch_status !== "AUTHORIZED") {
+    proof.transactions.authorizeDispatch = sanitizeEvidence(await dependencies.authorizeDispatch(digest));
+    persist();
+    match = await dependencies.readMatch();
+  }
+  if (match.dispatch_status !== "AUTHORIZED" || match.dispatch_digest !== digest) {
+    throw new Error("Canonical dispatch authorization did not finalize with the expected digest");
+  }
+
+  const sameExecutor = String(match.executor || "").toLowerCase() === proof.executor;
+  const sameExpiry = Number(match.executor_expires_at || 0) === expiresAt;
+  if (match.executor_status === "AUTHORIZED" && (!sameExecutor || !sameExpiry)) {
+    throw new Error("Canonical match already has a different active executor permit");
+  }
+  if (match.executor_status !== "AUTHORIZED") {
+    proof.transactions.authorizeExecutor = sanitizeEvidence(await dependencies.authorizeExecutor(proof.executor, expiresAt));
+    persist();
+    match = await dependencies.readMatch();
+  }
+  const epoch = Number(match.executor_epoch);
+  if (
+    match.executor_status !== "AUTHORIZED" ||
+    String(match.executor || "").toLowerCase() !== proof.executor ||
+    Number(match.executor_expires_at) !== expiresAt ||
+    !Number.isSafeInteger(epoch) ||
+    epoch < 1
+  ) {
+    throw new Error("Canonical executor permit did not finalize with the expected identity, epoch, and expiry");
+  }
+  proof.epoch = epoch;
+  persist();
+
+  if (!(await dependencies.canExecute(proof.executor, digest, epoch, expiresAt))) {
+    throw new Error("Canonical can_execute_dispatch rejected the finalized executor permit");
+  }
+  const message = buildExecutorPermitMessage({ request, executor: proof.executor, epoch, expiresAt });
+  const signature = await dependencies.signPermit(message, false);
+  const authorization = { executor: proof.executor, epoch, expiresAt, signature };
+
+  while (proof.endpointChecks.filter((item) => item.phase?.startsWith("authorized-")).length < 2) {
+    const response = await dependencies.postA2A(request, authorization, 200);
+    const taskId = response?.body?.task?.id;
+    const taskState = response?.body?.task?.status?.state;
+    if (response?.status !== 200 || typeof taskId !== "string" || taskState !== "TASK_STATE_SUBMITTED") {
+      throw new Error("Delegated A2A endpoint did not return a submitted task receipt");
+    }
+    proof.endpointChecks.push(safeEndpointCheck({
+      phase: `authorized-${proof.endpointChecks.filter((item) => item.phase?.startsWith("authorized-")).length + 1}`,
+      httpStatus: response.status,
+      taskId,
+      taskState,
+    }));
+    persist();
+  }
+  const accepted = proof.endpointChecks.filter((item) => item.phase?.startsWith("authorized-"));
+  if (accepted.length !== 2 || accepted[0].taskId !== accepted[1].taskId) {
+    throw new Error("Repeated delegated A2A requests did not produce one deterministic task ID");
+  }
+
+  if (!proof.endpointChecks.some((item) => item.phase === "wrong-signer")) {
+    const wrongSignature = await dependencies.signPermit(message, true);
+    const rejected = await dependencies.postA2A(request, { ...authorization, signature: wrongSignature }, 401);
+    if (rejected?.status !== 401) throw new Error("Delegated A2A endpoint accepted a signature from the wrong signer");
+    proof.endpointChecks.push(safeEndpointCheck({ phase: "wrong-signer", httpStatus: rejected.status }));
+    persist();
+  }
+
+  match = await dependencies.readMatch();
+  if (match.executor_status === "AUTHORIZED") {
+    proof.transactions.revokeExecutor = sanitizeEvidence(await dependencies.revokeExecutor());
+    persist();
+    match = await dependencies.readMatch();
+  }
+  if (match.executor_status !== "REVOKED") throw new Error("Executor permit revocation did not finalize");
+  if (!proof.endpointChecks.some((item) => item.phase === "post-revoke")) {
+    const rejected = await dependencies.postA2A(request, authorization, 403);
+    if (rejected?.status !== 403) throw new Error("Revoked executor permit remained dispatchable");
+    proof.endpointChecks.push(safeEndpointCheck({ phase: "post-revoke", httpStatus: rejected.status }));
+    persist();
+  }
+
+  const after = safeAccounting(await dependencies.readAccounting());
+  const invariantUnchanged = canonicalJson(proof.accounting.before) === canonicalJson(after) && after.invariant_holds === true;
+  proof.accounting = { before: proof.accounting.before, after, invariantUnchanged };
+  if (!invariantUnchanged) throw new Error("Executor permit lifecycle changed canonical accounting");
+  proof.status = "FINALIZED_EXECUTOR_PERMIT_PROOF";
+  persist();
+  return proof;
+}
+
 function git(args) {
   return execFileSync("git", args, { cwd: ROOT_DIR, encoding: "utf8" }).trim();
 }
@@ -369,6 +549,31 @@ function archiveSupersededDispatchProof(proof) {
   writeFileSync(
     path.join(ARCHIVE_DIR, `${timestamp}-ms-001-a2a-dispatch.json`),
     `${JSON.stringify(jsonSafe(projectDispatchProofEvidence(proof)), null, 2)}\n`,
+    "utf8",
+  );
+}
+
+function readExecutorEvidence() {
+  if (!existsSync(EXECUTOR_EVIDENCE_PATH)) return {};
+  return JSON.parse(readFileSync(EXECUTOR_EVIDENCE_PATH, "utf8"));
+}
+
+function writeExecutorEvidence(value) {
+  mkdirSync(EVIDENCE_DIR, { recursive: true });
+  writeFileSync(
+    EXECUTOR_EVIDENCE_PATH,
+    `${JSON.stringify(jsonSafe(projectExecutorPermitProofEvidence(value)), null, 2)}\n`,
+    "utf8",
+  );
+}
+
+function archiveSupersededExecutorProof(proof) {
+  if (!proof?.contractAddress) return;
+  mkdirSync(ARCHIVE_DIR, { recursive: true });
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  writeFileSync(
+    path.join(ARCHIVE_DIR, `${timestamp}-ms-002-executor-permit.json`),
+    `${JSON.stringify(jsonSafe(projectExecutorPermitProofEvidence(proof)), null, 2)}\n`,
     "utf8",
   );
 }
@@ -1051,6 +1256,106 @@ async function dispatchProof(env) {
   }, null, 2));
 }
 
+async function executorProof(env) {
+  await deploy(env);
+  for (const step of ["open-round", "submit-demo-positions", "lock", "clear"]) {
+    const state = await runStep(env, step);
+    if (state.status === "RETRYABLE_REQUIRES_DIAGNOSIS") {
+      console.log(JSON.stringify({ action: "executor-proof", status: state.status, retryAttempt: state.retryAttempt }));
+      return;
+    }
+  }
+
+  const evidence = readEvidence();
+  const address = requireDeployment(evidence);
+  const requester = signingClient(env, REQUESTER_KEYS);
+  const executor = signingClient(env, PRIMARY_KEYS);
+  await assertStudionet(requester.client);
+  if (requester.account.address.toLowerCase() === executor.account.address.toLowerCase()) {
+    throw new Error("Executor proof requires distinct requester and executor wallets");
+  }
+  const roundId = evidence.demo?.roundId;
+  const requestId = "request-flight";
+  if (!roundId) throw new Error("The active deployment has no cleared demo round for executor proof");
+  const context = {
+    contractAddress: address,
+    roundId,
+    requestId,
+    requester: requester.account.address,
+    executor: executor.account.address,
+  };
+  let proof = readExecutorEvidence();
+  if (proof.contractAddress && proof.contractAddress.toLowerCase() !== address.toLowerCase()) {
+    archiveSupersededExecutorProof(proof);
+    proof = {};
+  }
+  proof.network = "studionet";
+  proof.sourceCommit = evidence.identity?.sourceCommit;
+  proof.contractSha256 = evidence.identity?.contractSha256;
+  const endpoint = new URL("/a2a/v1/message:send", env.A2A_PUBLIC_BASE_URL?.trim() || DEFAULT_A2A_PUBLIC_BASE_URL).toString();
+  const postA2A = async (request, authorization) => {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "A2A-Extensions": EXECUTOR_EXTENSION_URI,
+        "skillslot-executor": authorization.executor,
+        "skillslot-executor-epoch": String(authorization.epoch),
+        "skillslot-executor-expires-at": String(authorization.expiresAt),
+        "skillslot-executor-signature": authorization.signature,
+      },
+      body: JSON.stringify(request),
+    });
+    let body = {};
+    try {
+      body = await response.json();
+    } catch {
+      throw new Error(`A2A endpoint returned non-JSON status ${response.status}`);
+    }
+    return { status: response.status, body };
+  };
+  proof = await executeExecutorPermitProof(proof, context, {
+    now: () => Math.floor(Date.now() / 1000),
+    readMatch: () => readView(requester.client, address, "get_match", [roundId, requestId]),
+    authorizeDispatch: (digest) => writeContractFinalized(
+      requester.client,
+      address,
+      "authorize_dispatch",
+      [roundId, requestId, digest],
+    ),
+    authorizeExecutor: (executorAddress, expiresAt) => writeContractFinalized(
+      requester.client,
+      address,
+      "authorize_executor",
+      [roundId, requestId, executorAddress, expiresAt],
+    ),
+    canExecute: (executorAddress, digest, epoch, expiresAt) => readView(
+      requester.client,
+      address,
+      "can_execute_dispatch",
+      [roundId, requestId, executorAddress, digest, epoch, expiresAt],
+    ),
+    signPermit: (message, wrongSigner) => (wrongSigner ? requester.account : executor.account).signMessage({ message }),
+    postA2A,
+    revokeExecutor: () => writeContractFinalized(requester.client, address, "revoke_executor", [roundId, requestId]),
+    readAccounting: () => readView(requester.client, address, "get_accounting", []),
+    persist: writeExecutorEvidence,
+  });
+  console.log(JSON.stringify({
+    action: "executor-proof",
+    status: proof.status,
+    contractAddress: proof.contractAddress,
+    roundId: proof.roundId,
+    requestId: proof.requestId,
+    executor: proof.executor,
+    taskDigest: proof.taskDigest,
+    epoch: proof.epoch,
+    expiresAt: proof.expiresAt,
+    endpointChecks: proof.endpointChecks,
+    accounting: proof.accounting,
+  }, null, 2));
+}
+
 async function inspect(env) {
   const evidence = readEvidence();
   const report = {
@@ -1082,6 +1387,7 @@ async function main() {
   else if (command === "timeout-proof") await timeoutProof(env);
   else if (command === "balance-proof") await balanceProof(env);
   else if (command === "dispatch-proof") await dispatchProof(env);
+  else if (command === "executor-proof") await executorProof(env);
   else if (["open-round", "submit-demo-positions", "lock", "clear", "consume", "withdraw"].includes(command)) {
     await runStep(env, command);
   } else {

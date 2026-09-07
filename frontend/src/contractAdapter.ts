@@ -17,6 +17,7 @@ import {
   disconnectStudionetWallet,
   getActiveWalletSession,
   restoreStudionetWallet,
+  signActiveWalletMessage,
   withStudionetFeeCompatibility,
   type WalletOption,
   type WalletSession,
@@ -89,6 +90,10 @@ interface MatchRecord {
   grant_status?: string;
   dispatch_digest?: string;
   dispatch_status?: string;
+  executor?: string;
+  executor_status?: string;
+  executor_expires_at?: string;
+  executor_epoch?: string;
 }
 
 type Clients = {
@@ -242,6 +247,10 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
             summary: `Route to ${match.offer_id || "matched provider"}`,
             dispatchDigest: match.dispatch_digest || undefined,
             dispatchStatus: match.dispatch_status || undefined,
+            executor: match.executor || undefined,
+            executorStatus: match.executor_status || undefined,
+            executorExpiresAt: match.executor_expires_at || undefined,
+            executorEpoch: match.executor_epoch || undefined,
           });
         }
       }
@@ -374,6 +383,10 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
     cancelRound: (roundId: string) => execute("cancel_round", [roundId]),
     recoverExpiredRound: (roundId: string) => execute("recover_expired_round", [roundId]),
     authorizeDispatch: ({ roundId, requestId, taskDigest }) => execute("authorize_dispatch", [roundId, requestId, taskDigest]),
+    authorizeExecutor: ({ roundId, requestId, executor, expiresAt }) =>
+      execute("authorize_executor", [roundId, requestId, executor, BigInt(expiresAt)]),
+    revokeExecutor: ({ roundId, requestId }) => execute("revoke_executor", [roundId, requestId]),
+    signMessage: signActiveWalletMessage,
     consumeGrant: ({ roundId, requestId }) => execute("consume_grant", [roundId, requestId]),
     withdrawCredit: (amountWei: string) => execute("withdraw_credit", [BigInt(amountWei)]),
   };
@@ -408,6 +421,9 @@ export function createUnconfiguredAdapter(): ContractAdapter {
     cancelRound: unavailable,
     recoverExpiredRound: unavailable,
     authorizeDispatch: unavailable,
+    authorizeExecutor: unavailable,
+    revokeExecutor: unavailable,
+    signMessage: unavailable,
     consumeGrant: unavailable,
     withdrawCredit: unavailable,
   };

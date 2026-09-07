@@ -5,6 +5,7 @@ import {
   connectStudionetWallet,
   discoverWallets,
   restoreStudionetWallet,
+  signActiveWalletMessage,
   STUDIONET_CHAIN_ID,
   withStudionetFeeCompatibility,
   type WalletProvider,
@@ -162,6 +163,24 @@ describe("browser wallet integration", () => {
     await expect(connectStudionetWallet()).rejects.toThrow("Choose a wallet before connecting");
 
     expect(injected.request).not.toHaveBeenCalledWith(expect.objectContaining({ method: "eth_requestAccounts" }));
+  });
+
+  it("signs the exact UTF-8 permit message with the active account", async () => {
+    const injected: WalletProvider = {
+      request: vi.fn(async ({ method }) => {
+        if (method === "eth_requestAccounts") return ["0x0000000000000000000000000000000000000002"];
+        if (method === "eth_chainId") return STUDIONET_CHAIN_ID;
+        if (method === "personal_sign") return `0x${"11".repeat(65)}`;
+        return null;
+      }),
+    };
+    await connectStudionetWallet({ id: "test", name: "Test", provider: injected });
+
+    await expect(signActiveWalletMessage("SkillSlot permit")).resolves.toBe(`0x${"11".repeat(65)}`);
+    expect(injected.request).toHaveBeenCalledWith({
+      method: "personal_sign",
+      params: ["0x536b696c6c536c6f74207065726d6974", "0x0000000000000000000000000000000000000002"],
+    });
   });
 
   it.each([undefined, "0x0", "0x00"])(

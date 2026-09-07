@@ -89,6 +89,7 @@ button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
+select:focus-visible,
 [tabindex]:focus-visible,
 summary:focus-visible {
   outline: 3px solid var(--focus);
@@ -1574,6 +1575,127 @@ h2 {
   border-radius: 10px;
 }
 
+.executor-fields {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+}
+
+.executor-fields legend,
+.executor-fields label,
+.executor-package label,
+.executor-console label {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.executor-fields input,
+.executor-fields select,
+.executor-console textarea {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 13px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.executor-package {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 16px;
+  background: rgba(174, 238, 206, 0.08);
+  border: 1px solid rgba(174, 238, 206, 0.42);
+  border-radius: 14px;
+}
+
+.executor-package-heading,
+.executor-package-actions,
+.executor-console-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.executor-package-heading p,
+.executor-console-note {
+  margin: 5px 0 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.executor-package textarea {
+  min-height: 150px;
+}
+
+.executor-package-actions {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.executor-console {
+  width: min(100%, 760px);
+  display: grid;
+  gap: 14px;
+  margin: 22px 0;
+  padding: clamp(18px, 3vw, 28px);
+}
+
+.executor-console-heading h2 {
+  margin: 4px 0 0;
+}
+
+.executor-console-heading > svg {
+  width: 28px;
+  height: 28px;
+  color: var(--accent-mint);
+}
+
+.executor-console textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+
+.executor-permit-summary {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+}
+
+.executor-permit-summary > div {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(110px, 0.35fr) 1fr;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.executor-permit-summary dt {
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.executor-permit-summary dd {
+  min-width: 0;
+  margin: 0;
+  color: #fff;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
 .a2a-helper {
   margin: 8px 0 14px;
   color: rgba(255, 255, 255, 0.72);
@@ -2708,6 +2830,16 @@ h2 {
   .positions-summary .button,
   .position-card .button {
     width: 100%;
+  }
+
+  .executor-package-actions,
+  .executor-package-heading {
+    display: grid;
+  }
+
+  .executor-permit-summary > div {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 }
 

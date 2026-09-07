@@ -56,6 +56,10 @@ function clients() {
         grant_status: "ACTIVE",
         dispatch_digest: "a".repeat(64),
         dispatch_status: "AUTHORIZED",
+        executor: "0x00000000000000000000000000000000000000cc",
+        executor_status: "AUTHORIZED",
+        executor_expires_at: "1900000000",
+        executor_epoch: "2",
       };
     }
     if (functionName === "can_route") return true;
@@ -121,6 +125,10 @@ describe("GenLayer contract adapter", () => {
     expect(snapshot.positions.find((item) => item.kind === "grant")).toMatchObject({
       dispatchDigest: "a".repeat(64),
       dispatchStatus: "AUTHORIZED",
+      executor: "0x00000000000000000000000000000000000000cc",
+      executorStatus: "AUTHORIZED",
+      executorExpiresAt: "1900000000",
+      executorEpoch: "2",
     });
     expect(readClient.readContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "can_route" }));
     expect(readClient.readContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "get_accounting" }));
@@ -173,7 +181,7 @@ describe("GenLayer contract adapter", () => {
     ]);
   });
 
-  it("maps all ten writes, exact GEN value, and submitted/accepted/finalized progress", async () => {
+  it("maps all twelve writes, exact GEN value, and submitted/accepted/finalized progress", async () => {
     const { readClient, writeClient } = clients();
     const progress = vi.fn();
     const adapter = createGenLayerAdapter({
@@ -191,13 +199,25 @@ describe("GenLayer contract adapter", () => {
     await adapter.cancelRound("round-1");
     await adapter.recoverExpiredRound("round-1");
     await adapter.authorizeDispatch({ roundId: "round-1", requestId: "request-1", taskDigest: "a".repeat(64) });
+    await adapter.authorizeExecutor({ roundId: "round-1", requestId: "request-1", executor: "0x00000000000000000000000000000000000000cc", expiresAt: "1900000000" });
+    await adapter.revokeExecutor({ roundId: "round-1", requestId: "request-1" });
     await adapter.consumeGrant({ roundId: "round-1", requestId: "request-1" });
     await adapter.withdrawCredit(ONE_GEN_WEI.toString());
 
-    expect(writeClient.writeContract).toHaveBeenCalledTimes(10);
+    expect(writeClient.writeContract).toHaveBeenCalledTimes(12);
     expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({
       functionName: "authorize_dispatch",
       args: ["round-1", "request-1", "a".repeat(64)],
+      value: 0n,
+    }));
+    expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({
+      functionName: "authorize_executor",
+      args: ["round-1", "request-1", "0x00000000000000000000000000000000000000cc", 1900000000n],
+      value: 0n,
+    }));
+    expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({
+      functionName: "revoke_executor",
+      args: ["round-1", "request-1"],
       value: 0n,
     }));
     expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({
@@ -279,6 +299,8 @@ describe("GenLayer contract adapter", () => {
     ["cancel_round", (adapter: ContractAdapter) => adapter.cancelRound("round-1")],
     ["recover_expired_round", (adapter: ContractAdapter) => adapter.recoverExpiredRound("round-1")],
     ["authorize_dispatch", (adapter: ContractAdapter) => adapter.authorizeDispatch({ roundId: "round-1", requestId: "request-1", taskDigest: "a".repeat(64) })],
+    ["authorize_executor", (adapter: ContractAdapter) => adapter.authorizeExecutor({ roundId: "round-1", requestId: "request-1", executor: "0x00000000000000000000000000000000000000cc", expiresAt: "1900000000" })],
+    ["revoke_executor", (adapter: ContractAdapter) => adapter.revokeExecutor({ roundId: "round-1", requestId: "request-1" })],
     ["consume_grant", (adapter: ContractAdapter) => adapter.consumeGrant({ roundId: "round-1", requestId: "request-1" })],
     ["withdraw_credit", (adapter: ContractAdapter) => adapter.withdrawCredit(ONE_GEN_WEI.toString())],
   ])("routes %s through the shared cancellation policy", async (functionName, invoke) => {

@@ -2,6 +2,9 @@ param([string]$Only = "")
 
 $ErrorActionPreference = "Stop"
 $env:PYTHONUTF8 = "1"
+# This release contains the exact pinned py-genlayer runner declared by the contract header.
+# Newer cached prerelease bundles may not retain historical runner hashes.
+$env:GENVM_VERSION = "v0.2.16"
 $Python = ".\.venv\Scripts\python.exe"
 
 if (-not (Test-Path -LiteralPath $Python)) {

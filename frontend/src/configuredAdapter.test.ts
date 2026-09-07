@@ -29,6 +29,7 @@ vi.mock("./wallet", () => ({
   disconnectStudionetWallet: vi.fn(),
   getActiveWalletSession: mocks.getActiveWalletSession,
   restoreStudionetWallet: vi.fn(),
+  signActiveWalletMessage: vi.fn(),
   withStudionetFeeCompatibility: vi.fn((provider) => provider),
 }));
 

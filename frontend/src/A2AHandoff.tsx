@@ -1,18 +1,14 @@
-import { CheckCircle, PaperPlaneTilt, ShieldCheck, X } from "@phosphor-icons/react";
-import { useState } from "react";
+import { CheckCircle, Copy, Key, PaperPlaneTilt, ShieldCheck, X } from "@phosphor-icons/react";
+import { useEffect, useState } from "react";
 
 import { createA2ARequest, taskDigest, type SendMessageRequest } from "./a2aProtocol";
+import { createExecutorPackage } from "./executorPermit";
 import type { ContractAdapter, PositionView } from "./domain";
 import type { RunWrite } from "./Marketplace";
 
 interface PreparedTask {
   request: SendMessageRequest;
   digest: string;
-}
-
-interface TaskReceipt {
-  id: string;
-  state: string;
 }
 
 interface A2AHandoffProps {
@@ -31,44 +27,50 @@ function randomToken(prefix: string) {
   return `${prefix}-${hex}`;
 }
 
-function receiptFrom(value: unknown): TaskReceipt {
-  if (!value || typeof value !== "object") throw new Error("Reference agent returned an invalid response");
-  const task = (value as { task?: unknown }).task;
-  if (!task || typeof task !== "object") throw new Error("Reference agent did not return an A2A task");
-  const id = (task as { id?: unknown }).id;
-  const status = (task as { status?: unknown }).status;
-  const state = status && typeof status === "object" ? (status as { state?: unknown }).state : undefined;
-  if (typeof id !== "string" || typeof state !== "string") {
-    throw new Error("Reference agent returned an incomplete A2A task");
-  }
-  return { id, state };
-}
-
-export function A2AHandoff({
-  position,
-  account,
-  contractAddress,
-  adapter,
-  busy,
-  runWrite,
-}: A2AHandoffProps) {
+export function A2AHandoff({ position, account, contractAddress, adapter, busy, runWrite }: A2AHandoffProps) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [prepared, setPrepared] = useState<PreparedTask | null>(null);
-  const [sending, setSending] = useState(false);
-  const [receipt, setReceipt] = useState<TaskReceipt | null>(null);
+  const [executor, setExecutor] = useState("");
+  const [duration, setDuration] = useState("3600");
+  const [packageText, setPackageText] = useState("");
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const requestId = position.requestId!;
   const helpId = `a2a-task-help-${position.roundId}-${requestId}`;
   const canonicalAuthorized = Boolean(
-    prepared &&
-    position.dispatchStatus === "AUTHORIZED" &&
-    position.dispatchDigest === prepared.digest,
+    prepared && position.dispatchStatus === "AUTHORIZED" && position.dispatchDigest === prepared.digest,
+  );
+  const permitActive = Boolean(
+    canonicalAuthorized &&
+    position.executorStatus === "AUTHORIZED" &&
+    position.executor &&
+    position.executorEpoch &&
+    position.executorExpiresAt,
   );
 
-  async function authorize() {
+  useEffect(() => {
+    let active = true;
+    if (!prepared || !permitActive) {
+      setPackageText("");
+      return () => { active = false; };
+    }
+    void createExecutorPackage({
+      request: prepared.request,
+      executor: position.executor!,
+      epoch: Number(position.executorEpoch),
+      expiresAt: Number(position.executorExpiresAt),
+    }).then((value) => {
+      if (active) setPackageText(JSON.stringify(value, null, 2));
+    }).catch((cause) => {
+      if (active) setError(cause instanceof Error ? cause.message : "Executor package could not be prepared");
+    });
+    return () => { active = false; };
+  }, [permitActive, position.executor, position.executorEpoch, position.executorExpiresAt, prepared]);
+
+  async function authorizeTask() {
     setError(null);
-    setReceipt(null);
+    setCopied(false);
     try {
       const request = createA2ARequest({
         contract: contractAddress,
@@ -80,72 +82,72 @@ export function A2AHandoff({
         nonce: randomToken("nonce"),
       });
       const digest = await taskDigest(request);
-      const next = { request, digest };
-      setPrepared(next);
-      await runWrite(() => adapter.authorizeDispatch({
-        roundId: position.roundId,
-        requestId,
-        taskDigest: digest,
-      }));
+      setPrepared({ request, digest });
+      await runWrite(() => adapter.authorizeDispatch({ roundId: position.roundId, requestId, taskDigest: digest }));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Task authorization failed");
     }
   }
 
-  async function send() {
-    if (!prepared || position.dispatchDigest !== prepared.digest) {
-      setError("Canonical dispatch digest does not match this browser task. Do not send it.");
-      return;
+  async function authorizeExecutor() {
+    setError(null);
+    setCopied(false);
+    const expiresAt = Math.floor(Date.now() / 1000) + Number(duration);
+    try {
+      await runWrite(() => adapter.authorizeExecutor({
+        roundId: position.roundId,
+        requestId,
+        executor: executor.trim(),
+        expiresAt: String(expiresAt),
+      }));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Executor authorization failed");
     }
-    setSending(true);
+  }
+
+  async function revokeExecutor() {
     setError(null);
     try {
-      const response = await fetch("/a2a/v1/message:send", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(prepared.request),
-      });
-      const body = await response.json() as unknown;
-      if (!response.ok) {
-        const message = body && typeof body === "object" && typeof (body as { error?: unknown }).error === "string"
-          ? String((body as { error: string }).error)
-          : `Reference agent rejected the request (${response.status})`;
-        throw new Error(message);
-      }
-      setReceipt(receiptFrom(body));
+      await runWrite(() => adapter.revokeExecutor({ roundId: position.roundId, requestId }));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "A2A request failed");
-    } finally {
-      setSending(false);
+      setError(cause instanceof Error ? cause.message : "Executor revocation failed");
+    }
+  }
+
+  async function copyPackage() {
+    try {
+      await navigator.clipboard.writeText(packageText);
+      setCopied(true);
+    } catch {
+      setError("Clipboard access failed. Select and copy the public package manually.");
     }
   }
 
   if (!open) {
     return (
       <button className="button button-primary" type="button" disabled={busy} onClick={() => setOpen(true)}>
-        <PaperPlaneTilt aria-hidden="true" /> Prepare A2A task
+        <PaperPlaneTilt aria-hidden="true" /> Prepare delegated task
       </button>
     );
   }
 
-  const step = receipt ? 4 : canonicalAuthorized ? 3 : prepared ? 2 : 1;
+  const step = packageText ? 4 : permitActive ? 3 : canonicalAuthorized ? 3 : prepared ? 2 : 1;
   return (
     <section className="a2a-handoff" aria-labelledby={`a2a-title-${position.roundId}-${requestId}`}>
       <div className="a2a-handoff-heading">
         <div>
-          <p className="eyebrow">Validator-cleared handoff</p>
-          <h3 id={`a2a-title-${position.roundId}-${requestId}`}>Send one bound A2A task</h3>
+          <p className="eyebrow">Requester controls</p>
+          <h3 id={`a2a-title-${position.roundId}-${requestId}`}>Delegate one exact A2A task</h3>
         </div>
-        <button className="icon-button" type="button" aria-label="Close A2A task panel" onClick={() => setOpen(false)}>
+        <button className="icon-button" type="button" aria-label="Close delegated task panel" onClick={() => setOpen(false)}>
           <X aria-hidden="true" />
         </button>
       </div>
 
-      <ol className="a2a-progress" aria-label="A2A handoff progress">
-        {["Draft", "Authorize", "Send", "Receipt"].map((label, index) => (
+      <ol className="a2a-progress" aria-label="Delegated task progress">
+        {["Draft", "Authorize task", "Delegate", "Export"].map((label, index) => (
           <li key={label} className={index + 1 < step ? "is-done" : index + 1 === step ? "is-current" : ""}>
-            <span>{index + 1 < step ? <CheckCircle aria-hidden="true" /> : index + 1}</span>
-            {label}
+            <span>{index + 1 < step ? <CheckCircle aria-hidden="true" /> : index + 1}</span>{label}
           </li>
         ))}
       </ol>
@@ -161,47 +163,60 @@ export function A2AHandoff({
         onChange={(event) => setText(event.target.value)}
       />
       <p id={helpId} className="a2a-helper">
-        The wallet commits only this task&apos;s SHA-256 digest. Task text is sent to the fixed SkillSlot reference agent after finalization.
+        Your wallet first commits this exact task digest. The separate executor permit never transfers the grant or moves GEN.
       </p>
 
       {!canonicalAuthorized ? (
-        <button
-          className="button button-primary"
-          type="button"
-          disabled={busy || sending || !text.trim() || Boolean(position.dispatchDigest)}
-          onClick={() => void authorize()}
-        >
+        <button className="button button-primary" type="button" disabled={busy || !text.trim() || Boolean(position.dispatchDigest)} onClick={() => void authorizeTask()}>
           <ShieldCheck aria-hidden="true" /> Authorize task
         </button>
       ) : null}
 
-      {canonicalAuthorized && !receipt ? (
-        <button className="button button-primary" type="button" disabled={busy || sending} onClick={() => void send()}>
-          <PaperPlaneTilt aria-hidden="true" /> {sending ? "Sending authorized task" : "Send to reference agent"}
-        </button>
+      {canonicalAuthorized && !permitActive ? (
+        <fieldset className="executor-fields">
+          <legend>Bound executor</legend>
+          <label htmlFor={`executor-${position.roundId}-${requestId}`}>Executor wallet address</label>
+          <input
+            id={`executor-${position.roundId}-${requestId}`}
+            value={executor}
+            inputMode="text"
+            autoComplete="off"
+            placeholder="0x..."
+            disabled={busy}
+            onChange={(event) => setExecutor(event.target.value)}
+          />
+          <label htmlFor={`executor-duration-${position.roundId}-${requestId}`}>Permit duration</label>
+          <select id={`executor-duration-${position.roundId}-${requestId}`} value={duration} disabled={busy} onChange={(event) => setDuration(event.target.value)}>
+            <option value="3600">1 hour</option>
+            <option value="86400">24 hours</option>
+            <option value="604800">7 days</option>
+          </select>
+          <button className="button button-primary" type="button" disabled={busy || !/^0x[0-9a-fA-F]{40}$/.test(executor.trim())} onClick={() => void authorizeExecutor()}>
+            <Key aria-hidden="true" /> Authorize executor
+          </button>
+        </fieldset>
       ) : null}
 
-      {receipt ? (
-        <div className="a2a-receipt" role="status" aria-live="polite">
-          <CheckCircle aria-hidden="true" />
-          <div>
-            <strong>{receipt.state}</strong>
-            <code>{receipt.id}</code>
-            <p>This receipt proves the authorized handoff, not service completion or provider performance.</p>
+      {permitActive ? (
+        <div className="executor-package" role="status" aria-live="polite">
+          <div className="executor-package-heading">
+            <div><strong>Execution package ready</strong><p>Public binding data only. Send it to the named executor wallet.</p></div>
+            <span className="status-badge status-cleared">Epoch {position.executorEpoch}</span>
+          </div>
+          <label htmlFor={`executor-package-${position.roundId}-${requestId}`}>Executor package</label>
+          <textarea id={`executor-package-${position.roundId}-${requestId}`} rows={7} readOnly value={packageText} />
+          <div className="executor-package-actions">
+            <button className="button button-primary" type="button" disabled={!packageText} onClick={() => void copyPackage()}>
+              <Copy aria-hidden="true" /> {copied ? "Package copied" : "Copy execution package"}
+            </button>
+            <button className="button button-danger" type="button" disabled={busy} onClick={() => void revokeExecutor()}>
+              Revoke executor
+            </button>
           </div>
         </div>
       ) : null}
 
-      {error ? (
-        <div className="a2a-error" role="alert">
-          <p>{error}</p>
-          {canonicalAuthorized ? (
-            <button className="button button-secondary" type="button" disabled={sending} onClick={() => void send()}>
-              Try A2A request again
-            </button>
-          ) : null}
-        </div>
-      ) : null}
+      {error ? <div className="a2a-error" role="alert"><p>{error}</p></div> : null}
     </section>
   );
 }

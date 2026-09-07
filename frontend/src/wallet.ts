@@ -238,6 +238,18 @@ export function getActiveWalletSession() {
   return activeSession;
 }
 
+export async function signActiveWalletMessage(message: string): Promise<string> {
+  if (!activeSession) throw new Error("Connect the executor wallet before signing");
+  const encoded = new TextEncoder().encode(message);
+  const hex = `0x${Array.from(encoded, (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+  const signature = String(await activeSession.provider.request({
+    method: "personal_sign",
+    params: [hex, activeSession.account],
+  }));
+  if (!/^0x[0-9a-fA-F]{130}$/.test(signature)) throw new Error("Wallet returned an invalid executor signature");
+  return signature;
+}
+
 export function __resetWalletForTests() {
   announced.length = 0;
   activeSession = null;

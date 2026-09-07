@@ -15,6 +15,7 @@ MAX_POSITIONS = 4
 UNIT_GEN = 10**18
 MIN_TIMEOUT_SECONDS = 60
 MAX_TIMEOUT_SECONDS = 30 * 24 * 60 * 60
+MAX_EXECUTOR_WINDOW_SECONDS = 7 * 24 * 60 * 60
 METADATA_POLICY_VERSION = "skillslot-agent-metadata-v1"
 AUTHORIZED_METADATA_ISSUER = "SkillSlotAgentRegistry"
 AUTHORIZED_METADATA_PREFIX = "https://skillslot-clearing.vercel.app/agents/"
@@ -33,6 +34,9 @@ GRANT_ACTIVE = "ACTIVE"
 GRANT_CONSUMED = "CONSUMED"
 DISPATCH_NONE = "NONE"
 DISPATCH_AUTHORIZED = "AUTHORIZED"
+EXECUTOR_NONE = "NONE"
+EXECUTOR_AUTHORIZED = "AUTHORIZED"
+EXECUTOR_REVOKED = "REVOKED"
 
 VERDICT_CLEARABLE = "CLEARABLE"
 VERDICT_UNVERIFIABLE = "UNVERIFIABLE"
@@ -106,6 +110,10 @@ class Match:
     grant_status: str
     dispatch_digest: str
     dispatch_status: str
+    executor: str
+    executor_status: str
+    executor_expires_at: u256
+    executor_epoch: u256
 
 
 @gl.evm.contract_interface
@@ -143,6 +151,18 @@ def _is_sha256_hex(value: str) -> bool:
         if char not in "0123456789abcdef":
             return False
     return True
+
+
+def _normalize_executor(value: str) -> str:
+    normalized = value.lower()
+    if len(normalized) != 42 or not normalized.startswith("0x"):
+        raise gl.vm.UserError("Executor must be a non-zero EVM address")
+    if normalized == "0x" + "0" * 40:
+        raise gl.vm.UserError("Executor must be a non-zero EVM address")
+    for char in normalized[2:]:
+        if char not in "0123456789abcdef":
+            raise gl.vm.UserError("Executor must be a non-zero EVM address")
+    return normalized
 
 
 def _actor_key(round_id: str, role: str, actor: Address) -> str:
@@ -622,6 +642,10 @@ def _match_view(match_record: Match) -> dict:
         "grant_status": match_record.grant_status,
         "dispatch_digest": match_record.dispatch_digest,
         "dispatch_status": match_record.dispatch_status,
+        "executor": match_record.executor,
+        "executor_status": match_record.executor_status,
+        "executor_expires_at": str(match_record.executor_expires_at),
+        "executor_epoch": str(match_record.executor_epoch),
     }
 
 
@@ -1039,6 +1063,10 @@ class Contract(gl.Contract):
                     grant_status=GRANT_ACTIVE,
                     dispatch_digest="",
                     dispatch_status=DISPATCH_NONE,
+                    executor="",
+                    executor_status=EXECUTOR_NONE,
+                    executor_expires_at=u256(0),
+                    executor_epoch=u256(0),
                 )
                 self._credit_locked(round_record, offer.provider, int(request.deposit_wei))
                 round_record.match_count = u256(int(round_record.match_count) + 1)
@@ -1129,6 +1157,60 @@ class Contract(gl.Contract):
         match_record.dispatch_status = DISPATCH_AUTHORIZED
 
     @gl.public.write
+    def authorize_executor(
+        self, round_id: str, request_id: str, executor: str, expires_at: int
+    ) -> None:
+        key = _position_key(round_id, request_id)
+        if key not in self.matches:
+            raise gl.vm.UserError("Grant does not exist")
+        match_record = self.matches[key]
+        if not _is_same_address(gl.message.sender_address, match_record.requester):
+            raise gl.vm.UserError("Only matched requester can authorize executor")
+        if match_record.grant_status != GRANT_ACTIVE:
+            raise gl.vm.UserError("Grant is not active")
+        if round_id not in self.rounds or self.rounds[round_id].phase != PHASE_CLEARED:
+            raise gl.vm.UserError("Round is not cleared")
+        if match_record.dispatch_status != DISPATCH_AUTHORIZED:
+            raise gl.vm.UserError("Task dispatch is not authorized")
+
+        normalized_executor = _normalize_executor(executor)
+        now = _now_seconds()
+        normalized_expiry = int(expires_at)
+        if normalized_expiry <= now:
+            raise gl.vm.UserError("Executor expiry must be in the future")
+        if normalized_expiry > now + MAX_EXECUTOR_WINDOW_SECONDS:
+            raise gl.vm.UserError("Executor expiry exceeds seven days")
+
+        active_permit = (
+            match_record.executor_status == EXECUTOR_AUTHORIZED
+            and now < int(match_record.executor_expires_at)
+        )
+        if active_permit:
+            if (
+                match_record.executor == normalized_executor
+                and int(match_record.executor_expires_at) == normalized_expiry
+            ):
+                return
+            raise gl.vm.UserError("Revoke the active executor before replacing it")
+
+        match_record.executor = normalized_executor
+        match_record.executor_status = EXECUTOR_AUTHORIZED
+        match_record.executor_expires_at = u256(normalized_expiry)
+        match_record.executor_epoch = u256(int(match_record.executor_epoch) + 1)
+
+    @gl.public.write
+    def revoke_executor(self, round_id: str, request_id: str) -> None:
+        key = _position_key(round_id, request_id)
+        if key not in self.matches:
+            raise gl.vm.UserError("Grant does not exist")
+        match_record = self.matches[key]
+        if not _is_same_address(gl.message.sender_address, match_record.requester):
+            raise gl.vm.UserError("Only matched requester can revoke executor")
+        if match_record.executor_status == EXECUTOR_NONE or match_record.executor_status == EXECUTOR_REVOKED:
+            return
+        match_record.executor_status = EXECUTOR_REVOKED
+
+    @gl.public.write
     def consume_grant(self, round_id: str, request_id: str) -> None:
         key = _position_key(round_id, request_id)
         if key not in self.matches:
@@ -1207,6 +1289,36 @@ class Contract(gl.Contract):
             and match_record.dispatch_status == DISPATCH_AUTHORIZED
             and _addr_key(match_record.requester) == requester.lower()
             and match_record.dispatch_digest == task_digest
+        )
+
+    @gl.public.view
+    def can_execute_dispatch(
+        self,
+        round_id: str,
+        request_id: str,
+        executor: str,
+        task_digest: str,
+        epoch: int,
+        expires_at: int,
+    ) -> bool:
+        key = _position_key(round_id, request_id)
+        if key not in self.matches or round_id not in self.rounds:
+            return False
+        try:
+            normalized_executor = _normalize_executor(executor)
+        except Exception:
+            return False
+        match_record = self.matches[key]
+        return (
+            self.rounds[round_id].phase == PHASE_CLEARED
+            and match_record.grant_status == GRANT_ACTIVE
+            and match_record.dispatch_status == DISPATCH_AUTHORIZED
+            and match_record.dispatch_digest == task_digest
+            and match_record.executor_status == EXECUTOR_AUTHORIZED
+            and match_record.executor == normalized_executor
+            and int(match_record.executor_epoch) == int(epoch)
+            and int(match_record.executor_expires_at) == int(expires_at)
+            and _now_seconds() < int(match_record.executor_expires_at)
         )
 
     @gl.public.view

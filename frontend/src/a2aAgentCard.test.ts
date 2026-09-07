@@ -13,9 +13,14 @@ describe("SkillSlot reference Agent Card", () => {
       protocolVersion: "1.0",
     }]);
     expect(card.skills).toEqual([expect.objectContaining({ id: "verify-skillslot-route" })]);
+    expect(card.capabilities.extensions).toEqual([expect.objectContaining({
+      uri: "https://skillslot-clearing.vercel.app/extensions/delegated-executor/v1",
+      required: true,
+    })]);
     expect("signatures" in card).toBe(false);
     expect(card.description).toContain("submitted handoff receipt");
     expect(card.description).toContain("not service completion");
+    expect(card.description).toContain("delegated executor");
   });
 
   it("rejects a non-HTTPS production origin", () => {

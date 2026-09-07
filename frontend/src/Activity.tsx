@@ -4,6 +4,7 @@ import { ONE_GEN_WEI } from "./contractAdapter";
 import type { ContractAdapter, WorkspaceSnapshot } from "./domain";
 import type { RunWrite } from "./Marketplace";
 import { A2AHandoff } from "./A2AHandoff";
+import { ExecutorConsole } from "./ExecutorConsole";
 
 interface ActivityProps {
   snapshot: WorkspaceSnapshot;
@@ -28,6 +29,7 @@ export function Activity({ snapshot, adapter, busy, runWrite, onOpenRound }: Act
         <div><span>Withdrawable credit</span><strong>{snapshot.account ? `${snapshot.creditGen} GEN` : "- GEN"}</strong></div>
         <button className="button button-primary" type="button" disabled={!snapshot.account || busy || snapshot.creditGen === "0"} onClick={() => void runWrite(() => adapter.withdrawCredit(genToWei(snapshot.creditGen)))}><Coins aria-hidden="true" />Withdraw {snapshot.creditGen} GEN</button>
       </div>
+      {snapshot.account ? <ExecutorConsole account={snapshot.account} adapter={adapter} /> : null}
       {snapshot.positions.length ? (
         <div className="position-list">
           {snapshot.positions.map((position) => (

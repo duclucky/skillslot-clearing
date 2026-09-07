@@ -6,12 +6,15 @@ import test from "node:test";
 
 import {
   buildDispatchProofRequest,
+  buildExecutorPermitMessage,
   currentAttemptId,
   deploymentIdentity,
   executeDispatchProof,
+  executeExecutorPermitProof,
   formatGenBalance,
   loadEnvironment,
   projectDispatchProofEvidence,
+  projectExecutorPermitProofEvidence,
   rpcRetryDelayMs,
   sanitizeEvidence,
   shouldReuseDeployment,
@@ -200,4 +203,104 @@ test("dispatch-proof is exposed as a resumable deployment command", () => {
 
   assert.match(source, /command === "dispatch-proof"/);
   assert.equal(packageJson.scripts["dispatch:studionet"], "node scripts/deploy_studionet.mjs dispatch-proof");
+});
+
+test("executor permit proof binds the exact canonical task and authorization epoch", async () => {
+  const calls = { authorizeDispatch: 0, authorizeExecutor: 0, sign: 0, post: 0, revoke: 0 };
+  const canonical = {
+    request_id: "request-1",
+    grant_status: "ACTIVE",
+    dispatch_status: "NONE",
+    dispatch_digest: "",
+    executor: "",
+    executor_status: "NONE",
+    executor_expires_at: "0",
+    executor_epoch: "0",
+  };
+  const context = {
+    contractAddress: "0x00000000000000000000000000000000000000AA",
+    roundId: "round-1",
+    requestId: "request-1",
+    requester: "0x00000000000000000000000000000000000000BB",
+    executor: "0x00000000000000000000000000000000000000CC",
+  };
+  const dependencies = {
+    now: () => 1_800_000_000,
+    readMatch: async () => ({ ...canonical }),
+    authorizeDispatch: async (digest) => {
+      calls.authorizeDispatch += 1;
+      canonical.dispatch_status = "AUTHORIZED";
+      canonical.dispatch_digest = digest;
+      return { transactionHash: "0xdispatch", status: "FINALIZED", execution: "FINISHED_WITH_RETURN" };
+    },
+    authorizeExecutor: async (executor, expiresAt) => {
+      calls.authorizeExecutor += 1;
+      canonical.executor = executor.toLowerCase();
+      canonical.executor_status = "AUTHORIZED";
+      canonical.executor_expires_at = String(expiresAt);
+      canonical.executor_epoch = "1";
+      return { transactionHash: "0xpermit", status: "FINALIZED", execution: "FINISHED_WITH_RETURN" };
+    },
+    canExecute: async (_executor, digest, epoch, expiresAt) =>
+      canonical.executor_status === "AUTHORIZED" &&
+      canonical.dispatch_digest === digest &&
+      canonical.executor_epoch === String(epoch) &&
+      canonical.executor_expires_at === String(expiresAt),
+    signPermit: async (message, wrongSigner = false) => {
+      calls.sign += 1;
+      assert.match(message, /SkillSlot Delegated Execution Permit/);
+      return wrongSigner ? `0x${"22".repeat(65)}` : `0x${"11".repeat(65)}`;
+    },
+    postA2A: async (_request, authorization, expectedStatus) => {
+      calls.post += 1;
+      assert.equal(authorization.epoch, 1);
+      if (expectedStatus === 401) return { status: 401, body: { error: "signature" } };
+      if (expectedStatus === 403) return { status: 403, body: { error: "revoked" } };
+      return { status: 200, body: { task: { id: "skillslot-executor-fixed", status: { state: "TASK_STATE_SUBMITTED" } } } };
+    },
+    revokeExecutor: async () => {
+      calls.revoke += 1;
+      canonical.executor_status = "REVOKED";
+      return { transactionHash: "0xrevoke", status: "FINALIZED", execution: "FINISHED_WITH_RETURN" };
+    },
+    readAccounting: async () => ({ invariant_holds: true, total_locked_wei: "2", total_credited_wei: "0" }),
+    persist: () => {},
+  };
+
+  const proof = await executeExecutorPermitProof({}, context, dependencies);
+  assert.equal(proof.status, "FINALIZED_EXECUTOR_PERMIT_PROOF");
+  assert.equal(proof.epoch, 1);
+  assert.equal(proof.endpointChecks[0].taskId, proof.endpointChecks[1].taskId);
+  assert.deepEqual(calls, { authorizeDispatch: 1, authorizeExecutor: 1, sign: 2, post: 4, revoke: 1 });
+
+  await executeExecutorPermitProof(proof, context, dependencies);
+  assert.deepEqual(calls, { authorizeDispatch: 1, authorizeExecutor: 1, sign: 2, post: 4, revoke: 1 });
+});
+
+test("executor permit proof evidence excludes signatures and private task content", () => {
+  const projected = projectExecutorPermitProofEvidence({
+    network: "studionet",
+    executor: "0x111",
+    epoch: 2,
+    expiresAt: 1_800_003_600,
+    signature: `0x${"11".repeat(65)}`,
+    taskText: "private",
+    endpointChecks: [{ phase: "authorized-1", httpStatus: 200, taskId: "task-1", rawBody: { secret: true } }],
+    transactions: { authorizeExecutor: { transactionHash: "0xaaa", status: "FINALIZED", trace: "secret" } },
+    accounting: { before: { invariant_holds: true }, after: { invariant_holds: true }, invariantUnchanged: true },
+    status: "FINALIZED_EXECUTOR_PERMIT_PROOF",
+  });
+  const serialized = JSON.stringify(projected);
+  assert.equal(serialized.includes("signature"), false);
+  assert.equal(serialized.includes("private"), false);
+  assert.equal(serialized.includes("secret"), false);
+});
+
+test("executor-proof is exposed as a resumable deployment command", () => {
+  const root = path.resolve(import.meta.dirname, "..");
+  const source = readFileSync(path.join(root, "scripts", "deploy_studionet.mjs"), "utf8");
+  const packageJson = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"));
+
+  assert.match(source, /command === "executor-proof"/);
+  assert.equal(packageJson.scripts["executor:studionet"], "node scripts/deploy_studionet.mjs executor-proof");
 });

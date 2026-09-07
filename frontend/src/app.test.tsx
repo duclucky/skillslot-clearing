@@ -20,6 +20,9 @@ function adapterFor(snapshot: WorkspaceSnapshot): ContractAdapter {
     cancelRound: vi.fn(async () => ({ hash: "0xcancel" })),
     recoverExpiredRound: vi.fn(async () => ({ hash: "0xrecover" })),
     authorizeDispatch: vi.fn(async () => ({ hash: "0xauthorize" })),
+    authorizeExecutor: vi.fn(async () => ({ hash: "0xexecutor" })),
+    revokeExecutor: vi.fn(async () => ({ hash: "0xrevoke" })),
+    signMessage: vi.fn(async () => `0x${"11".repeat(65)}`),
     consumeGrant: vi.fn(async () => ({ hash: "0xconsume" })),
     withdrawCredit: vi.fn(async () => ({ hash: "0xwithdraw" })),
   };
@@ -350,7 +353,7 @@ describe("SkillSlot Clearing marketplace", () => {
     await waitFor(() => expect(activityAdapter.withdrawCredit).toHaveBeenCalledWith("1000000000000000000"));
   });
 
-  it("authorizes and submits one exact A2A task from an active grant", async () => {
+  it("authorizes, delegates, exports, signs, and submits one exact A2A task", async () => {
     const initial = {
       ...ready,
       rounds: [{ ...ready.rounds[0], phase: "CLEARED" as const }],
@@ -367,13 +370,22 @@ describe("SkillSlot Clearing marketplace", () => {
     vi.mocked(activityAdapter.loadWorkspace)
       .mockResolvedValueOnce(initial)
       .mockImplementation(async () => {
-        const call = vi.mocked(activityAdapter.authorizeDispatch).mock.calls.at(-1)?.[0];
+        const dispatch = vi.mocked(activityAdapter.authorizeDispatch).mock.calls.at(-1)?.[0];
+        const delegated = vi.mocked(activityAdapter.authorizeExecutor).mock.calls.at(-1)?.[0];
         return {
           ...initial,
-          positions: [{ ...initial.positions[0], dispatchDigest: call?.taskDigest, dispatchStatus: "AUTHORIZED" }],
+          positions: [{
+            ...initial.positions[0],
+            dispatchDigest: dispatch?.taskDigest,
+            dispatchStatus: dispatch ? "AUTHORIZED" : undefined,
+            executor: delegated?.executor,
+            executorStatus: delegated ? "AUTHORIZED" : undefined,
+            executorExpiresAt: delegated?.expiresAt,
+            executorEpoch: delegated ? "1" : undefined,
+          }],
         };
       });
-    const fetchMock = vi.fn(async () => ({
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => ({
       ok: true,
       status: 200,
       json: async () => ({
@@ -388,9 +400,9 @@ describe("SkillSlot Clearing marketplace", () => {
     render(<App adapter={activityAdapter} />);
     await navigateToRounds();
     fireEvent.click(await screen.findByRole("button", { name: "My activity" }));
-    fireEvent.click(screen.getByRole("button", { name: "Prepare A2A task" }));
+    fireEvent.click(screen.getByRole("button", { name: "Prepare delegated task" }));
 
-    expect(screen.getByRole("list", { name: "A2A handoff progress" })).toBeVisible();
+    expect(screen.getByRole("list", { name: "Delegated task progress" })).toBeVisible();
     expect(screen.getAllByRole("listitem")).toEqual(expect.arrayContaining([expect.any(HTMLElement)]));
     const taskField = screen.getByLabelText("Task for the reference agent");
     expect(taskField).toHaveAttribute("aria-describedby", "a2a-task-help-round-1-request-1");
@@ -404,16 +416,34 @@ describe("SkillSlot Clearing marketplace", () => {
       requestId: "request-1",
       taskDigest: expect.stringMatching(/^[0-9a-f]{64}$/),
     }));
-    const send = await screen.findByRole("button", { name: "Send to reference agent" });
-    fireEvent.click(send);
+    const executorField = await screen.findByLabelText("Executor wallet address");
+    fireEvent.change(executorField, { target: { value: ready.account } });
+    fireEvent.click(screen.getByRole("button", { name: "Authorize executor" }));
+
+    await waitFor(() => expect(activityAdapter.authorizeExecutor).toHaveBeenCalledWith({
+      roundId: "round-1",
+      requestId: "request-1",
+      executor: ready.account,
+      expiresAt: expect.stringMatching(/^\d+$/),
+    }));
+    const exported = await screen.findByLabelText("Executor package") as HTMLTextAreaElement;
+    await waitFor(() => expect(exported.value).toContain('"version": "skillslot-executor-permit-v1"'));
+
+    fireEvent.change(screen.getByLabelText("Paste executor package"), { target: { value: exported.value } });
+    fireEvent.click(screen.getByRole("button", { name: "Inspect permit" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Sign and send task" }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/a2a/v1/message:send", expect.objectContaining({ method: "POST" })));
+    expect(activityAdapter.signMessage).toHaveBeenCalledWith(expect.stringContaining("SkillSlot Delegated Execution Permit"));
+    const sentHeaders = vi.mocked(fetchMock).mock.calls[0][1]?.headers as Record<string, string>;
+    expect(sentHeaders["skillslot-executor"]).toBe(ready.account);
+    expect(sentHeaders["skillslot-executor-signature"]).toMatch(/^0x[0-9a-f]{130}$/);
     expect(await screen.findByText("skillslot-1234567890abcdef1234567890abcdef")).toBeVisible();
     expect(screen.getByText("TASK_STATE_SUBMITTED")).toBeVisible();
-    expect(screen.getByText(/This receipt proves the authorized handoff, not service completion/)).toBeVisible();
+    expect(screen.getByText(/This proves authorized submission only, not service completion/)).toBeVisible();
   });
 
-  it("retries a failed A2A request without resubmitting the authorization transaction", async () => {
+  it("retries an exact signed request without another chain write or wallet signature", async () => {
     const initial = {
       ...ready,
       rounds: [{ ...ready.rounds[0], phase: "CLEARED" as const }],
@@ -430,8 +460,17 @@ describe("SkillSlot Clearing marketplace", () => {
     vi.mocked(activityAdapter.loadWorkspace)
       .mockResolvedValueOnce(initial)
       .mockImplementation(async () => {
-        const call = vi.mocked(activityAdapter.authorizeDispatch).mock.calls.at(-1)?.[0];
-        return { ...initial, positions: [{ ...initial.positions[0], dispatchDigest: call?.taskDigest, dispatchStatus: "AUTHORIZED" }] };
+        const dispatch = vi.mocked(activityAdapter.authorizeDispatch).mock.calls.at(-1)?.[0];
+        const delegated = vi.mocked(activityAdapter.authorizeExecutor).mock.calls.at(-1)?.[0];
+        return { ...initial, positions: [{
+          ...initial.positions[0],
+          dispatchDigest: dispatch?.taskDigest,
+          dispatchStatus: dispatch ? "AUTHORIZED" : undefined,
+          executor: delegated?.executor,
+          executorStatus: delegated ? "AUTHORIZED" : undefined,
+          executorExpiresAt: delegated?.expiresAt,
+          executorEpoch: delegated ? "1" : undefined,
+        }] };
       });
     const fetchMock = vi.fn()
       .mockResolvedValueOnce({ ok: false, status: 503, json: async () => ({ error: "Canonical SkillSlot state is temporarily unavailable" }) })
@@ -441,15 +480,22 @@ describe("SkillSlot Clearing marketplace", () => {
     render(<App adapter={activityAdapter} />);
     await navigateToRounds();
     fireEvent.click(await screen.findByRole("button", { name: "My activity" }));
-    fireEvent.click(screen.getByRole("button", { name: "Prepare A2A task" }));
+    fireEvent.click(screen.getByRole("button", { name: "Prepare delegated task" }));
     fireEvent.change(screen.getByLabelText("Task for the reference agent"), { target: { value: "Bound task" } });
     fireEvent.click(screen.getByRole("button", { name: "Authorize task" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Send to reference agent" }));
+    fireEvent.change(await screen.findByLabelText("Executor wallet address"), { target: { value: ready.account } });
+    fireEvent.click(screen.getByRole("button", { name: "Authorize executor" }));
+    const exported = await screen.findByLabelText("Executor package") as HTMLTextAreaElement;
+    fireEvent.change(screen.getByLabelText("Paste executor package"), { target: { value: exported.value } });
+    fireEvent.click(screen.getByRole("button", { name: "Inspect permit" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Sign and send task" }));
 
     expect(await screen.findByText("Canonical SkillSlot state is temporarily unavailable")).toBeVisible();
-    fireEvent.click(screen.getByRole("button", { name: "Try A2A request again" }));
+    fireEvent.click(screen.getByRole("button", { name: "Retry exact signed task" }));
     expect(await screen.findByText("skillslot-retry")).toBeVisible();
     expect(activityAdapter.authorizeDispatch).toHaveBeenCalledTimes(1);
+    expect(activityAdapter.authorizeExecutor).toHaveBeenCalledTimes(1);
+    expect(activityAdapter.signMessage).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 

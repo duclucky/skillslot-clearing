@@ -13,6 +13,7 @@ const sourceFiles = [
   resolve(frontendRoot, "src/providerMetadataApi.ts"),
   resolve(frontendRoot, "src/a2aDispatchApi.ts"),
   resolve(frontendRoot, "src/a2aAgentCard.ts"),
+  resolve(frontendRoot, "src/executorPermit.ts"),
 ];
 
 describe("Vercel API source", () => {
@@ -36,6 +37,10 @@ describe("Vercel API source", () => {
     const source = readFileSync(resolve(frontendRoot, "api/a2a-message.ts"), "utf8");
 
     expect(source).toContain("canonicalAllowed === true");
+    expect(source).toContain('functionName: "can_execute_dispatch"');
+    expect(source).toContain("verifyMessage");
+    expect(source).toContain("EXECUTOR_EXTENSION_URI");
+    expect(source).toContain("Required delegated executor extension is missing");
     expect(source).not.toContain("Boolean(await client.readContract");
   });
 });
