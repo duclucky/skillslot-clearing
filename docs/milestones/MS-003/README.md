@@ -5,12 +5,15 @@
 | Field | Value |
 | --- | --- |
 | Milestone ID | `MS-003` |
-| Status | `SELECTED` |
+| Status | `VERIFIED — NOT SUBMITTED` |
 | Selected on | `2026-09-22` |
 | Accepted baseline | MS-002, owner-confirmed accepted `2026-09-21` |
 | Accepted source | `7a5047e0b4e50a9e93d52488c68fd17441c051e8` |
 | Working base | `b7425856b0bab3a2e76a975473be852c09ecf839` |
 | Baseline deployment | Studionet `0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b` |
+| MS-003 deployment | Studionet `0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5` |
+| Implementation commit | `afa040916d74a13044f3043022c633580e71bbbc` |
+| Contract digest | `6c3f04398c8c991eeebea0d7bd61398fd51760c43e2d336ca187df61b2e28949` |
 | Portal reference | `NOT_SUBMITTED` |
 
 ## Exact new capability
@@ -86,8 +89,18 @@ SkillSlot match and its exact provider/requester identities and capability facts
 
 ## Exit gates
 
-- [ ] RED-first contract and frontend tests cover every transition and value branch.
-- [ ] GenVM lint and full `npm run check` pass.
-- [ ] A new Studionet deployment proves one complete accepted-delivery payout and withdrawal path; direct tests prove failed, unverifiable, and both recovery branches.
+- [x] RED-first contract and frontend tests cover every transition and value branch.
+- [x] GenVM lint and full `npm run check` pass: 240 checks.
+- [x] A new Studionet deployment proves one complete accepted-delivery payout and withdrawal path; direct tests prove failed, unverifiable, and both recovery branches.
 - [ ] Production UI exposes the legal role/state actions and canonical reload.
 - [ ] Public repo, CI, live app, dossier, evidence, and submission copy are verified.
+
+## Verified Studionet evidence
+
+- Deployment transaction: `0x5759037505eef0d72f995d99c30405784252878e7e45179949298bb10cc98f5b`.
+- Lifecycle round: `slot-mubu7h8g`; request `request-flight`.
+- Provider submission: `0xe975d7352830812a6e00032710e28af878de5c1a67e77c0c7e6acbb6e05777e8`.
+- Requester acceptance: `0x734a17056733157dc81514450c6785a6878f0765492e9f3bf9ea1cc6ee29a71d`.
+- Provider withdrawal: `0x38b216b7ba4cb5da0870f4591a6d2c9a5b8caf1f501cb28000273d62a771d567`.
+- Canonical result: `FULFILLED`, provider credit before withdrawal `2 GEN`, after withdrawal `0 GEN`, locked liability `0`, accounting invariant true.
+- Sanitized proof: `docs/evidence/studionet/ms-003-delivery-settlement.json`.

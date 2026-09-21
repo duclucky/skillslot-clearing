@@ -1,0 +1,52 @@
+{
+  "network": "studionet",
+  "chainId": 61999,
+  "contractAddress": "0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5",
+  "sourceCommit": "afa040916d74a13044f3043022c633580e71bbbc",
+  "contractSha256": "6c3f04398c8c991eeebea0d7bd61398fd51760c43e2d336ca187df61b2e28949",
+  "roundId": "slot-mubu7h8g",
+  "requestId": "request-flight",
+  "provider": "0xc495ef51618d03267a1f227afe5b27b38c748272",
+  "requester": "0x45ad397c438397a702b53a7499a78d08961d39db",
+  "artifactDigest": "63dc564d330cfa8f00cf5a05b8a7394f0d7286f0dd781d26def379928174030a",
+  "deliveryStatus": "FULFILLED",
+  "providerCreditBeforeWithdraw": "2 GEN",
+  "providerCreditAfterWithdraw": "0 GEN",
+  "status": "FINALIZED_DELIVERY_SETTLEMENT_PROOF",
+  "transactions": {
+    "submitDelivery": {
+      "transactionHash": "0xe975d7352830812a6e00032710e28af878de5c1a67e77c0c7e6acbb6e05777e8",
+      "status": "FINALIZED",
+      "execution": "FINISHED_WITH_RETURN",
+      "finalizedAt": "2026-09-21T22:54:26.907Z"
+    },
+    "acceptDelivery": {
+      "transactionHash": "0x734a17056733157dc81514450c6785a6878f0765492e9f3bf9ea1cc6ee29a71d",
+      "status": "FINALIZED",
+      "execution": "FINISHED_WITH_RETURN",
+      "finalizedAt": "2026-09-21T22:55:04.333Z"
+    },
+    "withdrawCredit": {
+      "transactionHash": "0x38b216b7ba4cb5da0870f4591a6d2c9a5b8caf1f501cb28000273d62a771d567",
+      "status": "FINALIZED",
+      "execution": "FINISHED_WITH_RETURN",
+      "finalizedAt": "2026-09-21T22:55:51.483Z"
+    }
+  },
+  "accounting": {
+    "before": {
+      "invariant_holds": true,
+      "total_received_wei": "2000000000000000000",
+      "total_locked_wei": "2000000000000000000",
+      "total_credited_wei": "0",
+      "total_withdrawn_wei": "0"
+    },
+    "after": {
+      "invariant_holds": true,
+      "total_received_wei": "2000000000000000000",
+      "total_locked_wei": "0",
+      "total_credited_wei": "0",
+      "total_withdrawn_wei": "2000000000000000000"
+    }
+  }
+}

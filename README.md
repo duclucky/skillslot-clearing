@@ -16,7 +16,7 @@ The product reserves access and adjudicates a bounded provider-submitted artifac
 - Accepted Project deployment: `0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`
 - Milestone `MS-001` deployment: `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`; accepted as Portal contribution `185631`
 - Milestone `MS-002` deployment: `0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b`; accepted on Portal (owner-confirmed; public contribution reference pending capture)
-- Milestone `MS-003`: delivery escrow and validator settlement implemented locally; deployment evidence pending
+- Milestone `MS-003` deployment: `0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5`; Portal submission not yet sent
 - Automated checks: 240 currently pass locally (10 static, 70 direct, 5 receipt parser, 18 deployment tooling, 137 frontend)
 - Verified Windows CI: [`check` run 34170508545](https://github.com/duclucky/skillslot-clearing/actions/runs/34170508545) passed on MS-002 evidence commit `21d72a1`
 - MS-001 dispatch proof: one finalized authorization, two identical HTTP requests returning one deterministic task ID, finalized grant consumption, post-consume HTTP 403, and unchanged GEN accounting during the handoff
@@ -32,6 +32,9 @@ The product reserves access and adjudicates a bounded provider-submitted artifac
 - MS-002 deployment transaction: [`0xc4fc26710d2f9e28f5db83cc3ad48fbc4d42e0d1949f80e10dc897e290f0bbe8`](https://explorer-studio.genlayer.com/transactions/0xc4fc26710d2f9e28f5db83cc3ad48fbc4d42e0d1949f80e10dc897e290f0bbe8)
 - MS-002 executor evidence: [`docs/evidence/studionet/ms-002-executor-permit.json`](docs/evidence/studionet/ms-002-executor-permit.json)
 - MS-002 production evidence: [`docs/evidence/studionet/ms-002-production.json`](docs/evidence/studionet/ms-002-production.json)
+- MS-003 address: [`0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5`](https://explorer-studio.genlayer.com/address/0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5)
+- MS-003 deployment transaction: [`0x5759037505eef0d72f995d99c30405784252878e7e45179949298bb10cc98f5b`](https://explorer-studio.genlayer.com/transactions/0x5759037505eef0d72f995d99c30405784252878e7e45179949298bb10cc98f5b)
+- MS-003 delivery evidence: [`docs/evidence/studionet/ms-003-delivery-settlement.json`](docs/evidence/studionet/ms-003-delivery-settlement.json)
 - Reviewer inventory: [`docs/evidence/studionet/project-explorer-open-rounds.json`](docs/evidence/studionet/project-explorer-open-rounds.json)
 - MS-001 address: [`0x0c43822abD25a0247d0814E7dD501fA19b1C8958`](https://explorer-studio.genlayer.com/address/0x0c43822abD25a0247d0814E7dD501fA19b1C8958)
 - MS-001 deployment transaction: [`0x9f89f92dffe12e9656e246659150914c9e181a0d92a6d645cc1dd21b17f6f785`](https://explorer-studio.genlayer.com/transactions/0x9f89f92dffe12e9656e246659150914c9e181a0d92a6d645cc1dd21b17f6f785)
@@ -45,7 +48,7 @@ The product reserves access and adjudicates a bounded provider-submitted artifac
 
 [`https://skillslot-clearing.vercel.app`](https://skillslot-clearing.vercel.app) is the verified production deployment. It returned HTTP 200, contained the project title and React root, and loaded the canonical `CLEARED` Studionet round on desktop and mobile browser QA. Production OKX Wallet testing finalized `consume_grant` and `withdraw_credit` through the webapp. The UI retained one transaction hash per action, recovered transient status reads without resubmission, and reloaded canonical grant `CONSUMED`, credit `0 GEN`, and accounting invariant true.
 
-The public URL above is configured for the `MS-002` deployment and exposes the fixed-origin A2A reference interface at
+The public URL above is configured for the current milestone deployment and exposes the fixed-origin A2A reference interface at
 `POST /a2a/v1/message:send` and a discovery-only Agent Card at
 `GET /.well-known/agent-card.json`. The send endpoint requires the advertised delegated-executor extension, a valid EIP-191 executor signature, and the exact current onchain executor, epoch, expiry, and task digest.
 
