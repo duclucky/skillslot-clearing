@@ -42,6 +42,10 @@ SkillSlot now keeps each matched request fee and provider bond in escrow after s
 
    https://skillslot-clearing.vercel.app
 
+9. Successful public CI
+
+   https://github.com/duclucky/skillslot-clearing/actions/runs/35666807829
+
 ## Reviewer verification
 
 1. Open the live app and choose **Rounds**. Confirm six canonical OPEN rounds load from the MS-003 contract.

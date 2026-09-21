@@ -13,6 +13,8 @@
 | Baseline deployment | Studionet `0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b` |
 | MS-003 deployment | Studionet `0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5` |
 | Implementation commit | `afa040916d74a13044f3043022c633580e71bbbc` |
+| Verified evidence head | `741cf12ebd1c16329f7b4c74bade83b61374063a` |
+| Public CI | `https://github.com/duclucky/skillslot-clearing/actions/runs/35666807829` (`success`) |
 | Contract digest | `6c3f04398c8c991eeebea0d7bd61398fd51760c43e2d336ca187df61b2e28949` |
 | Portal reference | `NOT_SUBMITTED` |
 
@@ -93,7 +95,7 @@ SkillSlot match and its exact provider/requester identities and capability facts
 - [x] GenVM lint and full `npm run check` pass: 240 checks.
 - [x] A new Studionet deployment proves one complete accepted-delivery payout and withdrawal path; direct tests prove failed, unverifiable, and both recovery branches.
 - [x] Production UI exposes the legal role/state actions and canonical reload.
-- [ ] Public repo, CI, live app, dossier, evidence, and submission copy are verified.
+- [x] Public repo, CI, live app, dossier, evidence, and submission copy are verified.
 
 ## Verified Studionet evidence
 
@@ -105,3 +107,4 @@ SkillSlot match and its exact provider/requester identities and capability facts
 - Canonical result: `FULFILLED`, provider credit before withdrawal `2 GEN`, after withdrawal `0 GEN`, locked liability `0`, accounting invariant true.
 - Sanitized proof: `docs/evidence/studionet/ms-003-delivery-settlement.json`.
 - Production proof: `docs/evidence/studionet/ms-003-production.json`; Vercel deployment `dpl_9bESou4a4uYYRc3ZonzKMmCk4yFm` READY, six OPEN rounds, responsive checks passed, zero console warnings/errors.
+- Public verification: evidence head `741cf12ebd1c16329f7b4c74bade83b61374063a`; Windows CI run `35666807829` completed successfully.

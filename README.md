@@ -18,7 +18,7 @@ The product reserves access and adjudicates a bounded provider-submitted artifac
 - Milestone `MS-002` deployment: `0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b`; accepted on Portal (owner-confirmed; public contribution reference pending capture)
 - Milestone `MS-003` deployment: `0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5`; Portal submission not yet sent
 - Automated checks: 240 currently pass locally (10 static, 70 direct, 5 receipt parser, 18 deployment tooling, 137 frontend)
-- Verified Windows CI: [`check` run 34170508545](https://github.com/duclucky/skillslot-clearing/actions/runs/34170508545) passed on MS-002 evidence commit `21d72a1`
+- Verified Windows CI: [`check` run 35666807829](https://github.com/duclucky/skillslot-clearing/actions/runs/35666807829) passed on MS-003 evidence commit `741cf12`
 - MS-001 dispatch proof: one finalized authorization, two identical HTTP requests returning one deterministic task ID, finalized grant consumption, post-consume HTTP 403, and unchanged GEN accounting during the handoff
 - MS-002 executor proof: finalized task and executor authorizations, two signed HTTP requests returning one deterministic task ID, wrong-signer HTTP 401, post-revoke HTTP 403, and unchanged GEN accounting
 - MS-001 final accounting: 2 GEN received and withdrawn, zero locked or credited liability, invariant true
