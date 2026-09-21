@@ -8,7 +8,7 @@
 - Live app: `https://skillslot-clearing.vercel.app`
 - Original Project contribution: `https://portal.genlayer.foundation/contribution/131883`
 - Latest accepted Milestone: `https://portal.genlayer.foundation/contribution/185631`
-- Portal status: `MS-001 ACCEPTED / MS-002 VERIFIED, NOT SUBMITTED`
+- Portal status: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 SELECTED`
 - Portal contribution date: `2026-08-12`
 - Portal award: `320 points`
 - Ledger initialized: `2026-08-29`
@@ -99,7 +99,8 @@ baseline context only; neither class may be presented as the new phase delta.
 | Milestone ID | Title | Status | Baseline reference | Delta fingerprint | Commit range | Deployment identity | Evidence index | Portal reference | Outcome date | Supersedes/extends | Lessons and follow-up |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `MS-001` | Onchain-Bound A2A Task Handoff | `ACCEPTED` | Accepted Portal `131883`; public evidence `eec0551`; working base `67c531a` | Task-specific onchain authorization plus deployed A2A 1.0 reference endpoint | Implementation range `67c531a..be1a8cd`; accepted evidence head `69fded8` | Studionet `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`; source `be1a8cd`; deploy `0x9f89f9...f6f785` | `docs/milestones/MS-001/README.md`; `docs/evidence/studionet/ms-001-a2a-dispatch.json`; `docs/evidence/studionet/ms-001-production.json` | Portal contribution `185631`; submission ID `612ee13c-eaec-4352-a262-0e16748ece97` | `2026-09-06` | Extends original Project grants and `can_route`; no earlier Milestone | Awarded 300 points; staff: “This is a meaningful update to the project and qualifies as a Milestone.” Keep third-party card authentication and adoption separate. |
-| `MS-002` | Delegated Agent Execution Permits | `VERIFIED — NOT SUBMITTED` | Accepted MS-001 Portal `185631`; reconciliation `c0bf081` | Requester-controlled executor EOA, bounded epoch/expiry, EIP-191 invocation, and revocation | Implementation `7a5047e`; verified evidence head `21d72a1` | Studionet `0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b`; source `7a5047e`; deploy `0xc4fc267...f0bbe8` | `docs/milestones/MS-002/README.md`; `docs/evidence/studionet/ms-002-executor-permit.json`; `docs/evidence/studionet/ms-002-production.json`; CI `34170508545` | `NOT_SUBMITTED` | — | Extends exact-task dispatch with a distinct authenticated executor boundary; no value, delivery, adoption, or third-party-card claim | Await explicit Portal submission authorization and outcome before locking MS-003. |
+| `MS-002` | Delegated Agent Execution Permits | `ACCEPTED` | Accepted MS-001 Portal `185631`; reconciliation `c0bf081` | Requester-controlled executor EOA, bounded epoch/expiry, EIP-191 invocation, and revocation | Implementation `7a5047e`; accepted evidence head `21d72a1` | Studionet `0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b`; source `7a5047e`; deploy `0xc4fc267...f0bbe8` | `docs/milestones/MS-002/README.md`; `docs/evidence/studionet/ms-002-executor-permit.json`; `docs/evidence/studionet/ms-002-production.json`; CI `34170508545` | `ACCEPTED — owner-confirmed; public contribution reference pending capture` | `2026-09-21` | Extends MS-001 exact-task dispatch with a distinct authenticated executor boundary | Acceptance was confirmed by the project owner. Preserve the public-reference evidence gap until the contribution URL is captured; do not reuse executor-permit claims. |
+| `MS-003` | Delivery Escrow & Validator Settlement | `SELECTED` | Accepted MS-002 source `7a5047e`; evidence head `21d72a1`; working base `b742585` | Matched fee/bond remain escrowed until authenticated delivery is accepted, validator-settled, or safely recovered | `PENDING` | `PENDING_REAL_EVIDENCE` | `docs/milestones/MS-003/README.md` | `NOT_SUBMITTED` | — | Extends matched grants with a new delivery and GEN-settlement lifecycle; does not recount clearing, task authorization, or executor permits | Build the bounded vertical slice; keep third-party Agent Card trust and adoption separate. |
 
 ## Adaptive backlog
 
@@ -114,6 +115,7 @@ after every verified Portal outcome.
 | `BL-003` | Verified external adoption/traction by an A2A router, MCP marketplace, or scheduler | `NEW` only when independently sourced usage exists | Real consumer, deduplicated usage metrics, public integration evidence | `BACKLOG` |
 | `BL-004` | Architecture/security increment that creates a new authenticated consumer boundary | `UNASSESSED`; routine refactor is ineligible | Threat model, new enforcement consequence, regression/property evidence | `BACKLOG` |
 | `BL-005` | Delegated agent execution permits for an exact requester-authorized A2A task | `EXTENDS` accepted task dispatch with a new authenticated executor boundary | EOA signature verification, bounded expiry/epoch, revocation, import/export UX, live signed proof | `SELECTED_AS_MS-002` |
+| `BL-006` | Authenticated delivery escrow with requester acceptance, validator dispute resolution, and permissionless recovery | `EXTENDS` matched grants with a new post-match value consequence | Provider-authored bounded artifact, exact match binding, semantic fulfillment judgment, timeout recovery, browser lifecycle | `SELECTED_AS_MS-003` |
 
 The A2A research reference was refreshed on `2026-08-29`: upstream release `v1.0.1` was published on
 `2026-05-28`, and upstream `main` was observed at commit
@@ -161,13 +163,11 @@ Agent Cards.
 
 ## Current phase pointer
 
-- Active Milestone: `MS-002 — Delegated Agent Execution Permits`
-- Program state: `MS-001 ACCEPTED / MS-002 VERIFIED — PORTAL NOT SUBMITTED`
-- Last Portal reconciliation: `2026-09-08`
-- Reconciliation evidence: authenticated Portal history shows Milestone v1 `Onchain-Bound A2A Task
-  Handoff` as `Accepted`, contribution `185631`, reviewed `2026-09-06`, awarded 300 points, with staff
-  confirmation that the update qualifies as a Milestone.
-- Next allowed action: push the verified MS-002 evidence, verify GitHub CI, prepare the copy-ready
-  Portal packet, and stop before final Portal Submit until explicit action-time authorization. Keep
-  signed Agent Cards, arbitrary destinations, service delivery, financial consequences, and external
-  adoption in backlog; do not lock MS-003 until the MS-002 Portal outcome is recorded.
+- Active Milestone: `MS-003 — Delivery Escrow & Validator Settlement`
+- Program state: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 SELECTED`
+- Last Portal reconciliation: `2026-09-21`
+- Reconciliation evidence: project-owner confirmation that MS-002 was approved. The exact public
+  contribution reference remains an explicit evidence gap and must be captured before MS-003 is
+  packaged for submission.
+- Next allowed action: implement and verify MS-003. Do not submit it until its live lifecycle, public
+  evidence, and explicit action-time Portal authorization exist.

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -9,11 +10,13 @@ import {
   buildExecutorPermitMessage,
   currentAttemptId,
   deploymentIdentity,
+  executeDeliverySettlementProof,
   executeDispatchProof,
   executeExecutorPermitProof,
   formatGenBalance,
   loadEnvironment,
   projectDispatchProofEvidence,
+  projectDeliverySettlementProofEvidence,
   projectExecutorPermitProofEvidence,
   rpcRetryDelayMs,
   sanitizeEvidence,
@@ -312,4 +315,101 @@ test("reviewer open-round inventory is exposed as a resumable deployment command
 
   assert.match(source, /command === "seed-open-rounds"/);
   assert.equal(packageJson.scripts["seed:studionet"], "node scripts/deploy_studionet.mjs seed-open-rounds");
+});
+
+test("delivery settlement proof submits, accepts, withdraws, and resumes without replay", async () => {
+  const calls = { submit: 0, accept: 0, withdraw: 0 };
+  const canonical = {
+    request_id: "request-1",
+    delivery_status: "AWAITING_DELIVERY",
+    delivery_digest: "",
+  };
+  let providerCredit = 0n;
+  const accounting = {
+    total_received_wei: String(2n * 10n ** 18n),
+    total_locked_wei: String(2n * 10n ** 18n),
+    total_credited_wei: "0",
+    total_withdrawn_wei: "0",
+    invariant_holds: true,
+  };
+  const context = {
+    contractAddress: "0x00000000000000000000000000000000000000AA",
+    roundId: "round-1",
+    requestId: "request-1",
+    provider: "0x00000000000000000000000000000000000000BB",
+    requester: "0x00000000000000000000000000000000000000CC",
+    artifact: "ipfs://skillslot-delivery-proof-001",
+  };
+  const artifactDigest = createHash("sha256").update(context.artifact, "utf8").digest("hex");
+  const dependencies = {
+    readMatch: async () => ({ ...canonical }),
+    readAccounting: async () => ({ ...accounting }),
+    readProviderCredit: async () => providerCredit.toString(),
+    submitDelivery: async () => {
+      calls.submit += 1;
+      canonical.delivery_status = "SUBMITTED";
+      canonical.delivery_digest = artifactDigest;
+      return { transactionHash: "0xsubmit", status: "FINALIZED", execution: "FINISHED_WITH_RETURN" };
+    },
+    acceptDelivery: async () => {
+      calls.accept += 1;
+      canonical.delivery_status = "FULFILLED";
+      providerCredit = 2n * 10n ** 18n;
+      accounting.total_locked_wei = "0";
+      accounting.total_credited_wei = providerCredit.toString();
+      return { transactionHash: "0xaccept", status: "FINALIZED", execution: "FINISHED_WITH_RETURN" };
+    },
+    withdrawCredit: async (amount) => {
+      calls.withdraw += 1;
+      assert.equal(amount, 2n * 10n ** 18n);
+      providerCredit = 0n;
+      accounting.total_credited_wei = "0";
+      accounting.total_withdrawn_wei = amount.toString();
+      return { transactionHash: "0xwithdraw", status: "FINALIZED", execution: "FINISHED_WITH_RETURN" };
+    },
+    persist: () => {},
+  };
+
+  const proof = await executeDeliverySettlementProof({}, context, dependencies);
+  assert.equal(proof.status, "FINALIZED_DELIVERY_SETTLEMENT_PROOF");
+  assert.equal(proof.deliveryStatus, "FULFILLED");
+  assert.equal(proof.providerCreditBeforeWithdraw, "2 GEN");
+  assert.equal(proof.providerCreditAfterWithdraw, "0 GEN");
+  assert.deepEqual(calls, { submit: 1, accept: 1, withdraw: 1 });
+
+  await executeDeliverySettlementProof(proof, context, dependencies);
+  assert.deepEqual(calls, { submit: 1, accept: 1, withdraw: 1 });
+});
+
+test("delivery evidence excludes artifact content and unknown receipt fields", () => {
+  const projected = projectDeliverySettlementProofEvidence({
+    network: "studionet",
+    contractAddress: "0x111",
+    roundId: "round-1",
+    requestId: "request-1",
+    provider: "0x222",
+    requester: "0x333",
+    artifact: "private delivery content",
+    artifactDigest: "a".repeat(64),
+    deliveryStatus: "FULFILLED",
+    providerCreditBeforeWithdraw: "2 GEN",
+    providerCreditAfterWithdraw: "0 GEN",
+    transactions: { submitDelivery: { transactionHash: "0xaaa", status: "FINALIZED", trace: "secret" } },
+    accounting: { before: { invariant_holds: true, total_locked_wei: "2" }, after: { invariant_holds: true, total_locked_wei: "0" } },
+    status: "FINALIZED_DELIVERY_SETTLEMENT_PROOF",
+  });
+
+  const serialized = JSON.stringify(projected);
+  assert.equal(serialized.includes("private delivery content"), false);
+  assert.equal(serialized.includes("secret"), false);
+  assert.equal(projected.artifactDigest, "a".repeat(64));
+});
+
+test("delivery-proof is exposed as a resumable deployment command", () => {
+  const root = path.resolve(import.meta.dirname, "..");
+  const source = readFileSync(path.join(root, "scripts", "deploy_studionet.mjs"), "utf8");
+  const packageJson = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"));
+
+  assert.match(source, /command === "delivery-proof"/);
+  assert.equal(packageJson.scripts["delivery:studionet"], "node scripts/deploy_studionet.mjs delivery-proof");
 });

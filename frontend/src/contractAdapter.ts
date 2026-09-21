@@ -94,6 +94,13 @@ interface MatchRecord {
   executor_status?: string;
   executor_expires_at?: string;
   executor_epoch?: string;
+  delivery_status?: string;
+  delivery_artifact?: string;
+  delivery_digest?: string;
+  delivery_reason?: string;
+  delivery_deadline?: string;
+  delivery_recovery_at?: string;
+  delivery_attempt_count?: string;
 }
 
 type Clients = {
@@ -236,9 +243,10 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
         });
         });
         for (const match of matches) {
-          if (!match.request_id || !sameAddress(match.requester, account)) continue;
-          const canRoute = await read<boolean>(readClient, "can_route", [round.round_id, match.request_id, account]);
-          positions.push({
+          if (!match.request_id) continue;
+          if (sameAddress(match.requester, account)) {
+            const canRoute = await read<boolean>(readClient, "can_route", [round.round_id, match.request_id, account]);
+            positions.push({
             id: `${round.round_id}:${match.request_id}`,
             requestId: match.request_id,
             roundId: round.round_id,
@@ -251,7 +259,34 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
             executorStatus: match.executor_status || undefined,
             executorExpiresAt: match.executor_expires_at || undefined,
             executorEpoch: match.executor_epoch || undefined,
+            actorRole: "requester",
+            deliveryStatus: match.delivery_status || undefined,
+            deliveryArtifact: match.delivery_artifact || undefined,
+            deliveryDigest: match.delivery_digest || undefined,
+            deliveryReason: match.delivery_reason || undefined,
+            deliveryDeadline: match.delivery_deadline || undefined,
+            deliveryRecoveryAt: match.delivery_recovery_at || undefined,
+            deliveryAttemptCount: match.delivery_attempt_count || undefined,
           });
+          }
+          if (sameAddress(match.provider, account)) {
+            positions.push({
+              id: `delivery:${round.round_id}:${match.request_id}`,
+              requestId: match.request_id,
+              roundId: round.round_id,
+              kind: "delivery",
+              status: match.delivery_status || "AWAITING_DELIVERY",
+              summary: `Deliver ${match.offer_id || "matched service"}`,
+              actorRole: "provider",
+              deliveryStatus: match.delivery_status || undefined,
+              deliveryArtifact: match.delivery_artifact || undefined,
+              deliveryDigest: match.delivery_digest || undefined,
+              deliveryReason: match.delivery_reason || undefined,
+              deliveryDeadline: match.delivery_deadline || undefined,
+              deliveryRecoveryAt: match.delivery_recovery_at || undefined,
+              deliveryAttemptCount: match.delivery_attempt_count || undefined,
+            });
+          }
         }
       }
     }
@@ -386,6 +421,10 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
     authorizeExecutor: ({ roundId, requestId, executor, expiresAt }) =>
       execute("authorize_executor", [roundId, requestId, executor, BigInt(expiresAt)]),
     revokeExecutor: ({ roundId, requestId }) => execute("revoke_executor", [roundId, requestId]),
+    submitDelivery: ({ roundId, requestId, artifact }) => execute("submit_delivery", [roundId, requestId, artifact]),
+    acceptDelivery: ({ roundId, requestId }) => execute("accept_delivery", [roundId, requestId]),
+    reviewDelivery: ({ roundId, requestId }) => execute("review_delivery", [roundId, requestId]),
+    recoverDelivery: ({ roundId, requestId }) => execute("recover_delivery", [roundId, requestId]),
     signMessage: signActiveWalletMessage,
     consumeGrant: ({ roundId, requestId }) => execute("consume_grant", [roundId, requestId]),
     withdrawCredit: (amountWei: string) => execute("withdraw_credit", [BigInt(amountWei)]),
@@ -423,6 +462,10 @@ export function createUnconfiguredAdapter(): ContractAdapter {
     authorizeDispatch: unavailable,
     authorizeExecutor: unavailable,
     revokeExecutor: unavailable,
+    submitDelivery: unavailable,
+    acceptDelivery: unavailable,
+    reviewDelivery: unavailable,
+    recoverDelivery: unavailable,
     signMessage: unavailable,
     consumeGrant: unavailable,
     withdrawCredit: unavailable,

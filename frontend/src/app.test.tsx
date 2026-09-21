@@ -24,6 +24,10 @@ function adapterFor(snapshot: WorkspaceSnapshot): ContractAdapter {
     revokeExecutor: vi.fn(async () => ({ hash: "0xrevoke" })),
     signMessage: vi.fn(async () => `0x${"11".repeat(65)}`),
     consumeGrant: vi.fn(async () => ({ hash: "0xconsume" })),
+    submitDelivery: vi.fn(async () => ({ hash: "0xdelivery" })),
+    acceptDelivery: vi.fn(async () => ({ hash: "0xaccept" })),
+    reviewDelivery: vi.fn(async () => ({ hash: "0xreview" })),
+    recoverDelivery: vi.fn(async () => ({ hash: "0xdelivery-recover" })),
     withdrawCredit: vi.fn(async () => ({ hash: "0xwithdraw" })),
   };
 }

@@ -94,31 +94,26 @@ def test_complete_two_by_two_graph_creates_two_grants_and_exact_credits(
     assert result["verdict"] == "CLEARABLE"
     assert contract.get_round("round-alpha")["phase"] == "CLEARED"
     assert contract.get_round("round-alpha")["match_count"] == "2"
-    assert contract.get_match("round-alpha", "request-flight") == {
-        "round_id": "round-alpha",
-        "offer_id": "offer-flight",
-        "request_id": "request-flight",
-        "provider": to_hex(provider_one),
-        "requester": to_hex(requester_one),
-        "grant_status": "ACTIVE",
-        "dispatch_digest": "",
-        "dispatch_status": "NONE",
-        "executor": "",
-        "executor_status": "NONE",
-        "executor_expires_at": "0",
-        "executor_epoch": "0",
-    }
+    flight_match = contract.get_match("round-alpha", "request-flight")
+    assert flight_match["round_id"] == "round-alpha"
+    assert flight_match["offer_id"] == "offer-flight"
+    assert flight_match["request_id"] == "request-flight"
+    assert flight_match["provider"] == to_hex(provider_one)
+    assert flight_match["requester"] == to_hex(requester_one)
+    assert flight_match["grant_status"] == "ACTIVE"
+    assert flight_match["delivery_status"] == "AWAITING_DELIVERY"
+    assert flight_match["delivery_digest"] == ""
     assert contract.get_match("round-alpha", "request-hotel")["offer_id"] == "offer-hotel"
     assert contract.can_route("round-alpha", "request-flight", to_hex(requester_one)) is True
     assert contract.can_route("round-alpha", "request-flight", to_hex(requester_two)) is False
-    assert contract.get_credit(to_hex(provider_one)) == str(2 * UNIT_GEN)
-    assert contract.get_credit(to_hex(provider_two)) == str(2 * UNIT_GEN)
+    assert contract.get_credit(to_hex(provider_one)) == "0"
+    assert contract.get_credit(to_hex(provider_two)) == "0"
     assert contract.get_credit(to_hex(requester_one)) == "0"
     assert contract.get_credit(to_hex(requester_two)) == "0"
     assert contract.get_accounting() == {
         "total_received_wei": str(4 * UNIT_GEN),
-        "total_locked_wei": "0",
-        "total_credited_wei": str(4 * UNIT_GEN),
+        "total_locked_wei": str(4 * UNIT_GEN),
+        "total_credited_wei": "0",
         "total_withdrawn_wei": "0",
         "invariant_holds": True,
     }
@@ -152,10 +147,10 @@ def test_request_order_consumes_unit_capacity_once_and_refunds_unmatched(
     assert contract.get_match("round-alpha", "request-first")["grant_status"] == "ACTIVE"
     assert contract.get_match("round-alpha", "request-second") == {}
     assert contract.get_request("round-alpha", "request-second")["outcome"] == "UNMATCHED"
-    assert contract.get_credit(to_hex(provider)) == str(2 * UNIT_GEN)
+    assert contract.get_credit(to_hex(provider)) == "0"
     assert contract.get_credit(to_hex(requester_two)) == str(UNIT_GEN)
     assert contract.get_credit(to_hex(requester_one)) == "0"
-    assert contract.get_round("round-alpha")["locked_liability_wei"] == "0"
+    assert contract.get_round("round-alpha")["locked_liability_wei"] == str(2 * UNIT_GEN)
 
 
 def test_clear_requires_creator_and_locked_or_retryable_state(
@@ -288,8 +283,9 @@ def test_unverifiable_attempt_preserves_funds_and_can_retry_successfully(
     assert contract.get_round("round-alpha")["phase"] == "CLEARED"
     assert contract.get_round("round-alpha")["attempt_count"] == "2"
     assert contract.get_accounting()["invariant_holds"] is True
-    assert contract.get_credit(to_hex(provider_one)) == str(2 * UNIT_GEN)
-    assert contract.get_credit(to_hex(provider_two)) == str(2 * UNIT_GEN)
+    assert contract.get_credit(to_hex(provider_one)) == "0"
+    assert contract.get_accounting()["total_locked_wei"] == str(4 * UNIT_GEN)
+    assert contract.get_credit(to_hex(provider_two)) == "0"
     assert contract.get_credit(to_hex(requester_one)) == "0"
     assert contract.get_credit(to_hex(requester_two)) == "0"
 

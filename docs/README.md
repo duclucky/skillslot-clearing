@@ -373,10 +373,15 @@ in v1. Validator prose and response ordering cannot affect the result.
 
 | Accepted normalized result | Deterministic consequence |
 | --- | --- |
-| `CLEARABLE`, request matched | create one `ACTIVE` grant; credit its provider the request's 1 GEN booking fee |
+| `CLEARABLE`, request matched | create one `ACTIVE` grant; keep the requester's 1 GEN fee and matched provider's 1 GEN bond locked in delivery escrow |
 | `CLEARABLE`, request unmatched | credit its requester the 1 GEN booking-fee refund |
-| `CLEARABLE`, every submitted offer | credit its provider the 1 GEN provider-bond refund, matched or not |
-| completed `CLEARABLE` round | set all order outcomes, set round liability to zero, record match count, set `CLEARED` |
+| `CLEARABLE`, unmatched offer | credit its provider the 1 GEN provider-bond refund |
+| completed `CLEARABLE` round | set all order outcomes, retain only matched delivery escrow, record match count, set `CLEARED` |
+| requester accepts artifact or validators return `FULFILLED` | credit matched provider the 1 GEN fee plus its 1 GEN bond |
+| validators return `FAILED` | credit matched requester the 1 GEN fee plus matched provider's 1 GEN bond |
+| delivery review returns `UNVERIFIABLE` | set delivery `RETRYABLE`; move no value |
+| delivery timeout with no artifact | credit requester the 1 GEN fee plus matched provider's 1 GEN bond |
+| delivery timeout with unresolved artifact | refund requester fee and return provider bond without penalty |
 | `UNVERIFIABLE` | set `RETRYABLE`; no money/right consequence |
 | expired `OPEN`/`LOCKED`/`RETRYABLE` | any caller can credit each locked deposit back to its original actor and set `CANCELLED`; no provider fee is released |
 | failed, rejected, or undetermined transaction | no accepted canonical change; frontend offers transaction recovery |
@@ -391,8 +396,9 @@ total_received_wei
 ```
 
 - A payable submission increases received and locked by exactly 1 GEN.
-- Clearing or cancellation moves each recorded deposit exactly once from
-  locked liability to an actor credit; received is unchanged.
+- Clearing moves unmatched deposits once and retains matched deposits as delivery
+  escrow; delivery settlement, cancellation, or recovery moves each remaining
+  deposit exactly once from locked liability to an actor credit; received is unchanged.
 - Withdrawal checks `0 < amount <= caller_credit`, debits caller credit and
   `total_credited_wei`, increments `total_withdrawn_wei`, then emits the external
   transfer. A transfer failure reverts the whole transaction.
@@ -413,10 +419,14 @@ surfaces convert base units to GEN and use only small whole-GEN demo values.
 | `submit_offer` | any wallet with no offer in round and authenticated metadata | `OPEN` before deadline; forbidden in all later/terminal phases | duplicate actor or ID rejects | receive and lock exactly 1 GEN | `get_round`, `get_offer`, `get_accounting` | wrong value, bad issuer/proof/hash, provider/capability/expiry mismatch, duplicate actor/ID, fifth offer, wrong state, finalized/cancelled, invariant |
 | `submit_request` | any wallet with no request in round | `OPEN` before deadline; forbidden in all later/terminal phases | duplicate actor or ID rejects | receive and lock exactly 1 GEN | `get_round`, `get_request`, `get_accounting` | wrong value, duplicate actor/ID, fifth request, wrong state, finalized/cancelled, invariant |
 | `lock_round` | round creator only | `OPEN` with both sides before deadline; forbidden elsewhere | duplicate lock rejects | non-payable; totals unchanged | `get_round` | wrong caller, empty side, wrong state, expired, duplicate, cancelled/finalized, invariant unchanged |
-| `clear_round` | round creator only | `LOCKED` or `RETRYABLE` before clear deadline; forbidden elsewhere | only `RETRYABLE` creates a new bounded attempt | `CLEARABLE` moves all liability to credits; `UNVERIFIABLE` moves none | all round/order/match/credit/accounting views | wrong caller/state, expired, duplicate after clear, malformed/malicious/contradictory output, retry, terminal state, exact credits/invariant |
+| `clear_round` | round creator only | `LOCKED` or `RETRYABLE` before clear deadline; forbidden elsewhere | only `RETRYABLE` creates a new bounded attempt | `CLEARABLE` refunds unmatched positions and retains matched fee/bond escrow; `UNVERIFIABLE` moves none | all round/order/match/credit/accounting views | wrong caller/state, expired, duplicate after clear, malformed/malicious/contradictory output, retry, terminal state, exact credits/invariant |
 | `cancel_round` | creator checked before phase check | `OPEN`; duplicate creator call in `CANCELLED` is no-op; all other phases forbidden | documented no-op only for creator on `CANCELLED` | credits every recorded deposit once and zeros round liability | round/order/credit/accounting views | wrong caller including cancelled, locked/retryable/cleared, duplicate, two-round isolation, no double-credit, invariant |
 | `recover_expired_round` | any wallet | expired `OPEN`, `LOCKED`, or `RETRYABLE`; forbidden before deadline and after `CLEARED` | duplicate on `CANCELLED` is no-op | refund-only credits locked deposits to original actors; no fee payout | round/order/credit/accounting views | before deadline, cleared state, duplicate call, wrong accounting, no double-credit |
 | `consume_grant` | matched requester only | round `CLEARED` and grant `ACTIVE`; forbidden otherwise | second use rejects | non-payable; totals unchanged | `get_match`, `can_route` | wrong wallet, unmatched request, pre-finalized/cancelled, duplicate, other-round request, invariant unchanged |
+| `submit_delivery` | matched provider only | `AWAITING_DELIVERY` or `RETRYABLE` before delivery deadline | same retry digest is a no-op; other legal artifact replaces retry evidence | non-payable; escrow unchanged | `get_match`, `get_accounting` | wrong wallet, malformed artifact, exact deadline, wrong/terminal state, invariant unchanged |
+| `accept_delivery` | matched requester only | submitted/retryable artifact before recovery boundary | terminal second call rejects | credit provider the matched fee and bond exactly once | `get_match`, `get_credit`, `get_accounting` | wrong wallet, missing artifact, boundary, duplicate, exact payout/invariant |
+| `review_delivery` | any wallet | submitted/retryable artifact | `UNVERIFIABLE` remains retryable; terminal verdict cannot replay | `FULFILLED` pays provider; `FAILED` pays requester; `UNVERIFIABLE` moves none | `get_match`, `get_credit`, `get_accounting` | malformed/contradictory judgment, terminal replay, missing artifact, exact destinations/invariant |
+| `recover_delivery` | any wallet | unresolved delivery at or after recovery boundary | terminal call rejects | no artifact pays requester both deposits; unresolved artifact refunds fee and returns bond | `get_match`, `get_credit`, `get_accounting` | pre-boundary, both recovery branches, duplicate, exact destinations/invariant |
 | `withdraw_credit` | caller may debit only own credit | positive amount no greater than credit | duplicate/over-credit rejects | debit before external transfer; credited decreases, withdrawn increases | `get_credit`, `get_accounting` | zero/negative/over-credit, double withdrawal, debit-before-transfer, external recipient, transfer revert, invariant |
 
 ## Threat model and controls
@@ -431,6 +441,8 @@ surfaces convert base units to GEN and use only small whole-GEN demo values.
 | Duplicate/replayed writes | double position, grant, or value movement | stable IDs, actor indexes, terminal phases, debit-before-transfer, explicit duplicate tests |
 | External Agent Card is false or replaced | unsupported payout or routing | hash/issuer/provider/capability/expiry mismatch rejects the offer before value can be released |
 | Validator/source outage | funds penalized without evidence | `UNVERIFIABLE -> RETRYABLE`, no grant/credit movement |
+| Provider submits self-authored artifact as if it were external truth | unjustified payout | artifact is authenticated only as provider-authored; validators judge bounded semantic fulfillment, UI/docs do not claim independent real-world observation, and `UNVERIFIABLE` moves no value |
+| Creator/requester abandons matched escrow | funds remain locked indefinitely | fixed delivery and recovery boundaries; `recover_delivery` is permissionless and deterministic |
 | Frontend lies about success | user acts on nonexistent state | explicit transaction stages and canonical reload after finalization; no local canonical state |
 | Superseded deployment retains value | stranded GEN | revision identity, resumable scripts, close/refund/withdraw plan, zero-liability evidence |
 
@@ -443,15 +455,20 @@ surfaces convert base units to GEN and use only small whole-GEN demo values.
 | requester need/exclusions | requester call | sender authenticates it as that requester's own need | eligible for matching/refund of its own fee | write rejects; no inferred need |
 | received GEN | GenVM message value | runtime value semantics | locked liability only | exact-value write rejects |
 | semantic pair decisions | GenLayer equivalence principle | independent validator execution and normalized critical equality | deterministic grant/credit settlement | `UNVERIFIABLE`/rejected tx; non-penalizing |
+| delivery artifact | matched provider write | `gl.message.sender`, exact cleared match, bounded text, stored SHA-256 digest | becomes admissible evidence for acceptance/review only | wrong actor/deadline/state rejects; no payout on submission |
+| requester delivery acceptance | matched requester write | `gl.message.sender` and exact match | deterministic provider fee+bond release | wrong actor/state/deadline rejects |
+| delivery verdict | GenLayer equivalence principle over locked offer, need, capabilities, exclusions, and provider artifact | independent normalized verdict equality | deterministic provider/requester payout or no-movement retry | malformed/unavailable/contradictory result becomes `UNVERIFIABLE` |
+| delivery timeout | canonical timestamps and unresolved delivery state | GenVM time plus permissionless caller | deterministic recovery destination matrix | pre-boundary rejects; terminal state cannot settle twice |
 | exact A2A task authorization | canonical request SHA-256 committed by the matched requester | requester EOA plus active cleared grant in contract state | fixed-origin endpoint may return one deterministic `SUBMITTED` receipt for exact bytes only | HTTP rejection; no chain/accounting mutation or service-completion claim |
 | A2A Agent Cards and sample repo | official public source pinned for design research | repository commit and upstream provenance | none in v1 | omit from contract decision; no penalty |
 | transaction finality/result | Studionet receipt/explorer | network receipt, allowlisted safe projection | frontend may reload/show finalized state | failed/undetermined; no success claim |
 | screenshots/browser captures | project evidence package | public URL/time plus canonical state reference | reviewer evidence only | mark pending; never substitute for receipt/state |
 
-No hash, screenshot, claimant-hosted JSON, or LLM assertion is treated as proof
-of external performance. If later versions settle on delivery quality, they must
-add an authoritative issuer/signature/replay/version mechanism and pass a new
-authenticity gate.
+No hash, screenshot, claimant-hosted JSON, or LLM assertion is treated as
+independent proof of external real-world performance. MS-003 authenticates who
+submitted the bounded artifact and lets validators adjudicate its semantic fit
+to the locked marketplace commitments; it does not claim an external delivery
+oracle or third-party issuer.
 
 ## Claim-to-code matrix
 

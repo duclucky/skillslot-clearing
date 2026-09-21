@@ -22,7 +22,7 @@ export interface RoundView {
 
 export interface PositionView {
   id: string;
-  kind: "offer" | "request" | "grant";
+  kind: "offer" | "request" | "grant" | "delivery";
   status: string;
   summary: string;
   roundId: string;
@@ -33,6 +33,14 @@ export interface PositionView {
   executorStatus?: string;
   executorExpiresAt?: string;
   executorEpoch?: string;
+  actorRole?: "provider" | "requester";
+  deliveryStatus?: string;
+  deliveryArtifact?: string;
+  deliveryDigest?: string;
+  deliveryReason?: string;
+  deliveryDeadline?: string;
+  deliveryRecoveryAt?: string;
+  deliveryAttemptCount?: string;
 }
 
 export interface WorkspaceSnapshot {
@@ -119,6 +127,10 @@ export interface ContractAdapter {
   authorizeDispatch(input: { roundId: string; requestId: string; taskDigest: string }): Promise<TransactionReceipt>;
   authorizeExecutor(input: { roundId: string; requestId: string; executor: string; expiresAt: string }): Promise<TransactionReceipt>;
   revokeExecutor(input: { roundId: string; requestId: string }): Promise<TransactionReceipt>;
+  submitDelivery(input: { roundId: string; requestId: string; artifact: string }): Promise<TransactionReceipt>;
+  acceptDelivery(input: { roundId: string; requestId: string }): Promise<TransactionReceipt>;
+  reviewDelivery(input: { roundId: string; requestId: string }): Promise<TransactionReceipt>;
+  recoverDelivery(input: { roundId: string; requestId: string }): Promise<TransactionReceipt>;
   signMessage(message: string): Promise<string>;
   consumeGrant(input: { roundId: string; requestId: string }): Promise<TransactionReceipt>;
   withdrawCredit(amountWei: string): Promise<TransactionReceipt>;

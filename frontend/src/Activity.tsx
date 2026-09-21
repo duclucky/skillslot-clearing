@@ -5,6 +5,7 @@ import type { ContractAdapter, WorkspaceSnapshot } from "./domain";
 import type { RunWrite } from "./Marketplace";
 import { A2AHandoff } from "./A2AHandoff";
 import { ExecutorConsole } from "./ExecutorConsole";
+import { DeliverySettlement } from "./DeliverySettlement";
 
 interface ActivityProps {
   snapshot: WorkspaceSnapshot;
@@ -51,6 +52,9 @@ export function Activity({ snapshot, adapter, busy, runWrite, onOpenRound }: Act
                   ) : null}
                   <button className="button button-secondary" type="button" disabled={busy} onClick={() => void runWrite(() => adapter.consumeGrant({ roundId: position.roundId, requestId: position.requestId! }))}>Consume grant</button>
                 </div>
+              ) : null}
+              {(position.kind === "delivery" || position.kind === "grant") && position.requestId && position.deliveryStatus ? (
+                <DeliverySettlement position={position} adapter={adapter} busy={busy} runWrite={runWrite} />
               ) : null}
             </article>
           ))}

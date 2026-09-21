@@ -58,8 +58,15 @@ function clients() {
         dispatch_status: "AUTHORIZED",
         executor: "0x00000000000000000000000000000000000000cc",
         executor_status: "AUTHORIZED",
-        executor_expires_at: "1900000000",
-        executor_epoch: "2",
+         executor_expires_at: "1900000000",
+         executor_epoch: "2",
+         delivery_status: "AWAITING_DELIVERY",
+         delivery_artifact: "",
+         delivery_digest: "",
+         delivery_reason: "",
+         delivery_deadline: "1900003600",
+         delivery_recovery_at: "1900010800",
+         delivery_attempt_count: "0",
       };
     }
     if (functionName === "can_route") return true;
@@ -121,7 +128,7 @@ describe("GenLayer contract adapter", () => {
 
     expect(snapshot.rounds.map((round) => round.id)).toEqual(["round-1"]);
     expect(snapshot.creditGen).toBe("1");
-    expect(snapshot.positions.map((item) => item.kind)).toEqual(["offer", "request", "grant"]);
+    expect(snapshot.positions.map((item) => item.kind)).toEqual(["offer", "request", "grant", "delivery"]);
     expect(snapshot.positions.find((item) => item.kind === "grant")).toMatchObject({
       dispatchDigest: "a".repeat(64),
       dispatchStatus: "AUTHORIZED",
@@ -129,6 +136,13 @@ describe("GenLayer contract adapter", () => {
       executorStatus: "AUTHORIZED",
       executorExpiresAt: "1900000000",
       executorEpoch: "2",
+      deliveryStatus: "AWAITING_DELIVERY",
+      deliveryDeadline: "1900003600",
+    });
+    expect(snapshot.positions.find((item) => item.kind === "delivery")).toMatchObject({
+      actorRole: "provider",
+      deliveryStatus: "AWAITING_DELIVERY",
+      deliveryRecoveryAt: "1900010800",
     });
     expect(readClient.readContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "can_route" }));
     expect(readClient.readContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "get_accounting" }));
@@ -175,13 +189,14 @@ describe("GenLayer contract adapter", () => {
     expect(snapshot.rounds.map((round) => round.id)).toEqual(["round-open", "round-cleared", "round-cancelled"]);
     expect(snapshot.positions.map((position) => position.roundId)).toEqual([
       "round-open",
-      "round-cleared",
-      "round-cleared",
-      "round-cleared",
-    ]);
+       "round-cleared",
+       "round-cleared",
+       "round-cleared",
+       "round-cleared",
+     ]);
   });
 
-  it("maps all twelve writes, exact GEN value, and submitted/accepted/finalized progress", async () => {
+  it("maps all sixteen writes, exact GEN value, and submitted/accepted/finalized progress", async () => {
     const { readClient, writeClient } = clients();
     const progress = vi.fn();
     const adapter = createGenLayerAdapter({
@@ -202,9 +217,13 @@ describe("GenLayer contract adapter", () => {
     await adapter.authorizeExecutor({ roundId: "round-1", requestId: "request-1", executor: "0x00000000000000000000000000000000000000cc", expiresAt: "1900000000" });
     await adapter.revokeExecutor({ roundId: "round-1", requestId: "request-1" });
     await adapter.consumeGrant({ roundId: "round-1", requestId: "request-1" });
+    await adapter.submitDelivery({ roundId: "round-1", requestId: "request-1", artifact: "ipfs://delivery-proof" });
+    await adapter.acceptDelivery({ roundId: "round-1", requestId: "request-1" });
+    await adapter.reviewDelivery({ roundId: "round-1", requestId: "request-1" });
+    await adapter.recoverDelivery({ roundId: "round-1", requestId: "request-1" });
     await adapter.withdrawCredit(ONE_GEN_WEI.toString());
 
-    expect(writeClient.writeContract).toHaveBeenCalledTimes(12);
+    expect(writeClient.writeContract).toHaveBeenCalledTimes(16);
     expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({
       functionName: "authorize_dispatch",
       args: ["round-1", "request-1", "a".repeat(64)],
@@ -243,6 +262,14 @@ describe("GenLayer contract adapter", () => {
     }));
     expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "submit_offer", value: ONE_GEN_WEI }));
     expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "submit_request", value: ONE_GEN_WEI }));
+    expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({
+      functionName: "submit_delivery",
+      args: ["round-1", "request-1", "ipfs://delivery-proof"],
+      value: 0n,
+    }));
+    expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "accept_delivery" }));
+    expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "review_delivery" }));
+    expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "recover_delivery" }));
     expect(progress.mock.calls.slice(0, 4).map(([event]) => event.stage)).toEqual([
       "wallet",
       "submitted",

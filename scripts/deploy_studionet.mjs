@@ -17,6 +17,7 @@ const EVIDENCE_DIR = path.join(ROOT_DIR, "docs", "evidence", "studionet");
 const EVIDENCE_PATH = path.join(EVIDENCE_DIR, "deployment.json");
 const DISPATCH_EVIDENCE_PATH = path.join(EVIDENCE_DIR, "ms-001-a2a-dispatch.json");
 const EXECUTOR_EVIDENCE_PATH = path.join(EVIDENCE_DIR, "ms-002-executor-permit.json");
+const DELIVERY_EVIDENCE_PATH = path.join(EVIDENCE_DIR, "ms-003-delivery-settlement.json");
 const OPEN_ROUNDS_EVIDENCE_PATH = path.join(EVIDENCE_DIR, "project-explorer-open-rounds.json");
 const ARCHIVE_DIR = path.join(EVIDENCE_DIR, "archive");
 const EXPLORER_URL = "https://explorer-studio.genlayer.com";
@@ -34,6 +35,7 @@ const METADATA_EXPIRES_AT = 1_800_000_000;
 const TERMINAL_FAILURES = new Set(["UNDETERMINED", "CANCELED", "LEADER_TIMEOUT", "VALIDATORS_TIMEOUT"]);
 const PRIMARY_KEYS = ["STUDIONET_PRIVATE_KEY", "GENLAYER_PRIVATE_KEY", "PRIVATE_KEY"];
 const REQUESTER_KEYS = ["STUDIONET_INTEGRATOR_PRIVATE_KEY", "STUDIONET_REQUESTER_PRIVATE_KEY"];
+const DEMO_DELIVERY_ARTIFACT = "Confirmed SkillSlot delivery: flight GL-203 departs at 09:30 and the itinerary was added to the requester calendar.";
 
 function parseEnvFile(filePath) {
   if (!existsSync(filePath)) return {};
@@ -497,6 +499,102 @@ export async function executeExecutorPermitProof(proof, context, dependencies) {
   return proof;
 }
 
+export function projectDeliverySettlementProofEvidence(value) {
+  const allowed = [
+    "network",
+    "chainId",
+    "contractAddress",
+    "sourceCommit",
+    "contractSha256",
+    "roundId",
+    "requestId",
+    "provider",
+    "requester",
+    "artifactDigest",
+    "deliveryStatus",
+    "providerCreditBeforeWithdraw",
+    "providerCreditAfterWithdraw",
+    "status",
+  ];
+  const projected = Object.fromEntries(allowed.filter((key) => key in value).map((key) => [key, value[key]]));
+  projected.transactions = Object.fromEntries(
+    Object.entries(value?.transactions ?? {}).map(([key, record]) => [key, sanitizeEvidence(record)]),
+  );
+  projected.accounting = {
+    before: safeAccounting(value?.accounting?.before),
+    after: safeAccounting(value?.accounting?.after),
+  };
+  return projected;
+}
+
+export async function executeDeliverySettlementProof(proof, context, dependencies) {
+  if (proof.status === "FINALIZED_DELIVERY_SETTLEMENT_PROOF") return proof;
+  proof.transactions ??= {};
+  const artifactDigest = sha256Text(context.artifact.trim());
+  if (proof.artifactDigest && proof.artifactDigest !== artifactDigest) {
+    throw new Error("Recorded delivery proof digest does not match the bounded artifact");
+  }
+  Object.assign(proof, {
+    chainId: studionet.id,
+    contractAddress: context.contractAddress,
+    roundId: context.roundId,
+    requestId: context.requestId,
+    provider: context.provider.toLowerCase(),
+    requester: context.requester.toLowerCase(),
+    artifactDigest,
+    status: "STARTED",
+  });
+  const persist = () => dependencies.persist(proof);
+  persist();
+
+  if (!proof.accounting?.before) {
+    proof.accounting = { before: safeAccounting(await dependencies.readAccounting()) };
+    persist();
+  }
+
+  let match = await dependencies.readMatch();
+  if (!match?.request_id) throw new Error("Delivery proof match is unavailable");
+  if (match.delivery_status === "AWAITING_DELIVERY") {
+    proof.transactions.submitDelivery = sanitizeEvidence(await dependencies.submitDelivery(context.artifact.trim()));
+    persist();
+    match = await dependencies.readMatch();
+  }
+  if (!["SUBMITTED", "RETRYABLE", "FULFILLED"].includes(match.delivery_status)) {
+    throw new Error(`Delivery proof reached unexpected state ${match.delivery_status || "UNKNOWN"}`);
+  }
+  if (match.delivery_status !== "FULFILLED" && match.delivery_digest !== artifactDigest) {
+    throw new Error("Canonical delivery digest does not match the bounded proof artifact");
+  }
+
+  if (["SUBMITTED", "RETRYABLE"].includes(match.delivery_status)) {
+    proof.transactions.acceptDelivery = sanitizeEvidence(await dependencies.acceptDelivery());
+    persist();
+    match = await dependencies.readMatch();
+  }
+  if (match.delivery_status !== "FULFILLED") throw new Error("Requester acceptance did not finalize delivery settlement");
+  proof.deliveryStatus = match.delivery_status;
+
+  let providerCredit = BigInt(await dependencies.readProviderCredit());
+  proof.providerCreditBeforeWithdraw ??= formatGenBalance(providerCredit);
+  if (providerCredit !== 2n * ONE_GEN && !proof.transactions.withdrawCredit) {
+    throw new Error("Delivery settlement did not credit the provider exactly 2 GEN");
+  }
+  if (providerCredit > 0n) {
+    proof.transactions.withdrawCredit = sanitizeEvidence(await dependencies.withdrawCredit(providerCredit));
+    persist();
+    providerCredit = BigInt(await dependencies.readProviderCredit());
+  }
+  proof.providerCreditAfterWithdraw = formatGenBalance(providerCredit);
+  const after = safeAccounting(await dependencies.readAccounting());
+  proof.accounting = { before: proof.accounting.before, after };
+  if (providerCredit !== 0n || after.invariant_holds !== true || after.total_locked_wei !== "0") {
+    throw new Error("Delivery settlement proof did not close escrow and withdrawal cleanly");
+  }
+  proof.status = "FINALIZED_DELIVERY_SETTLEMENT_PROOF";
+  persist();
+  return proof;
+}
+
 function git(args) {
   return execFileSync("git", args, { cwd: ROOT_DIR, encoding: "utf8" }).trim();
 }
@@ -575,6 +673,31 @@ function archiveSupersededExecutorProof(proof) {
   writeFileSync(
     path.join(ARCHIVE_DIR, `${timestamp}-ms-002-executor-permit.json`),
     `${JSON.stringify(jsonSafe(projectExecutorPermitProofEvidence(proof)), null, 2)}\n`,
+    "utf8",
+  );
+}
+
+function readDeliveryEvidence() {
+  if (!existsSync(DELIVERY_EVIDENCE_PATH)) return {};
+  return JSON.parse(readFileSync(DELIVERY_EVIDENCE_PATH, "utf8"));
+}
+
+function writeDeliveryEvidence(value) {
+  mkdirSync(EVIDENCE_DIR, { recursive: true });
+  writeFileSync(
+    DELIVERY_EVIDENCE_PATH,
+    `${JSON.stringify(jsonSafe(projectDeliverySettlementProofEvidence(value)), null, 2)}\n`,
+    "utf8",
+  );
+}
+
+function archiveSupersededDeliveryProof(proof) {
+  if (!proof?.contractAddress) return;
+  mkdirSync(ARCHIVE_DIR, { recursive: true });
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  writeFileSync(
+    path.join(ARCHIVE_DIR, `${timestamp}-ms-003-delivery-settlement.json`),
+    `${JSON.stringify(jsonSafe(projectDeliverySettlementProofEvidence(proof)), null, 2)}\n`,
     "utf8",
   );
 }
@@ -919,6 +1042,26 @@ async function runStep(env, step) {
     if (match?.grant_status === "ACTIVE") {
       demo.transactions.consume = await writeContractFinalized(requester.client, address, "consume_grant", [demo.roundId, "request-flight"]);
     }
+  } else if (step === "submit-delivery") {
+    const match = await readView(primary.client, address, "get_match", [demo.roundId, "request-flight"]);
+    if (match?.delivery_status === "AWAITING_DELIVERY") {
+      demo.transactions.submitDelivery = await writeContractFinalized(
+        primary.client,
+        address,
+        "submit_delivery",
+        [demo.roundId, "request-flight", DEMO_DELIVERY_ARTIFACT],
+      );
+    }
+  } else if (step === "accept-delivery") {
+    const match = await readView(requester.client, address, "get_match", [demo.roundId, "request-flight"]);
+    if (["SUBMITTED", "RETRYABLE"].includes(match?.delivery_status)) {
+      demo.transactions.acceptDelivery = await writeContractFinalized(
+        requester.client,
+        address,
+        "accept_delivery",
+        [demo.roundId, "request-flight"],
+      );
+    }
   } else if (step === "withdraw") {
     const primaryCredit = BigInt(await readView(primary.client, address, "get_credit", [primary.account.address]));
     if (primaryCredit > 0n) {
@@ -946,7 +1089,7 @@ async function runStep(env, step) {
 
 async function demo(env) {
   await deploy(env);
-  for (const step of ["open-round", "submit-demo-positions", "lock", "clear"]) {
+  for (const step of ["open-round", "submit-demo-positions", "lock", "clear", "submit-delivery", "accept-delivery"]) {
     const state = await runStep(env, step);
     if (state.status === "RETRYABLE_REQUIRES_DIAGNOSIS") {
       console.log(JSON.stringify({ action: "demo", status: state.status, retryAttempt: state.retryAttempt }));
@@ -958,7 +1101,8 @@ async function demo(env) {
   const accounting = state.finalReads.accounting;
   state.status =
     state.finalReads.round?.phase === "CLEARED" &&
-    state.finalReads.match?.grant_status === "CONSUMED" &&
+     state.finalReads.match?.grant_status === "CONSUMED" &&
+     state.finalReads.match?.delivery_status === "FULFILLED" &&
     accounting?.total_locked_wei === "0" &&
     state.finalReads.primaryCreditWei === "0" &&
     state.finalReads.requesterCreditWei === "0"
@@ -1357,6 +1501,64 @@ async function executorProof(env) {
   }, null, 2));
 }
 
+async function deliveryProof(env) {
+  await deploy(env);
+  for (const step of ["open-round", "submit-demo-positions", "lock", "clear"]) {
+    const state = await runStep(env, step);
+    if (state.status === "RETRYABLE_REQUIRES_DIAGNOSIS") {
+      console.log(JSON.stringify({ action: "delivery-proof", status: state.status, retryAttempt: state.retryAttempt }));
+      return;
+    }
+  }
+
+  const evidence = readEvidence();
+  const address = requireDeployment(evidence);
+  const provider = signingClient(env, PRIMARY_KEYS);
+  const requester = signingClient(env, REQUESTER_KEYS);
+  await assertStudionet(provider.client);
+  await assertStudionet(requester.client);
+  const roundId = evidence.demo?.roundId;
+  const requestId = "request-flight";
+  if (!roundId) throw new Error("The active deployment has no cleared demo round for delivery proof");
+  const context = {
+    contractAddress: address,
+    roundId,
+    requestId,
+    provider: provider.account.address,
+    requester: requester.account.address,
+    artifact: DEMO_DELIVERY_ARTIFACT,
+  };
+  let proof = readDeliveryEvidence();
+  if (proof.contractAddress && proof.contractAddress.toLowerCase() !== address.toLowerCase()) {
+    archiveSupersededDeliveryProof(proof);
+    proof = {};
+  }
+  proof.network = "studionet";
+  proof.sourceCommit = evidence.identity?.sourceCommit;
+  proof.contractSha256 = evidence.identity?.contractSha256;
+  proof = await executeDeliverySettlementProof(proof, context, {
+    readMatch: () => readView(provider.client, address, "get_match", [roundId, requestId]),
+    readAccounting: () => readView(provider.client, address, "get_accounting", []),
+    readProviderCredit: () => readView(provider.client, address, "get_credit", [provider.account.address]),
+    submitDelivery: (artifact) => writeContractFinalized(provider.client, address, "submit_delivery", [roundId, requestId, artifact]),
+    acceptDelivery: () => writeContractFinalized(requester.client, address, "accept_delivery", [roundId, requestId]),
+    withdrawCredit: (amount) => writeContractFinalized(provider.client, address, "withdraw_credit", [amount]),
+    persist: writeDeliveryEvidence,
+  });
+  console.log(JSON.stringify({
+    action: "delivery-proof",
+    status: proof.status,
+    contractAddress: proof.contractAddress,
+    roundId: proof.roundId,
+    requestId: proof.requestId,
+    artifactDigest: proof.artifactDigest,
+    deliveryStatus: proof.deliveryStatus,
+    providerCreditBeforeWithdraw: proof.providerCreditBeforeWithdraw,
+    providerCreditAfterWithdraw: proof.providerCreditAfterWithdraw,
+    accounting: proof.accounting,
+  }, null, 2));
+}
+
 async function seedOpenRounds(env) {
   await deploy(env);
   const evidence = readEvidence();
@@ -1475,8 +1677,9 @@ async function main() {
   else if (command === "balance-proof") await balanceProof(env);
   else if (command === "dispatch-proof") await dispatchProof(env);
   else if (command === "executor-proof") await executorProof(env);
+  else if (command === "delivery-proof") await deliveryProof(env);
   else if (command === "seed-open-rounds") await seedOpenRounds(env);
-  else if (["open-round", "submit-demo-positions", "lock", "clear", "consume", "withdraw"].includes(command)) {
+  else if (["open-round", "submit-demo-positions", "lock", "clear", "submit-delivery", "accept-delivery", "consume", "withdraw"].includes(command)) {
     await runStep(env, command);
   } else {
     throw new Error(`Unknown command: ${command}`);
