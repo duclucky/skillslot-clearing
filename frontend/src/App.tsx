@@ -66,8 +66,8 @@ const mechanismSteps = [
     body: "GenLayer validators compare the authenticated offer with the requester need, exclusions, and objective capability fields.",
   },
   {
-    title: "Settlement releases value deterministically",
-    body: "Compatible matches issue grants and provider credits; unmatched or expired locked value has refund and permissionless recovery paths.",
+    title: "Delivery settlement releases value deterministically",
+    body: "Matched fee and bond stay escrowed until delivery is accepted, validator-settled, or recovered after timeout.",
   },
 ];
 
@@ -437,7 +437,7 @@ function Overview({
           </h1>
           <p className="hero-line anim" style={{ "--d": "0.24s" } as CSSProperties}>Validator-cleared access marketplace</p>
           <p className="lede">
-            A GenLayer marketplace for clearing scarce agent access. Providers bond authenticated agent offers, requesters escrow exact needs, and GenLayer validators clear semantic compatibility before deterministic settlement moves grants, refunds, and credits.
+            A GenLayer marketplace for clearing scarce agent access. Validators match authenticated offers to exact needs, then matched fee and bond remain in delivery escrow until acceptance, validator settlement, or timeout recovery.
           </p>
           <div className="hero-actions anim" style={{ "--d": "0.4s" } as CSSProperties}>
             <button className="button button-primary" type="button" onClick={onOpenRounds}>
@@ -510,8 +510,8 @@ function Overview({
           <li className="usage-step">
             <span className="mechanism-index" aria-hidden="true">03</span>
             <div>
-              <strong>Review the finalized result</strong>
-              <p>GenLayer validators clear compatible positions, then the contract records grants, refunds, and credits.</p>
+              <strong>Settle the delivered result</strong>
+              <p>The provider submits a bounded artifact; the requester accepts it or validators settle fulfillment before value moves.</p>
             </div>
           </li>
         </ol>

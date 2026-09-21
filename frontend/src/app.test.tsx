@@ -95,7 +95,7 @@ describe("SkillSlot Clearing marketplace", () => {
     expect(screen.getByRole("region", { name: "How to use SkillSlot" })).toBeVisible();
     expect(screen.getByText("Browse an open round")).toBeVisible();
     expect(screen.getByText("Offer or request access")).toBeVisible();
-    expect(screen.getByText("Review the finalized result")).toBeVisible();
+    expect(screen.getByText("Settle the delivered result")).toBeVisible();
     expect(screen.queryByText("A clear path from discovery to a validator-cleared result.")).not.toBeInTheDocument();
     expect(screen.queryByText("Project Explorer preview")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Project proof metrics")).not.toBeInTheDocument();
@@ -109,7 +109,8 @@ describe("SkillSlot Clearing marketplace", () => {
     expect(screen.getByText("Providers publish authenticated offers")).toBeVisible();
     expect(screen.getByText("Requesters escrow exact needs")).toBeVisible();
     expect(screen.getByText("Validators clear semantic compatibility")).toBeVisible();
-    expect(screen.getByText("Settlement releases value deterministically")).toBeVisible();
+    expect(screen.getByText("Delivery settlement releases value deterministically")).toBeVisible();
+    expect(screen.getByText(/Matched fee and bond stay escrowed until delivery is accepted/)).toBeVisible();
     expect(screen.getByText("GenLayer validators inspect authenticated metadata, needs, capability IDs, and exclusions before deterministic settlement.")).toBeVisible();
   });
 
