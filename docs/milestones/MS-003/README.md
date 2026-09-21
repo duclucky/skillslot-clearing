@@ -92,7 +92,7 @@ SkillSlot match and its exact provider/requester identities and capability facts
 - [x] RED-first contract and frontend tests cover every transition and value branch.
 - [x] GenVM lint and full `npm run check` pass: 240 checks.
 - [x] A new Studionet deployment proves one complete accepted-delivery payout and withdrawal path; direct tests prove failed, unverifiable, and both recovery branches.
-- [ ] Production UI exposes the legal role/state actions and canonical reload.
+- [x] Production UI exposes the legal role/state actions and canonical reload.
 - [ ] Public repo, CI, live app, dossier, evidence, and submission copy are verified.
 
 ## Verified Studionet evidence
@@ -104,3 +104,4 @@ SkillSlot match and its exact provider/requester identities and capability facts
 - Provider withdrawal: `0x38b216b7ba4cb5da0870f4591a6d2c9a5b8caf1f501cb28000273d62a771d567`.
 - Canonical result: `FULFILLED`, provider credit before withdrawal `2 GEN`, after withdrawal `0 GEN`, locked liability `0`, accounting invariant true.
 - Sanitized proof: `docs/evidence/studionet/ms-003-delivery-settlement.json`.
+- Production proof: `docs/evidence/studionet/ms-003-production.json`; Vercel deployment `dpl_9bESou4a4uYYRc3ZonzKMmCk4yFm` READY, six OPEN rounds, responsive checks passed, zero console warnings/errors.

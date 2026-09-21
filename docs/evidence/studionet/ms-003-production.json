@@ -1,0 +1,22 @@
+{
+  "capturedAt": "2026-09-22T06:10:00+07:00",
+  "status": "VERIFIED_PRODUCTION",
+  "url": "https://skillslot-clearing.vercel.app",
+  "vercelDeploymentId": "dpl_9bESou4a4uYYRc3ZonzKMmCk4yFm",
+  "vercelReadyState": "READY",
+  "contractAddress": "0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5",
+  "bundleChecks": {
+    "httpStatus": 200,
+    "currentContractPresent": true,
+    "supersededContractPresent": false
+  },
+  "canonicalUiChecks": {
+    "openRoundCount": 6,
+    "historyRoundCount": 1,
+    "mobileLayout": "PASS",
+    "desktop1280Layout": "PASS",
+    "deliveryEscrowCopy": "PASS",
+    "consoleWarningsOrErrors": 0
+  },
+  "scope": "Browser QA proves the live app loads the MS-003 contract, exposes six canonical OPEN reviewer rounds, explains delivery escrow accurately, and renders at narrow and 1280px viewports without console warnings or errors. Script-signed Studionet evidence separately proves the value-moving delivery lifecycle."
+}
