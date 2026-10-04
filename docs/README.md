@@ -534,7 +534,7 @@ aggregate is not a portable credential or proof of external performance.
 | unmatched fees and all bonds are recoverable | clear/cancel credit moves | `get_credit`, `get_accounting` | `test_accounting.py`, `test_recovery_and_grants.py` | Separate 1 GEN balance proof finalized `CANCELLED`, credited, withdrawn, and returned the actor balance exactly |
 | route permission is one-time | `consume_grant` | `get_match`, `can_route` | `test_recovery_and_grants.py::test_matched_requester_consumes_active_grant_once` | Finalized consume transaction; canonical grant is `CONSUMED` |
 | one exact A2A task can enter the reference boundary | `authorize_dispatch`; immutable dispatch digest | `get_match`, `can_dispatch` | direct authorization/idempotency tests plus A2A route-handler tests | Finalized authorization; two identical sends return one task ID; finalized consume then causes HTTP 403; accounting unchanged |
-| one settled delivery can produce contestable reputation | `submit_reputation`, `challenge_reputation`, `resolve_reputation`, `finalize_reputation`, `recover_reputation` | `get_reputation`, `get_provider_reputation` | `tests/direct/test_reputation.py`, adapter/component/deployment tests | `PENDING_MS004_NETWORK_EVIDENCE`; local lifecycle and unchanged-accounting proof pass |
+| one settled delivery can produce contestable reputation | `submit_reputation`, `challenge_reputation`, `resolve_reputation`, `finalize_reputation`, `recover_reputation` | `get_reputation`, `get_provider_reputation` | `tests/direct/test_reputation.py`, adapter/component/deployment tests | `ms-004-contestable-reputation.json`: finalized submit/challenge/uphold, aggregate 1 review at 5/5, unchanged accounting; other branches tested locally |
 | withdrawals preserve exact accounting | `withdraw_credit` | `get_credit`, `get_accounting` | `test_recovery_and_grants.py::test_withdrawal_debits_before_external_send_and_preserves_invariant` | Aggregate canonical accounting is 5 GEN received/withdrawn, zero locked/credited, invariant true |
 
 ## Browser lifecycle coverage matrix
@@ -552,7 +552,7 @@ aggregate is not a portable credential or proof of external performance.
 | send exact A2A task | same-origin `sendA2aMessage` | handoff panel receipt/retry state | protocol, API, component, and app tests | endpoint recomputes digest and reads canonical state | Two live HTTP 200 responses returned one task ID; post-consume request returned HTTP 403 |
 | consume route grant | `consumeGrant` | matched requester action | `contractAdapter.test.ts` and `app.test.tsx` | finalized match/route reload | Production OKX Wallet transaction `0x00b61d...22ace` finalized; canonical grant reloaded as `CONSUMED` |
 | withdraw canonical credit | `withdrawCredit` | credit action for positive balance | `contractAdapter.test.ts` and `app.test.tsx` | finalized receipt plus credit/accounting reload | Production OKX Wallet transaction `0x44f212...0de0b` finalized; canonical credit reloaded as `0 GEN` |
-| publish/challenge/resolve/finalize/recover reputation | five reputation adapter writes | progressive My activity reputation section | `ReputationSettlement.test.tsx`, `contractAdapter.test.ts`, `app.test.tsx` | finalized transaction then canonical reputation/aggregate reload | Local product flow verified; production MS-004 deployment and browser proof pending |
+| publish/challenge/resolve/finalize/recover reputation | five reputation adapter writes | progressive My activity reputation section for matched participants | `ReputationSettlement.test.tsx`, `contractAdapter.test.ts`, `app.test.tsx` | finalized transaction then canonical match/review reload; aggregate available through contract view | Production public reads verified; submit/challenge/uphold proven by script-signed transactions; browser-wallet reputation signing not yet captured |
 
 ## Deployment and evidence plan
 
@@ -629,8 +629,11 @@ absence of fixture-as-live behavior.
   desktop/mobile browser inspection; plus finalized exact-task authorization, deterministic A2A retry
   identity, post-consume denial, and zero-liability withdrawal evidence for `MS-001`; accepted MS-003
   delivery settlement; and locally verified MS-004 contestable-reputation contract, adapter, UI, and deployment tooling.
-- Pending for MS-004: Studionet deployment/lifecycle evidence, production browser proof, public CI/Vercel
-  release, and Portal submission authorization. Signed third-party Agent Cards and external adoption remain separate future work.
+- MS-004 release verified: Studionet submit/challenge/uphold lifecycle, unchanged GEN accounting,
+  Vercel deployment, six open reviewer rounds, read-only production browser QA, and public CI
+  `37223282038`. Provider aggregates are available through the contract view; the UI shows individual reviews.
+- Not captured: a browser-wallet signing run for MS-004 reputation actions. Portal submission awaits
+  explicit authorization. Signed third-party Agent Cards and external adoption remain separate future work.
 
 ## Kill criteria
 

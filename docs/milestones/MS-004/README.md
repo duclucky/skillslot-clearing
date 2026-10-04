@@ -32,7 +32,10 @@ unchallenged reviews enter the provider's canonical aggregate.
 2. The requester opens **My activity**, selects a 1–5 score, supplies bounded evidence, and signs one review transaction.
 3. The provider either leaves it unchallenged or submits a bounded response before the challenge deadline.
 4. Any wallet finalizes an unchallenged review after the deadline, or requests validator resolution for a challenged review.
-5. The UI reloads canonical review status and provider aggregate; unresolved reviews can be voided after timeout.
+5. The UI reloads canonical review status; unresolved reviews can be voided after timeout. Read the provider aggregate through `get_provider_reputation` or the recorded network evidence.
+
+My activity exposes these controls to matched participants. The finalization, resolution, and recovery
+contract methods accept any wallet; unrelated wallets can call them with the canonical round/request IDs.
 
 ## State and consequence
 
@@ -53,7 +56,7 @@ unchallenged reviews enter the provider's canonical aggregate.
 | Matched provider can challenge before the exact deadline | `challenge_reputation`; response digest and deadlines | `get_reputation` | provider/wrong-wallet/deadline−1/equality/duplicate | challenge transaction and canonical `CHALLENGED` state |
 | Validators resolve only the bounded dispute facts | `resolve_reputation`; custom independent evaluation | `get_reputation` | uphold/overturn/unverifiable/injection/malformed/terminal replay | finalized resolution receipt and stored reason |
 | No participant can strand a review | `finalize_reputation`, `recover_reputation` | `get_reputation` | early/equality/late, wrong state, idempotency | permissionless close transaction |
-| Only valid finalized scores affect discovery reputation | aggregate counters updated once | `get_provider_reputation` | exact count/total/average, overturned/void exclusion | before/after aggregate read |
+| Only finalized scores affect the canonical provider aggregate | aggregate counters updated once | `get_provider_reputation` | exact count/total/average, overturned/void exclusion | before/after aggregate read |
 | Users can complete the new lifecycle in the product | adapter writes plus My activity reputation card | canonical reload | component, adapter, transaction finality tests | production browser journey against MS-004 deployment |
 
 ## Write-method safety cards
@@ -106,7 +109,9 @@ async actions, and canonical reload after finality. Do not create a new dashboar
 - Accounting before and after all reputation writes is identical: 2 GEN received, 0 locked, 0
   credited, 2 GEN withdrawn, invariant true.
 - Sanitized evidence: `docs/evidence/studionet/ms-004-contestable-reputation.json`.
-- Production evidence: `docs/evidence/studionet/ms-004-production.json`.
+- Production evidence: `docs/evidence/studionet/ms-004-production.json`. Browser QA covered public reads;
+  the reputation signing lifecycle was executed by script. A browser-wallet reputation signing run
+  remains uncaptured and is not represented as completed evidence.
 - Public Windows CI: `https://github.com/duclucky/skillslot-clearing/actions/runs/37223282038` (`success`).
 
 ## Exit gates

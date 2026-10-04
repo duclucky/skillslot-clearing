@@ -36,7 +36,7 @@ The product reserves access and adjudicates a bounded provider-submitted artifac
 - MS-002 production evidence: [`docs/evidence/studionet/ms-002-production.json`](docs/evidence/studionet/ms-002-production.json)
 - MS-003 address: [`0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5`](https://explorer-studio.genlayer.com/address/0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5)
 - MS-003 deployment transaction: [`0x5759037505eef0d72f995d99c30405784252878e7e45179949298bb10cc98f5b`](https://explorer-studio.genlayer.com/transactions/0x5759037505eef0d72f995d99c30405784252878e7e45179949298bb10cc98f5b)
-- MS-003 delivery evidence: [`docs/evidence/studionet/ms-003-delivery-settlement.json`](docs/evidence/studionet/ms-003-delivery-settlement.json)
+- Accepted MS-003 delivery evidence: [`ms-003-delivery-settlement.json` at accepted evidence head](https://github.com/duclucky/skillslot-clearing/blob/741cf12ebd1c16329f7b4c74bade83b61374063a/docs/evidence/studionet/ms-003-delivery-settlement.json)
 - MS-004 address: [`0x1C282781D79Def68E4eea7895e2F427C2dA18F35`](https://explorer-studio.genlayer.com/address/0x1C282781D79Def68E4eea7895e2F427C2dA18F35)
 - MS-004 deployment transaction: [`0x8ebca1b07ad4b1e282d25fdedd8b16402262ddc2394e5299fb58daa1f084cd1f`](https://explorer-studio.genlayer.com/transactions/0x8ebca1b07ad4b1e282d25fdedd8b16402262ddc2394e5299fb58daa1f084cd1f)
 - MS-004 reputation evidence: [`docs/evidence/studionet/ms-004-contestable-reputation.json`](docs/evidence/studionet/ms-004-contestable-reputation.json)
