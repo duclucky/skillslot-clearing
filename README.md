@@ -17,7 +17,7 @@ The product reserves access and adjudicates a bounded provider-submitted artifac
 - Milestone `MS-001` deployment: `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`; accepted as Portal contribution `185631`
 - Milestone `MS-002` deployment: `0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b`; accepted on Portal (owner-confirmed; public contribution reference pending capture)
 - Milestone `MS-003` deployment: `0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5`; accepted on Portal (owner-confirmed; public contribution reference pending capture)
-- Milestone `MS-004`: locally implemented and verified; Studionet deployment, public production release, CI, and Portal submission are still pending
+- Milestone `MS-004`: locally and Studionet verified; public production release, CI, and Portal submission are still pending
 - Automated checks: 262 currently pass locally (11 static, 79 direct, 5 receipt parser, 21 deployment tooling, 146 frontend)
 - Verified Windows CI: [`check` run 35666807829](https://github.com/duclucky/skillslot-clearing/actions/runs/35666807829) passed on MS-003 evidence commit `741cf12`
 - MS-001 dispatch proof: one finalized authorization, two identical HTTP requests returning one deterministic task ID, finalized grant consumption, post-consume HTTP 403, and unchanged GEN accounting during the handoff
@@ -36,6 +36,9 @@ The product reserves access and adjudicates a bounded provider-submitted artifac
 - MS-003 address: [`0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5`](https://explorer-studio.genlayer.com/address/0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5)
 - MS-003 deployment transaction: [`0x5759037505eef0d72f995d99c30405784252878e7e45179949298bb10cc98f5b`](https://explorer-studio.genlayer.com/transactions/0x5759037505eef0d72f995d99c30405784252878e7e45179949298bb10cc98f5b)
 - MS-003 delivery evidence: [`docs/evidence/studionet/ms-003-delivery-settlement.json`](docs/evidence/studionet/ms-003-delivery-settlement.json)
+- MS-004 address: [`0x1C282781D79Def68E4eea7895e2F427C2dA18F35`](https://explorer-studio.genlayer.com/address/0x1C282781D79Def68E4eea7895e2F427C2dA18F35)
+- MS-004 deployment transaction: [`0x8ebca1b07ad4b1e282d25fdedd8b16402262ddc2394e5299fb58daa1f084cd1f`](https://explorer-studio.genlayer.com/transactions/0x8ebca1b07ad4b1e282d25fdedd8b16402262ddc2394e5299fb58daa1f084cd1f)
+- MS-004 reputation evidence: [`docs/evidence/studionet/ms-004-contestable-reputation.json`](docs/evidence/studionet/ms-004-contestable-reputation.json)
 - Reviewer inventory: [`docs/evidence/studionet/project-explorer-open-rounds.json`](docs/evidence/studionet/project-explorer-open-rounds.json)
 - MS-001 address: [`0x0c43822abD25a0247d0814E7dD501fA19b1C8958`](https://explorer-studio.genlayer.com/address/0x0c43822abD25a0247d0814E7dD501fA19b1C8958)
 - MS-001 deployment transaction: [`0x9f89f92dffe12e9656e246659150914c9e181a0d92a6d645cc1dd21b17f6f785`](https://explorer-studio.genlayer.com/transactions/0x9f89f92dffe12e9656e246659150914c9e181a0d92a6d645cc1dd21b17f6f785)
@@ -152,5 +155,6 @@ The demo uses exactly 1 GEN for each value-bearing position and stops at `RETRYA
 - A `TASK_STATE_SUBMITTED` receipt proves only that the bounded handoff was accepted. MS-003 settlement depends on a separately submitted bounded artifact and never upgrades the receipt itself into proof of completion.
 - Delivery adjudication is bounded to authenticated marketplace state and the provider-submitted artifact; it does not independently observe or prove offchain real-world performance.
 - MS-004 reputation is a bounded, requester-authored review of one canonical SkillSlot delivery. It is not a portable credential, a Sybil-resistant ranking, or independent proof of real-world performance.
+- The MS-004 network proof demonstrates one upheld challenge path. Overturn, unverifiable retry, unchallenged finalization, and timeout voiding are verified locally rather than claimed as separate live transactions.
 
 See the [full specification](docs/README.md), [research record](docs/RESEARCH.md), and [design system](design-system/skillslot-clearing/MASTER.md).

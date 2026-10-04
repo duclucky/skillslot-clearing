@@ -5,13 +5,15 @@
 | Field | Value |
 | --- | --- |
 | Milestone ID | `MS-004` |
-| Status | `LOCAL_VERIFIED` |
+| Status | `NETWORK_VERIFIED` |
 | Selected on | `2026-10-05` |
 | Accepted baseline | MS-003, owner-confirmed accepted `2026-10-05` |
 | Accepted evidence head | `741cf12ebd1c16329f7b4c74bade83b61374063a` |
 | Working base | `305d615eac38a0e92f17a618a374ff025c1905f3` |
 | Implementation commit | `08a3db06312b78ede2c2f70fe9eafd536043a746` |
 | Accepted deployment | Studionet `0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5` |
+| MS-004 deployment | Studionet `0x1C282781D79Def68E4eea7895e2F427C2dA18F35` |
+| Deployment transaction | `0x8ebca1b07ad4b1e282d25fdedd8b16402262ddc2394e5299fb58daa1f084cd1f` |
 | Portal reference | `NOT_SUBMITTED` |
 
 ## Exact new capability
@@ -94,10 +96,21 @@ async actions, and canonical reload after finality. Do not create a new dashboar
 - No inference that a score proves real-world identity, legal performance, or facts outside the bounded submitted evidence.
 - `BL-008` portable credentials and `BL-009` reputation-aware discovery remain backlog.
 
+## Studionet evidence
+
+- Deployment finalized on chain `61999` from source commit `f603a50014365e5f47491ab125f1ce3db71e2f54`.
+- The bounded lifecycle finalized `submit_reputation`, provider `challenge_reputation`, and validator
+  `resolve_reputation` for round `slot-muu45fa1`.
+- Canonical status is `FINALIZED`; provider aggregate is one review, score total five, average `5000`
+  milli-points, and zero overturned reviews.
+- Accounting before and after all reputation writes is identical: 2 GEN received, 0 locked, 0
+  credited, 2 GEN withdrawn, invariant true.
+- Sanitized evidence: `docs/evidence/studionet/ms-004-contestable-reputation.json`.
+
 ## Exit gates
 
 - [x] RED-first direct and frontend tests cover all state, verdict, deadline, authorization, and aggregate branches.
 - [x] GenVM lint and full `npm run check` pass with all accepted regression tests (262 checks).
-- [ ] A new Studionet deployment proves submit, challenge, validator resolution, and aggregate consequence.
+- [x] A new Studionet deployment proves submit, challenge, validator resolution, and aggregate consequence.
 - [ ] Production UI exposes every legal role/state action and reloads canonical state.
 - [ ] Public repo, CI, Vercel, dossier, evidence, and Portal copy are verified.

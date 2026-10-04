@@ -1,0 +1,61 @@
+{
+  "network": "studionet",
+  "chainId": 61999,
+  "contractAddress": "0x1C282781D79Def68E4eea7895e2F427C2dA18F35",
+  "sourceCommit": "f603a50014365e5f47491ab125f1ce3db71e2f54",
+  "contractSha256": "76e7570c9eb3ee874ebde629cf4c1a2652f7cce0bd5494461650981002488acd",
+  "roundId": "slot-muu45fa1",
+  "requestId": "request-flight",
+  "provider": "0xc495ef51618d03267a1f227afe5b27b38c748272",
+  "requester": "0x45ad397c438397a702b53a7499a78d08961d39db",
+  "score": 5,
+  "evidenceDigest": "51053d5bc9687dbcf8287e3f9b118c301ed94f7ac71cd60498067b61e64e11b8",
+  "responseDigest": "f7383f43477a102198bf7c8e6447743dccf92435ae3d57c567e81a3f030a13cc",
+  "reputationStatus": "FINALIZED",
+  "resolutionReason": "The locked promise and request were to book an air ticket and add the confirmed itinerary to the calendar, and the bounded delivery artifact states exactly that was fulfilled. The review score is materially supported by the available evidence.",
+  "status": "FINALIZED_REPUTATION_PROOF",
+  "transactions": {
+    "submitReputation": {
+      "transactionHash": "0x21fa82a20ea595d7b318e93cc60b0e110da441dce7b224d82c8a37c66fd6d637",
+      "status": "FINALIZED",
+      "execution": "FINISHED_WITH_RETURN",
+      "finalizedAt": "2026-10-04T17:55:11.327Z"
+    },
+    "challengeReputation": {
+      "transactionHash": "0x36fb4db86f5fa45d45fa529b7d163ca7c1c4b35861bd8e1c4433efc33cd2bdc3",
+      "status": "FINALIZED",
+      "execution": "FINISHED_WITH_RETURN",
+      "finalizedAt": "2026-10-04T17:55:57.190Z"
+    },
+    "resolveReputation": {
+      "transactionHash": "0xf1d563d8bf0787cce4bc35e3ae4fa96596e0303a60eaf965ddfe426d0bb64e8c",
+      "status": "FINALIZED",
+      "execution": "FINISHED_WITH_RETURN",
+      "finalizedAt": "2026-10-04T17:56:43.149Z"
+    }
+  },
+  "accounting": {
+    "before": {
+      "invariant_holds": true,
+      "total_received_wei": "2000000000000000000",
+      "total_locked_wei": "0",
+      "total_credited_wei": "0",
+      "total_withdrawn_wei": "2000000000000000000"
+    },
+    "after": {
+      "invariant_holds": true,
+      "total_received_wei": "2000000000000000000",
+      "total_locked_wei": "0",
+      "total_credited_wei": "0",
+      "total_withdrawn_wei": "2000000000000000000"
+    },
+    "invariantUnchanged": true
+  },
+  "providerReputation": {
+    "provider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+    "review_count": "1",
+    "score_total": "5",
+    "average_milli": "5000",
+    "overturned_count": "0"
+  }
+}
