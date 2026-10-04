@@ -10,6 +10,7 @@
 | Accepted baseline | MS-003, owner-confirmed accepted `2026-10-05` |
 | Accepted evidence head | `741cf12ebd1c16329f7b4c74bade83b61374063a` |
 | Working base | `305d615eac38a0e92f17a618a374ff025c1905f3` |
+| Implementation commit | `08a3db06312b78ede2c2f70fe9eafd536043a746` |
 | Accepted deployment | Studionet `0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5` |
 | Portal reference | `NOT_SUBMITTED` |
 
