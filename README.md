@@ -17,9 +17,10 @@ The product reserves access and adjudicates a bounded provider-submitted artifac
 - Milestone `MS-001` deployment: `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`; accepted as Portal contribution `185631`
 - Milestone `MS-002` deployment: `0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b`; accepted on Portal (owner-confirmed; public contribution reference pending capture)
 - Milestone `MS-003` deployment: `0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5`; accepted on Portal (owner-confirmed; public contribution reference pending capture)
-- Milestone `MS-004`: locally and Studionet verified; public production release, CI, and Portal submission are still pending
+- Milestone `MS-004`: submission-ready with local, Studionet, production, and public CI evidence; Portal submission has not been sent
 - Automated checks: 263 currently pass locally (11 static, 79 direct, 5 receipt parser, 22 deployment tooling, 146 frontend)
 - Verified Windows CI: [`check` run 35666807829](https://github.com/duclucky/skillslot-clearing/actions/runs/35666807829) passed on MS-003 evidence commit `741cf12`
+- MS-004 Windows CI: [`check` run 37223282038](https://github.com/duclucky/skillslot-clearing/actions/runs/37223282038) passed on evidence head `79918f0`
 - MS-001 dispatch proof: one finalized authorization, two identical HTTP requests returning one deterministic task ID, finalized grant consumption, post-consume HTTP 403, and unchanged GEN accounting during the handoff
 - MS-002 executor proof: finalized task and executor authorizations, two signed HTTP requests returning one deterministic task ID, wrong-signer HTTP 401, post-revoke HTTP 403, and unchanged GEN accounting
 - MS-001 final accounting: 2 GEN received and withdrawn, zero locked or credited liability, invariant true
@@ -142,6 +143,7 @@ The demo uses exactly 1 GEN for each value-bearing position and stops at `RETRYA
 - `docs/milestones/MS-002/README.md` — delegated-executor delta, gates, safety card, and evidence index
 - `docs/milestones/MS-003/README.md` — delivery-escrow delta, evidence authority, recovery matrix, and exit gates
 - `docs/milestones/MS-004/README.md` — contestable-reputation delta, aggregate consequence, timeout closure, and exit gates
+- `docs/MILESTONE-SUBMISSION-MS-004.md` — copy-ready MS-004 Portal title, narrative, evidence links, and reviewer path
 - `docs/MILESTONE-SUBMISSION-MS-001.md` — copy-ready Portal Milestones packet and evidence index
 - `docs/PROJECT-EXPLORER-LISTING.md` — copy-ready Project Explorer listing and reviewer steps
 - `docs/README.md` — specification, safety cards, threat model, and claim-to-code matrix

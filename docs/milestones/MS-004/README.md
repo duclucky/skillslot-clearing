@@ -5,7 +5,7 @@
 | Field | Value |
 | --- | --- |
 | Milestone ID | `MS-004` |
-| Status | `NETWORK_VERIFIED` |
+| Status | `SUBMISSION_READY` |
 | Selected on | `2026-10-05` |
 | Accepted baseline | MS-003, owner-confirmed accepted `2026-10-05` |
 | Accepted evidence head | `741cf12ebd1c16329f7b4c74bade83b61374063a` |
@@ -106,6 +106,8 @@ async actions, and canonical reload after finality. Do not create a new dashboar
 - Accounting before and after all reputation writes is identical: 2 GEN received, 0 locked, 0
   credited, 2 GEN withdrawn, invariant true.
 - Sanitized evidence: `docs/evidence/studionet/ms-004-contestable-reputation.json`.
+- Production evidence: `docs/evidence/studionet/ms-004-production.json`.
+- Public Windows CI: `https://github.com/duclucky/skillslot-clearing/actions/runs/37223282038` (`success`).
 
 ## Exit gates
 
@@ -113,4 +115,4 @@ async actions, and canonical reload after finality. Do not create a new dashboar
 - [x] GenVM lint and full `npm run check` pass with all accepted regression tests (263 checks).
 - [x] A new Studionet deployment proves submit, challenge, validator resolution, and aggregate consequence.
 - [x] Production UI exposes every legal role/state action through tested role/state components and loads canonical MS-004 state; browser QA confirmed six open reviewer rounds and the finalized lifecycle round.
-- [ ] Public repo, CI, Vercel, dossier, evidence, and Portal copy are verified.
+- [x] Public repo, CI, Vercel, dossier, evidence, and Portal copy are verified.
