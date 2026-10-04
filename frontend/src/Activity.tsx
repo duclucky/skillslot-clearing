@@ -6,6 +6,7 @@ import type { RunWrite } from "./Marketplace";
 import { A2AHandoff } from "./A2AHandoff";
 import { ExecutorConsole } from "./ExecutorConsole";
 import { DeliverySettlement } from "./DeliverySettlement";
+import { ReputationSettlement } from "./ReputationSettlement";
 
 interface ActivityProps {
   snapshot: WorkspaceSnapshot;
@@ -54,7 +55,10 @@ export function Activity({ snapshot, adapter, busy, runWrite, onOpenRound }: Act
                 </div>
               ) : null}
               {(position.kind === "delivery" || position.kind === "grant") && position.requestId && position.deliveryStatus ? (
-                <DeliverySettlement position={position} adapter={adapter} busy={busy} runWrite={runWrite} />
+                <>
+                  <DeliverySettlement position={position} adapter={adapter} busy={busy} runWrite={runWrite} />
+                  <ReputationSettlement position={position} adapter={adapter} busy={busy} runWrite={runWrite} />
+                </>
               ) : null}
             </article>
           ))}

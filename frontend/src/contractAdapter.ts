@@ -101,6 +101,16 @@ interface MatchRecord {
   delivery_deadline?: string;
   delivery_recovery_at?: string;
   delivery_attempt_count?: string;
+  reputation_status?: string;
+  reputation_score?: string;
+  reputation_evidence?: string;
+  reputation_evidence_digest?: string;
+  reputation_response?: string;
+  reputation_response_digest?: string;
+  reputation_reason?: string;
+  reputation_challenge_deadline?: string;
+  reputation_recovery_at?: string;
+  reputation_attempt_count?: string;
 }
 
 type Clients = {
@@ -267,6 +277,16 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
             deliveryDeadline: match.delivery_deadline || undefined,
             deliveryRecoveryAt: match.delivery_recovery_at || undefined,
             deliveryAttemptCount: match.delivery_attempt_count || undefined,
+            reputationStatus: match.reputation_status || "NONE",
+            reputationScore: match.reputation_score || undefined,
+            reputationEvidence: match.reputation_evidence || undefined,
+            reputationEvidenceDigest: match.reputation_evidence_digest || undefined,
+            reputationResponse: match.reputation_response || undefined,
+            reputationResponseDigest: match.reputation_response_digest || undefined,
+            reputationReason: match.reputation_reason || undefined,
+            reputationChallengeDeadline: match.reputation_challenge_deadline || undefined,
+            reputationRecoveryAt: match.reputation_recovery_at || undefined,
+            reputationAttemptCount: match.reputation_attempt_count || undefined,
           });
           }
           if (sameAddress(match.provider, account)) {
@@ -285,6 +305,16 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
               deliveryDeadline: match.delivery_deadline || undefined,
               deliveryRecoveryAt: match.delivery_recovery_at || undefined,
               deliveryAttemptCount: match.delivery_attempt_count || undefined,
+              reputationStatus: match.reputation_status || "NONE",
+              reputationScore: match.reputation_score || undefined,
+              reputationEvidence: match.reputation_evidence || undefined,
+              reputationEvidenceDigest: match.reputation_evidence_digest || undefined,
+              reputationResponse: match.reputation_response || undefined,
+              reputationResponseDigest: match.reputation_response_digest || undefined,
+              reputationReason: match.reputation_reason || undefined,
+              reputationChallengeDeadline: match.reputation_challenge_deadline || undefined,
+              reputationRecoveryAt: match.reputation_recovery_at || undefined,
+              reputationAttemptCount: match.reputation_attempt_count || undefined,
             });
           }
         }
@@ -425,6 +455,11 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
     acceptDelivery: ({ roundId, requestId }) => execute("accept_delivery", [roundId, requestId]),
     reviewDelivery: ({ roundId, requestId }) => execute("review_delivery", [roundId, requestId]),
     recoverDelivery: ({ roundId, requestId }) => execute("recover_delivery", [roundId, requestId]),
+    submitReputation: ({ roundId, requestId, score, evidence }) => execute("submit_reputation", [roundId, requestId, score, evidence]),
+    challengeReputation: ({ roundId, requestId, response }) => execute("challenge_reputation", [roundId, requestId, response]),
+    resolveReputation: ({ roundId, requestId }) => execute("resolve_reputation", [roundId, requestId]),
+    finalizeReputation: ({ roundId, requestId }) => execute("finalize_reputation", [roundId, requestId]),
+    recoverReputation: ({ roundId, requestId }) => execute("recover_reputation", [roundId, requestId]),
     signMessage: signActiveWalletMessage,
     consumeGrant: ({ roundId, requestId }) => execute("consume_grant", [roundId, requestId]),
     withdrawCredit: (amountWei: string) => execute("withdraw_credit", [BigInt(amountWei)]),
@@ -466,6 +501,11 @@ export function createUnconfiguredAdapter(): ContractAdapter {
     acceptDelivery: unavailable,
     reviewDelivery: unavailable,
     recoverDelivery: unavailable,
+    submitReputation: unavailable,
+    challengeReputation: unavailable,
+    resolveReputation: unavailable,
+    finalizeReputation: unavailable,
+    recoverReputation: unavailable,
     signMessage: unavailable,
     consumeGrant: unavailable,
     withdrawCredit: unavailable,

@@ -28,6 +28,11 @@ function adapterFor(snapshot: WorkspaceSnapshot): ContractAdapter {
     acceptDelivery: vi.fn(async () => ({ hash: "0xaccept" })),
     reviewDelivery: vi.fn(async () => ({ hash: "0xreview" })),
     recoverDelivery: vi.fn(async () => ({ hash: "0xdelivery-recover" })),
+    submitReputation: vi.fn(async () => ({ hash: "0xreputation-submit" })),
+    challengeReputation: vi.fn(async () => ({ hash: "0xreputation-challenge" })),
+    resolveReputation: vi.fn(async () => ({ hash: "0xreputation-resolve" })),
+    finalizeReputation: vi.fn(async () => ({ hash: "0xreputation-finalize" })),
+    recoverReputation: vi.fn(async () => ({ hash: "0xreputation-recover" })),
     withdrawCredit: vi.fn(async () => ({ hash: "0xwithdraw" })),
   };
 }
@@ -96,6 +101,7 @@ describe("SkillSlot Clearing marketplace", () => {
     expect(screen.getByText("Browse an open round")).toBeVisible();
     expect(screen.getByText("Offer or request access")).toBeVisible();
     expect(screen.getByText("Settle the delivered result")).toBeVisible();
+    expect(screen.getByText("Publish or challenge reputation")).toBeVisible();
     expect(screen.queryByText("A clear path from discovery to a validator-cleared result.")).not.toBeInTheDocument();
     expect(screen.queryByText("Project Explorer preview")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Project proof metrics")).not.toBeInTheDocument();
@@ -110,6 +116,7 @@ describe("SkillSlot Clearing marketplace", () => {
     expect(screen.getByText("Requesters escrow exact needs")).toBeVisible();
     expect(screen.getByText("Validators clear semantic compatibility")).toBeVisible();
     expect(screen.getByText("Delivery settlement releases value deterministically")).toBeVisible();
+    expect(screen.getByText("Settled work builds contestable reputation")).toBeVisible();
     expect(screen.getByText(/Matched fee and bond stay escrowed until delivery is accepted/)).toBeVisible();
     expect(screen.getByText("GenLayer validators inspect authenticated metadata, needs, capability IDs, and exclusions before deterministic settlement.")).toBeVisible();
   });

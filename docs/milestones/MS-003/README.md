@@ -5,7 +5,7 @@
 | Field | Value |
 | --- | --- |
 | Milestone ID | `MS-003` |
-| Status | `VERIFIED — NOT SUBMITTED` |
+| Status | `ACCEPTED — OWNER-CONFIRMED; PUBLIC REFERENCE PENDING` |
 | Selected on | `2026-09-22` |
 | Accepted baseline | MS-002, owner-confirmed accepted `2026-09-21` |
 | Accepted source | `7a5047e0b4e50a9e93d52488c68fd17441c051e8` |
@@ -16,7 +16,7 @@
 | Verified evidence head | `741cf12ebd1c16329f7b4c74bade83b61374063a` |
 | Public CI | `https://github.com/duclucky/skillslot-clearing/actions/runs/35666807829` (`success`) |
 | Contract digest | `6c3f04398c8c991eeebea0d7bd61398fd51760c43e2d336ca187df61b2e28949` |
-| Portal reference | `NOT_SUBMITTED` |
+| Portal reference | `ACCEPTED — owner-confirmed on 2026-10-05; public contribution reference pending capture` |
 
 ## Exact new capability
 

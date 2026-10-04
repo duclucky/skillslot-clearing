@@ -8,7 +8,7 @@
 - Live app: `https://skillslot-clearing.vercel.app`
 - Original Project contribution: `https://portal.genlayer.foundation/contribution/131883`
 - Latest accepted Milestone: `https://portal.genlayer.foundation/contribution/185631`
-- Portal status: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 VERIFIED — NOT SUBMITTED`
+- Portal status: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 LOCAL_VERIFIED`
 - Portal contribution date: `2026-08-12`
 - Portal award: `320 points`
 - Ledger initialized: `2026-08-29`
@@ -100,7 +100,8 @@ baseline context only; neither class may be presented as the new phase delta.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `MS-001` | Onchain-Bound A2A Task Handoff | `ACCEPTED` | Accepted Portal `131883`; public evidence `eec0551`; working base `67c531a` | Task-specific onchain authorization plus deployed A2A 1.0 reference endpoint | Implementation range `67c531a..be1a8cd`; accepted evidence head `69fded8` | Studionet `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`; source `be1a8cd`; deploy `0x9f89f9...f6f785` | `docs/milestones/MS-001/README.md`; `docs/evidence/studionet/ms-001-a2a-dispatch.json`; `docs/evidence/studionet/ms-001-production.json` | Portal contribution `185631`; submission ID `612ee13c-eaec-4352-a262-0e16748ece97` | `2026-09-06` | Extends original Project grants and `can_route`; no earlier Milestone | Awarded 300 points; staff: “This is a meaningful update to the project and qualifies as a Milestone.” Keep third-party card authentication and adoption separate. |
 | `MS-002` | Delegated Agent Execution Permits | `ACCEPTED` | Accepted MS-001 Portal `185631`; reconciliation `c0bf081` | Requester-controlled executor EOA, bounded epoch/expiry, EIP-191 invocation, and revocation | Implementation `7a5047e`; accepted evidence head `21d72a1` | Studionet `0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b`; source `7a5047e`; deploy `0xc4fc267...f0bbe8` | `docs/milestones/MS-002/README.md`; `docs/evidence/studionet/ms-002-executor-permit.json`; `docs/evidence/studionet/ms-002-production.json`; CI `34170508545` | `ACCEPTED — owner-confirmed; public contribution reference pending capture` | `2026-09-21` | Extends MS-001 exact-task dispatch with a distinct authenticated executor boundary | Acceptance was confirmed by the project owner. Preserve the public-reference evidence gap until the contribution URL is captured; do not reuse executor-permit claims. |
-| `MS-003` | Delivery Escrow & Validator Settlement | `VERIFIED` | Accepted MS-002 source `7a5047e`; evidence head `21d72a1`; working base `b742585` | Matched fee/bond remain escrowed until authenticated delivery is accepted, validator-settled, or safely recovered | Implementation `afa0409`; production copy `c1dc72b`; verified evidence head `741cf12` | Studionet `0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5`; source `afa0409`; deploy `0x575903...98f5b` | `docs/milestones/MS-003/README.md`; `docs/evidence/studionet/ms-003-delivery-settlement.json`; `docs/evidence/studionet/ms-003-production.json`; `docs/evidence/studionet/deployment.json`; CI `35666807829` | `NOT_SUBMITTED` | — | Extends matched grants with a new delivery and GEN-settlement lifecycle; does not recount clearing, task authorization, or executor permits | Script-signed live path proves 2 GEN escrow, requester acceptance, provider payout/withdrawal, zero liability, and invariant true; production browser verifies six OPEN rounds and zero console errors; public Windows CI passed. |
+| `MS-003` | Delivery Escrow & Validator Settlement | `ACCEPTED` | Accepted MS-002 source `7a5047e`; evidence head `21d72a1`; working base `b742585` | Matched fee/bond remain escrowed until authenticated delivery is accepted, validator-settled, or safely recovered | Implementation `afa0409`; production copy `c1dc72b`; verified evidence head `741cf12` | Studionet `0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5`; source `afa0409`; deploy `0x575903...98f5b` | `docs/milestones/MS-003/README.md`; `docs/evidence/studionet/ms-003-delivery-settlement.json`; `docs/evidence/studionet/ms-003-production.json`; `docs/evidence/studionet/deployment.json`; CI `35666807829` | `ACCEPTED — owner-confirmed; public contribution reference pending capture` | `2026-10-05` | Extends matched grants with a new delivery and GEN-settlement lifecycle; does not recount clearing, task authorization, or executor permits | Acceptance was confirmed by the project owner. Preserve the missing public contribution reference as an explicit evidence gap; do not recount delivery escrow in MS-004. |
+| `MS-004` | Contestable Delivery Reputation | `LOCAL_VERIFIED` | Accepted MS-003 evidence head `741cf12`; repository head `305d615` | Requester-authored post-settlement review, provider challenge, validator resolution, permissionless finalization/recovery, and canonical provider reputation | Local implementation pending commit | Pending | `docs/milestones/MS-004/README.md`; 262 local checks | `NOT_SUBMITTED` | — | Extends accepted delivery settlement with a new post-settlement reputation consequence; does not alter accepted escrow destinations | Local gates pass. Next: authorized Studionet deployment/lifecycle, production release, CI, browser proof, then Portal packet. |
 
 ## Adaptive backlog
 
@@ -116,6 +117,9 @@ after every verified Portal outcome.
 | `BL-004` | Architecture/security increment that creates a new authenticated consumer boundary | `UNASSESSED`; routine refactor is ineligible | Threat model, new enforcement consequence, regression/property evidence | `BACKLOG` |
 | `BL-005` | Delegated agent execution permits for an exact requester-authorized A2A task | `EXTENDS` accepted task dispatch with a new authenticated executor boundary | EOA signature verification, bounded expiry/epoch, revocation, import/export UX, live signed proof | `SELECTED_AS_MS-002` |
 | `BL-006` | Authenticated delivery escrow with requester acceptance, validator dispute resolution, and permissionless recovery | `EXTENDS` matched grants with a new post-match value consequence | Provider-authored bounded artifact, exact match binding, semantic fulfillment judgment, timeout recovery, browser lifecycle | `SELECTED_AS_MS-003` |
+| `BL-007` | Contestable post-settlement reputation bound to one authenticated SkillSlot delivery | `EXTENDS` accepted delivery with a new public reputation consequence | Requester review, provider response, validator resolution, deterministic aggregate, timeout finalization/recovery, browser lifecycle | `SELECTED_AS_MS-004` |
+| `BL-008` | Portable reputation credential consumable outside SkillSlot | `EXTENDS` MS-004 only after a real external verifier exists | Credential format, issuer/key lifecycle, consumer integration, replay/revocation evidence | `BACKLOG` |
+| `BL-009` | Cross-round provider discovery and reputation-aware search | `EXTENDS` MS-004 read surface but does not itself require validator consensus | Indexing boundary, pagination, Sybil policy, measurable discovery use | `BACKLOG` |
 
 The A2A research reference was refreshed on `2026-08-29`: upstream release `v1.0.1` was published on
 `2026-05-28`, and upstream `main` was observed at commit
@@ -152,6 +156,20 @@ invoke one already-authorized exact task until a bounded deadline and current ep
 the grant, release value, certify delivery, accept arbitrary destinations, or authenticate third-party
 Agent Cards.
 
+### MS-004 selection audit (2026-10-05)
+
+| Candidate | Quality bar | Anti-overlap result | Decision |
+| --- | --- | --- | --- |
+| `BL-007` | Complete user capability with authenticated authorship, a new validator judgment, canonical aggregate consequence, timeout closure, UI, tests, and network evidence | `EXTENDS`: MS-001 authorizes tasks, MS-002 authorizes executors, and MS-003 settles delivery value; none records a contestable post-settlement provider reputation outcome | Select as `MS-004` |
+| `BL-001B` | Important origin security, but authoritative third-party key rotation and a real consumer remain unresolved | `EXTENDS`, but evidence readiness is weaker than BL-007 | Keep in backlog |
+| `BL-003` | Strong only with independent adoption | `NEW`, but no independent consumer evidence exists | Keep in backlog; do not manufacture traction |
+| `BL-008` | Valuable portable credential boundary | Depends on the canonical reputation record and a real verifier | Defer until MS-004 outcome is known |
+| `BL-009` | Useful product discovery improvement | Mostly deterministic indexing/UX without a new GenLayer judgment | Keep as supporting backlog, not a standalone milestone yet |
+
+`MS-004` leaves MS-003 escrow and payout semantics unchanged. It begins only after a delivery is in a
+terminal accepted state and creates a separate canonical consequence: a requester-authored score can
+be finalized unchallenged, challenged by the matched provider, or voided/upheld by validator consensus.
+
 ## Retired or reserved claims
 
 - Project Explorer visual redesign, wallet selection, network switching, disconnect, generated metadata,
@@ -163,11 +181,12 @@ Agent Cards.
 
 ## Current phase pointer
 
-- Active Milestone: `MS-003 — Delivery Escrow & Validator Settlement`
-- Program state: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 VERIFIED — NOT SUBMITTED`
-- Last Portal reconciliation: `2026-09-21`
-- Reconciliation evidence: project-owner confirmation that MS-002 was approved. Its exact public
-  contribution reference remains an explicit historical evidence gap but is not represented as an
-  MS-003 claim.
-- Next allowed action: submit the frozen MS-003 packet to Portal only after explicit action-time
-  authorization. Do not lock MS-004 details until the MS-003 Portal outcome is recorded.
+- Active Milestone: `MS-004 — Contestable Delivery Reputation`
+- Program state: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 LOCAL_VERIFIED`
+- Last Portal reconciliation: `2026-10-05`
+- Reconciliation evidence: project-owner confirmation that MS-003 was approved. The exact public
+  contribution reference remains an explicit historical evidence gap and must be captured when available.
+- Next allowed action: after explicit authorization, commit/push the locally verified MS-004 delta,
+  deploy and prove it on Studionet, release/inspect production, then prepare the Portal packet. Do not
+  submit it without explicit action-time Portal authorization, and do not lock MS-005 before the
+  MS-004 Portal outcome.

@@ -1,6 +1,6 @@
 # SkillSlot Clearing
 
-SkillSlot Clearing uses GenLayer validators to clear scarce agent-access slots by meaning, lets a matched requester delegate one exact A2A task, and keeps matched value in delivery escrow until acceptance, validator settlement, or timeout recovery.
+SkillSlot Clearing uses GenLayer validators to clear scarce agent-access slots by meaning, lets a matched requester delegate one exact A2A task, keeps matched value in delivery escrow, and records contestable post-settlement reputation without changing the settled payout.
 
 ## Why GenLayer
 
@@ -11,13 +11,14 @@ The product reserves access and adjudicates a bounded provider-submitted artifac
 ## Verified status
 
 - Track: GenLayer **Projects**
-- Contract: one `SkillSlotClearing` Intelligent Contract with 16 writes and 10 views in the `MS-003` source
+- Contract: one `SkillSlotClearing` Intelligent Contract with 21 writes and 12 views in the locally verified `MS-004` source
 - Network: Studionet (`61999`)
 - Accepted Project deployment: `0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`
 - Milestone `MS-001` deployment: `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`; accepted as Portal contribution `185631`
 - Milestone `MS-002` deployment: `0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b`; accepted on Portal (owner-confirmed; public contribution reference pending capture)
-- Milestone `MS-003` deployment: `0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5`; Portal submission not yet sent
-- Automated checks: 240 currently pass locally (10 static, 70 direct, 5 receipt parser, 18 deployment tooling, 137 frontend)
+- Milestone `MS-003` deployment: `0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5`; accepted on Portal (owner-confirmed; public contribution reference pending capture)
+- Milestone `MS-004`: locally implemented and verified; Studionet deployment, public production release, CI, and Portal submission are still pending
+- Automated checks: 262 currently pass locally (11 static, 79 direct, 5 receipt parser, 21 deployment tooling, 146 frontend)
 - Verified Windows CI: [`check` run 35666807829](https://github.com/duclucky/skillslot-clearing/actions/runs/35666807829) passed on MS-003 evidence commit `741cf12`
 - MS-001 dispatch proof: one finalized authorization, two identical HTTP requests returning one deterministic task ID, finalized grant consumption, post-consume HTTP 403, and unchanged GEN accounting during the handoff
 - MS-002 executor proof: finalized task and executor authorizations, two signed HTTP requests returning one deterministic task ID, wrong-signer HTTP 401, post-revoke HTTP 403, and unchanged GEN accounting
@@ -68,7 +69,9 @@ The public URL above is configured for the current milestone deployment and expo
 11. `FULFILLED` pays the provider the fee and returned bond; `FAILED` pays both to the requester; `UNVERIFIABLE` moves no value and remains retryable.
 12. After the delivery recovery deadline, any wallet can close unresolved escrow: no artifact returns fee and bond to the requester; an unresolved artifact refunds the fee and returns the bond without penalty.
 13. The requester can revoke the executor or consume the one-time grant; later dispatch attempts fail and actors withdraw canonical credits.
-14. If clearing evidence is unavailable, the round becomes non-penalizing `RETRYABLE`; if the creator stops before clearing, any wallet can trigger refund-only round recovery.
+14. After terminal delivery settlement, the requester may publish one bounded 1–5 review. The provider may challenge before the deadline; GenLayer validators can uphold or overturn the score, while unverifiable disputes remain retryable.
+15. Any wallet can finalize an unchallenged review after its challenge deadline or void an unresolved challenge after its recovery deadline. Only finalized scores enter the provider aggregate; reputation writes move no GEN.
+16. If clearing evidence is unavailable, the round becomes non-penalizing `RETRYABLE`; if the creator stops before clearing, any wallet can trigger refund-only round recovery.
 
 ## Architecture
 
@@ -81,7 +84,8 @@ Browser wallet (EIP-6963 / EIP-1193)
        -> requester-bound A2A task digest
        -> requester-controlled executor address, epoch, expiry, and revocation
        -> bounded delivery artifact, validator judgment, and deterministic escrow settlement
-  <- canonical round, position, grant, dispatch, executor, delivery, credit, and invariant views
+       -> bounded review, provider challenge, validator resolution, and deterministic reputation aggregate
+  <- canonical round, position, grant, dispatch, executor, delivery, reputation, credit, and invariant views
   -> fixed same-origin A2A reference endpoint
        -> EIP-191 signer recovery + canonical can_execute_dispatch read
        -> deterministic submitted-task receipt
@@ -118,6 +122,7 @@ npm run balance:studionet   # deposit -> cancel -> withdraw balance proof
 npm run dispatch:studionet  # authorize -> repeated A2A receipt -> consume -> reject
 npm run executor:studionet  # delegated signer -> retry identity -> wrong signer -> revoke
 npm run delivery:studionet  # artifact -> requester acceptance -> exact 2 GEN payout -> withdrawal
+npm run reputation:studionet # review -> challenge -> validator resolution -> canonical aggregate, no GEN movement
 npm run seed:studionet      # maintain six OPEN Project Explorer reviewer rounds
 ```
 
@@ -132,6 +137,7 @@ The demo uses exactly 1 GEN for each value-bearing position and stops at `RETRYA
 - `docs/milestones/MS-001/README.md` — accepted-baseline delta, gates, safety card, and evidence plan
 - `docs/milestones/MS-002/README.md` — delegated-executor delta, gates, safety card, and evidence index
 - `docs/milestones/MS-003/README.md` — delivery-escrow delta, evidence authority, recovery matrix, and exit gates
+- `docs/milestones/MS-004/README.md` — contestable-reputation delta, aggregate consequence, timeout closure, and exit gates
 - `docs/MILESTONE-SUBMISSION-MS-001.md` — copy-ready Portal Milestones packet and evidence index
 - `docs/PROJECT-EXPLORER-LISTING.md` — copy-ready Project Explorer listing and reviewer steps
 - `docs/README.md` — specification, safety cards, threat model, and claim-to-code matrix
@@ -145,5 +151,6 @@ The demo uses exactly 1 GEN for each value-bearing position and stops at `RETRYA
 - The reference Agent Card is unsigned and discovery-only. It cannot authorize a hard consequence.
 - A `TASK_STATE_SUBMITTED` receipt proves only that the bounded handoff was accepted. MS-003 settlement depends on a separately submitted bounded artifact and never upgrades the receipt itself into proof of completion.
 - Delivery adjudication is bounded to authenticated marketplace state and the provider-submitted artifact; it does not independently observe or prove offchain real-world performance.
+- MS-004 reputation is a bounded, requester-authored review of one canonical SkillSlot delivery. It is not a portable credential, a Sybil-resistant ranking, or independent proof of real-world performance.
 
 See the [full specification](docs/README.md), [research record](docs/RESEARCH.md), and [design system](design-system/skillslot-clearing/MASTER.md).

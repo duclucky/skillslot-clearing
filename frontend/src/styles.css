@@ -1797,6 +1797,70 @@ h2 {
   justify-content: flex-start;
 }
 
+.reputation-panel {
+  width: min(100%, 680px);
+  display: grid;
+  gap: 13px;
+  padding: 18px;
+  color: var(--text);
+  background: rgba(10, 12, 13, 0.94);
+  border: 1px solid rgba(201, 186, 255, 0.3);
+  border-radius: 18px;
+}
+
+.reputation-panel form {
+  display: grid;
+  gap: 10px;
+}
+
+.reputation-panel label {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.reputation-panel select,
+.reputation-panel textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 14px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.reputation-panel textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+
+.reputation-panel select:focus-visible,
+.reputation-panel textarea:focus-visible {
+  outline: 3px solid var(--accent-mint);
+  outline-offset: 2px;
+}
+
+.reputation-record {
+  padding: 14px;
+  background: rgba(201, 186, 255, 0.08);
+  border: 1px solid rgba(201, 186, 255, 0.28);
+  border-radius: 12px;
+}
+
+.reputation-record p {
+  margin: 7px 0;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.reputation-record small {
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
 .a2a-receipt {
   display: flex;
   align-items: flex-start;

@@ -69,6 +69,10 @@ const mechanismSteps = [
     title: "Delivery settlement releases value deterministically",
     body: "Matched fee and bond stay escrowed until delivery is accepted, validator-settled, or recovered after timeout.",
   },
+  {
+    title: "Settled work builds contestable reputation",
+    body: "Requesters publish authenticated scores, providers may challenge them, and validators resolve only the bounded delivery record.",
+  },
 ];
 
 function shortAddress(address: string) {
@@ -437,7 +441,7 @@ function Overview({
           </h1>
           <p className="hero-line anim" style={{ "--d": "0.24s" } as CSSProperties}>Validator-cleared access marketplace</p>
           <p className="lede">
-            A GenLayer marketplace for clearing scarce agent access. Validators match authenticated offers to exact needs, then matched fee and bond remain in delivery escrow until acceptance, validator settlement, or timeout recovery.
+            A GenLayer marketplace for clearing scarce agent access. Validators match authenticated offers, settle bounded delivery evidence, and resolve challenged reputation without changing finalized escrow outcomes.
           </p>
           <div className="hero-actions anim" style={{ "--d": "0.4s" } as CSSProperties}>
             <button className="button button-primary" type="button" onClick={onOpenRounds}>
@@ -512,6 +516,13 @@ function Overview({
             <div>
               <strong>Settle the delivered result</strong>
               <p>The provider submits a bounded artifact; the requester accepts it or validators settle fulfillment before value moves.</p>
+            </div>
+          </li>
+          <li className="usage-step">
+            <span className="mechanism-index" aria-hidden="true">04</span>
+            <div>
+              <strong>Publish or challenge reputation</strong>
+              <p>The requester reviews settled work; the provider may challenge before canonical finalization or validator resolution.</p>
             </div>
           </li>
         </ol>

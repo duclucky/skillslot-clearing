@@ -82,11 +82,18 @@ def test_position_public_surface_and_nondeterminism_boundary_are_locked():
         "accept_delivery",
         "review_delivery",
         "recover_delivery",
+        "submit_reputation",
+        "challenge_reputation",
+        "resolve_reputation",
+        "finalize_reputation",
+        "recover_reputation",
         "withdraw_credit",
         "get_round",
         "get_offer",
         "get_request",
         "get_match",
+        "get_reputation",
+        "get_provider_reputation",
         "can_route",
         "can_dispatch",
         "can_execute_dispatch",
@@ -100,7 +107,7 @@ def test_position_public_surface_and_nondeterminism_boundary_are_locked():
     top_level_functions = [node for node in tree.body if isinstance(node, ast.FunctionDef)]
     contract_methods = [node for node in contract_class.body if isinstance(node, ast.FunctionDef)]
     for node in top_level_functions + contract_methods:
-        if node.name not in {"clear_round", "review_delivery", "_verify_agent_metadata"}:
+        if node.name not in {"clear_round", "review_delivery", "resolve_reputation", "_verify_agent_metadata"}:
             rendered = ast.unparse(node)
             assert "gl.nondet" not in rendered
             assert "gl.vm.run_nondet" not in rendered
@@ -149,6 +156,27 @@ def test_delivery_review_uses_bounded_semantic_consensus_and_nonpayable_writes()
     assert "_delivery_fingerprint" in review
 
     for method_name in ("submit_delivery", "accept_delivery", "review_delivery", "recover_delivery"):
+        decorators = {ast.unparse(item) for item in methods[method_name].decorator_list}
+        assert "gl.public.write" in decorators
+        assert "gl.public.write.payable" not in decorators
+
+
+def test_reputation_resolution_uses_independent_consensus_and_nonpayable_writes():
+    tree = _tree()
+    contract_class = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "Contract")
+    methods = {node.name: node for node in contract_class.body if isinstance(node, ast.FunctionDef)}
+    review = ast.unparse(methods["resolve_reputation"])
+    assert "gl.vm.run_nondet(" in review
+    assert "gl.nondet.exec_prompt(" in review
+    assert "_normalize_reputation" in review
+    assert "_reputation_fingerprint" in review
+    for method_name in (
+        "submit_reputation",
+        "challenge_reputation",
+        "resolve_reputation",
+        "finalize_reputation",
+        "recover_reputation",
+    ):
         decorators = {ast.unparse(item) for item in methods[method_name].decorator_list}
         assert "gl.public.write" in decorators
         assert "gl.public.write.payable" not in decorators

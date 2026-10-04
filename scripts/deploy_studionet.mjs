@@ -18,6 +18,7 @@ const EVIDENCE_PATH = path.join(EVIDENCE_DIR, "deployment.json");
 const DISPATCH_EVIDENCE_PATH = path.join(EVIDENCE_DIR, "ms-001-a2a-dispatch.json");
 const EXECUTOR_EVIDENCE_PATH = path.join(EVIDENCE_DIR, "ms-002-executor-permit.json");
 const DELIVERY_EVIDENCE_PATH = path.join(EVIDENCE_DIR, "ms-003-delivery-settlement.json");
+const REPUTATION_EVIDENCE_PATH = path.join(EVIDENCE_DIR, "ms-004-contestable-reputation.json");
 const OPEN_ROUNDS_EVIDENCE_PATH = path.join(EVIDENCE_DIR, "project-explorer-open-rounds.json");
 const ARCHIVE_DIR = path.join(EVIDENCE_DIR, "archive");
 const EXPLORER_URL = "https://explorer-studio.genlayer.com";
@@ -36,6 +37,8 @@ const TERMINAL_FAILURES = new Set(["UNDETERMINED", "CANCELED", "LEADER_TIMEOUT",
 const PRIMARY_KEYS = ["STUDIONET_PRIVATE_KEY", "GENLAYER_PRIVATE_KEY", "PRIVATE_KEY"];
 const REQUESTER_KEYS = ["STUDIONET_INTEGRATOR_PRIVATE_KEY", "STUDIONET_REQUESTER_PRIVATE_KEY"];
 const DEMO_DELIVERY_ARTIFACT = "Confirmed SkillSlot delivery: flight GL-203 departs at 09:30 and the itinerary was added to the requester calendar.";
+const DEMO_REPUTATION_EVIDENCE = "The delivery satisfied the exact flight booking and calendar requirements with a verifiable itinerary.";
+const DEMO_REPUTATION_RESPONSE = "The provider confirms the same bounded artifact and requests independent validation of the review.";
 
 function parseEnvFile(filePath) {
   if (!existsSync(filePath)) return {};
@@ -595,6 +598,126 @@ export async function executeDeliverySettlementProof(proof, context, dependencie
   return proof;
 }
 
+function safeProviderReputation(value) {
+  return {
+    provider: String(value?.provider ?? ""),
+    review_count: String(value?.review_count ?? "0"),
+    score_total: String(value?.score_total ?? "0"),
+    average_milli: String(value?.average_milli ?? "0"),
+    overturned_count: String(value?.overturned_count ?? "0"),
+  };
+}
+
+export function projectReputationProofEvidence(value) {
+  const allowed = [
+    "network",
+    "chainId",
+    "contractAddress",
+    "sourceCommit",
+    "contractSha256",
+    "roundId",
+    "requestId",
+    "provider",
+    "requester",
+    "score",
+    "evidenceDigest",
+    "responseDigest",
+    "reputationStatus",
+    "resolutionReason",
+    "status",
+  ];
+  const projected = Object.fromEntries(allowed.filter((key) => key in value).map((key) => [key, value[key]]));
+  projected.transactions = Object.fromEntries(
+    Object.entries(value?.transactions ?? {}).map(([key, record]) => [key, sanitizeEvidence(record)]),
+  );
+  projected.accounting = {
+    before: safeAccounting(value?.accounting?.before),
+    after: safeAccounting(value?.accounting?.after),
+    invariantUnchanged: value?.accounting?.invariantUnchanged === true,
+  };
+  projected.providerReputation = safeProviderReputation(value?.providerReputation);
+  return projected;
+}
+
+export async function executeReputationProof(proof, context, dependencies) {
+  if (proof.status === "FINALIZED_REPUTATION_PROOF") return proof;
+  proof.transactions ??= {};
+  const evidenceDigest = sha256Text(context.evidence.trim());
+  const responseDigest = sha256Text(context.response.trim());
+  if (proof.evidenceDigest && proof.evidenceDigest !== evidenceDigest) {
+    throw new Error("Recorded reputation proof digest does not match the bounded evidence");
+  }
+  if (proof.responseDigest && proof.responseDigest !== responseDigest) {
+    throw new Error("Recorded reputation response digest does not match the bounded response");
+  }
+  Object.assign(proof, {
+    chainId: studionet.id,
+    contractAddress: context.contractAddress,
+    roundId: context.roundId,
+    requestId: context.requestId,
+    provider: context.provider.toLowerCase(),
+    requester: context.requester.toLowerCase(),
+    score: context.score,
+    evidenceDigest,
+    responseDigest,
+    status: "STARTED",
+  });
+  const persist = () => dependencies.persist(proof);
+  persist();
+  if (!proof.accounting?.before) {
+    proof.accounting = { before: safeAccounting(await dependencies.readAccounting()) };
+    persist();
+  }
+
+  let reputation = await dependencies.readReputation();
+  if (!reputation?.status || reputation.status === "NONE") {
+    proof.transactions.submitReputation = sanitizeEvidence(await dependencies.submitReputation(
+      context.score,
+      context.evidence.trim(),
+    ));
+    persist();
+    reputation = await dependencies.readReputation();
+  }
+  if (reputation.status === "PENDING") {
+    if (reputation.evidence_digest !== evidenceDigest || Number(reputation.score) !== context.score) {
+      throw new Error("Canonical reputation review does not match the bounded proof input");
+    }
+    proof.transactions.challengeReputation = sanitizeEvidence(await dependencies.challengeReputation(
+      context.response.trim(),
+    ));
+    persist();
+    reputation = await dependencies.readReputation();
+  }
+  if (["CHALLENGED", "RETRYABLE"].includes(reputation.status)) {
+    if (reputation.response_digest !== responseDigest) {
+      throw new Error("Canonical provider response does not match the bounded proof input");
+    }
+    proof.transactions.resolveReputation = sanitizeEvidence(await dependencies.resolveReputation());
+    persist();
+    reputation = await dependencies.readReputation();
+  }
+  if (reputation.status !== "FINALIZED") {
+    throw new Error(`Reputation proof reached ${reputation.status || "UNKNOWN"} instead of FINALIZED`);
+  }
+  proof.reputationStatus = reputation.status;
+  proof.resolutionReason = String(reputation.reason ?? "");
+  proof.providerReputation = safeProviderReputation(await dependencies.readProviderReputation());
+  if (
+    proof.providerReputation.review_count !== "1" ||
+    proof.providerReputation.score_total !== String(context.score) ||
+    proof.providerReputation.average_milli !== String(context.score * 1000)
+  ) {
+    throw new Error("Provider reputation aggregate did not record the finalized score exactly once");
+  }
+  const after = safeAccounting(await dependencies.readAccounting());
+  const invariantUnchanged = canonicalJson(proof.accounting.before) === canonicalJson(after) && after.invariant_holds === true;
+  proof.accounting = { before: proof.accounting.before, after, invariantUnchanged };
+  if (!invariantUnchanged) throw new Error("Reputation lifecycle changed canonical GEN accounting");
+  proof.status = "FINALIZED_REPUTATION_PROOF";
+  persist();
+  return proof;
+}
+
 function git(args) {
   return execFileSync("git", args, { cwd: ROOT_DIR, encoding: "utf8" }).trim();
 }
@@ -698,6 +821,31 @@ function archiveSupersededDeliveryProof(proof) {
   writeFileSync(
     path.join(ARCHIVE_DIR, `${timestamp}-ms-003-delivery-settlement.json`),
     `${JSON.stringify(jsonSafe(projectDeliverySettlementProofEvidence(proof)), null, 2)}\n`,
+    "utf8",
+  );
+}
+
+function readReputationEvidence() {
+  if (!existsSync(REPUTATION_EVIDENCE_PATH)) return {};
+  return JSON.parse(readFileSync(REPUTATION_EVIDENCE_PATH, "utf8"));
+}
+
+function writeReputationEvidence(value) {
+  mkdirSync(EVIDENCE_DIR, { recursive: true });
+  writeFileSync(
+    REPUTATION_EVIDENCE_PATH,
+    `${JSON.stringify(jsonSafe(projectReputationProofEvidence(value)), null, 2)}\n`,
+    "utf8",
+  );
+}
+
+function archiveSupersededReputationProof(proof) {
+  if (!proof?.contractAddress) return;
+  mkdirSync(ARCHIVE_DIR, { recursive: true });
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  writeFileSync(
+    path.join(ARCHIVE_DIR, `${timestamp}-ms-004-contestable-reputation.json`),
+    `${JSON.stringify(jsonSafe(projectReputationProofEvidence(proof)), null, 2)}\n`,
     "utf8",
   );
 }
@@ -1559,6 +1707,71 @@ async function deliveryProof(env) {
   }, null, 2));
 }
 
+async function reputationProof(env) {
+  await deliveryProof(env);
+  const evidence = readEvidence();
+  const address = requireDeployment(evidence);
+  const provider = signingClient(env, PRIMARY_KEYS);
+  const requester = signingClient(env, REQUESTER_KEYS);
+  await assertStudionet(provider.client);
+  await assertStudionet(requester.client);
+  const roundId = evidence.demo?.roundId;
+  const requestId = "request-flight";
+  if (!roundId) throw new Error("The active deployment has no settled demo round for reputation proof");
+  const context = {
+    contractAddress: address,
+    roundId,
+    requestId,
+    provider: provider.account.address,
+    requester: requester.account.address,
+    score: 5,
+    evidence: DEMO_REPUTATION_EVIDENCE,
+    response: DEMO_REPUTATION_RESPONSE,
+  };
+  let proof = readReputationEvidence();
+  if (proof.contractAddress && proof.contractAddress.toLowerCase() !== address.toLowerCase()) {
+    archiveSupersededReputationProof(proof);
+    proof = {};
+  }
+  proof.network = "studionet";
+  proof.sourceCommit = evidence.identity?.sourceCommit;
+  proof.contractSha256 = evidence.identity?.contractSha256;
+  proof = await executeReputationProof(proof, context, {
+    readReputation: () => readView(provider.client, address, "get_reputation", [roundId, requestId]),
+    readProviderReputation: () => readView(provider.client, address, "get_provider_reputation", [provider.account.address]),
+    readAccounting: () => readView(provider.client, address, "get_accounting", []),
+    submitReputation: (score, reviewEvidence) => writeContractFinalized(
+      requester.client,
+      address,
+      "submit_reputation",
+      [roundId, requestId, score, reviewEvidence],
+    ),
+    challengeReputation: (response) => writeContractFinalized(
+      provider.client,
+      address,
+      "challenge_reputation",
+      [roundId, requestId, response],
+    ),
+    resolveReputation: () => writeContractFinalized(
+      requester.client,
+      address,
+      "resolve_reputation",
+      [roundId, requestId],
+    ),
+    persist: writeReputationEvidence,
+  });
+  console.log(JSON.stringify({
+    action: "reputation-proof",
+    status: proof.status,
+    contractAddress: proof.contractAddress,
+    roundId: proof.roundId,
+    requestId: proof.requestId,
+    reputationStatus: proof.reputationStatus,
+    providerReputation: proof.providerReputation,
+    accounting: proof.accounting,
+  }, null, 2));
+}
+
 async function seedOpenRounds(env) {
   await deploy(env);
   const evidence = readEvidence();
@@ -1678,6 +1891,7 @@ async function main() {
   else if (command === "dispatch-proof") await dispatchProof(env);
   else if (command === "executor-proof") await executorProof(env);
   else if (command === "delivery-proof") await deliveryProof(env);
+  else if (command === "reputation-proof") await reputationProof(env);
   else if (command === "seed-open-rounds") await seedOpenRounds(env);
   else if (["open-round", "submit-demo-positions", "lock", "clear", "submit-delivery", "accept-delivery", "consume", "withdraw"].includes(command)) {
     await runStep(env, command);

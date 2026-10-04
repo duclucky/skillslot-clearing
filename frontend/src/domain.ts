@@ -41,6 +41,16 @@ export interface PositionView {
   deliveryDeadline?: string;
   deliveryRecoveryAt?: string;
   deliveryAttemptCount?: string;
+  reputationStatus?: string;
+  reputationScore?: string;
+  reputationEvidence?: string;
+  reputationEvidenceDigest?: string;
+  reputationResponse?: string;
+  reputationResponseDigest?: string;
+  reputationReason?: string;
+  reputationChallengeDeadline?: string;
+  reputationRecoveryAt?: string;
+  reputationAttemptCount?: string;
 }
 
 export interface WorkspaceSnapshot {
@@ -131,6 +141,11 @@ export interface ContractAdapter {
   acceptDelivery(input: { roundId: string; requestId: string }): Promise<TransactionReceipt>;
   reviewDelivery(input: { roundId: string; requestId: string }): Promise<TransactionReceipt>;
   recoverDelivery(input: { roundId: string; requestId: string }): Promise<TransactionReceipt>;
+  submitReputation(input: { roundId: string; requestId: string; score: number; evidence: string }): Promise<TransactionReceipt>;
+  challengeReputation(input: { roundId: string; requestId: string; response: string }): Promise<TransactionReceipt>;
+  resolveReputation(input: { roundId: string; requestId: string }): Promise<TransactionReceipt>;
+  finalizeReputation(input: { roundId: string; requestId: string }): Promise<TransactionReceipt>;
+  recoverReputation(input: { roundId: string; requestId: string }): Promise<TransactionReceipt>;
   signMessage(message: string): Promise<string>;
   consumeGrant(input: { roundId: string; requestId: string }): Promise<TransactionReceipt>;
   withdrawCredit(amountWei: string): Promise<TransactionReceipt>;

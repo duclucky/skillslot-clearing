@@ -67,6 +67,16 @@ function clients() {
          delivery_deadline: "1900003600",
          delivery_recovery_at: "1900010800",
          delivery_attempt_count: "0",
+         reputation_status: "PENDING",
+         reputation_score: "4",
+         reputation_evidence: "The delivery satisfied the bounded request.",
+         reputation_evidence_digest: "b".repeat(64),
+         reputation_response: "",
+         reputation_response_digest: "",
+         reputation_reason: "Awaiting provider challenge window.",
+         reputation_challenge_deadline: "1900020000",
+         reputation_recovery_at: "1900030000",
+         reputation_attempt_count: "0",
       };
     }
     if (functionName === "can_route") return true;
@@ -138,11 +148,18 @@ describe("GenLayer contract adapter", () => {
       executorEpoch: "2",
       deliveryStatus: "AWAITING_DELIVERY",
       deliveryDeadline: "1900003600",
+      reputationStatus: "PENDING",
+      reputationScore: "4",
+      reputationEvidenceDigest: "b".repeat(64),
+      reputationChallengeDeadline: "1900020000",
     });
     expect(snapshot.positions.find((item) => item.kind === "delivery")).toMatchObject({
       actorRole: "provider",
       deliveryStatus: "AWAITING_DELIVERY",
       deliveryRecoveryAt: "1900010800",
+      reputationStatus: "PENDING",
+      reputationReason: "Awaiting provider challenge window.",
+      reputationRecoveryAt: "1900030000",
     });
     expect(readClient.readContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "can_route" }));
     expect(readClient.readContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "get_accounting" }));
@@ -196,7 +213,7 @@ describe("GenLayer contract adapter", () => {
      ]);
   });
 
-  it("maps all sixteen writes, exact GEN value, and submitted/accepted/finalized progress", async () => {
+  it("maps all twenty-one writes, exact GEN value, and submitted/accepted/finalized progress", async () => {
     const { readClient, writeClient } = clients();
     const progress = vi.fn();
     const adapter = createGenLayerAdapter({
@@ -221,9 +238,14 @@ describe("GenLayer contract adapter", () => {
     await adapter.acceptDelivery({ roundId: "round-1", requestId: "request-1" });
     await adapter.reviewDelivery({ roundId: "round-1", requestId: "request-1" });
     await adapter.recoverDelivery({ roundId: "round-1", requestId: "request-1" });
+    await adapter.submitReputation({ roundId: "round-1", requestId: "request-1", score: 4, evidence: "Bounded delivery review evidence." });
+    await adapter.challengeReputation({ roundId: "round-1", requestId: "request-1", response: "Bounded provider challenge response." });
+    await adapter.resolveReputation({ roundId: "round-1", requestId: "request-1" });
+    await adapter.finalizeReputation({ roundId: "round-1", requestId: "request-1" });
+    await adapter.recoverReputation({ roundId: "round-1", requestId: "request-1" });
     await adapter.withdrawCredit(ONE_GEN_WEI.toString());
 
-    expect(writeClient.writeContract).toHaveBeenCalledTimes(16);
+    expect(writeClient.writeContract).toHaveBeenCalledTimes(21);
     expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({
       functionName: "authorize_dispatch",
       args: ["round-1", "request-1", "a".repeat(64)],
@@ -270,6 +292,15 @@ describe("GenLayer contract adapter", () => {
     expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "accept_delivery" }));
     expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "review_delivery" }));
     expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "recover_delivery" }));
+    expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({
+      functionName: "submit_reputation",
+      args: ["round-1", "request-1", 4, "Bounded delivery review evidence."],
+      value: 0n,
+    }));
+    expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "challenge_reputation" }));
+    expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "resolve_reputation" }));
+    expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "finalize_reputation" }));
+    expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "recover_reputation" }));
     expect(progress.mock.calls.slice(0, 4).map(([event]) => event.stage)).toEqual([
       "wallet",
       "submitted",
@@ -330,6 +361,11 @@ describe("GenLayer contract adapter", () => {
     ["revoke_executor", (adapter: ContractAdapter) => adapter.revokeExecutor({ roundId: "round-1", requestId: "request-1" })],
     ["consume_grant", (adapter: ContractAdapter) => adapter.consumeGrant({ roundId: "round-1", requestId: "request-1" })],
     ["withdraw_credit", (adapter: ContractAdapter) => adapter.withdrawCredit(ONE_GEN_WEI.toString())],
+    ["submit_reputation", (adapter: ContractAdapter) => adapter.submitReputation({ roundId: "round-1", requestId: "request-1", score: 4, evidence: "Bounded review evidence." })],
+    ["challenge_reputation", (adapter: ContractAdapter) => adapter.challengeReputation({ roundId: "round-1", requestId: "request-1", response: "Bounded challenge response." })],
+    ["resolve_reputation", (adapter: ContractAdapter) => adapter.resolveReputation({ roundId: "round-1", requestId: "request-1" })],
+    ["finalize_reputation", (adapter: ContractAdapter) => adapter.finalizeReputation({ roundId: "round-1", requestId: "request-1" })],
+    ["recover_reputation", (adapter: ContractAdapter) => adapter.recoverReputation({ roundId: "round-1", requestId: "request-1" })],
   ])("routes %s through the shared cancellation policy", async (functionName, invoke) => {
     const { readClient, writeClient } = clients();
     vi.mocked(writeClient.writeContract).mockRejectedValue(

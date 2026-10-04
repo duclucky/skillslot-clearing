@@ -13,11 +13,13 @@ import {
   executeDeliverySettlementProof,
   executeDispatchProof,
   executeExecutorPermitProof,
+  executeReputationProof,
   formatGenBalance,
   loadEnvironment,
   projectDispatchProofEvidence,
   projectDeliverySettlementProofEvidence,
   projectExecutorPermitProofEvidence,
+  projectReputationProofEvidence,
   rpcRetryDelayMs,
   sanitizeEvidence,
   shouldReuseDeployment,
@@ -412,4 +414,111 @@ test("delivery-proof is exposed as a resumable deployment command", () => {
 
   assert.match(source, /command === "delivery-proof"/);
   assert.equal(packageJson.scripts["delivery:studionet"], "node scripts/deploy_studionet.mjs delivery-proof");
+});
+
+test("reputation proof submits, challenges, resolves, and resumes without replay", async () => {
+  const calls = { submit: 0, challenge: 0, resolve: 0 };
+  const canonical = {
+    status: "NONE",
+    score: "0",
+    evidence_digest: "",
+    response_digest: "",
+    reason: "",
+  };
+  const aggregate = {
+    provider: "0x00000000000000000000000000000000000000bb",
+    review_count: "0",
+    score_total: "0",
+    average_milli: "0",
+    overturned_count: "0",
+  };
+  const accounting = {
+    total_received_wei: String(2n * 10n ** 18n),
+    total_locked_wei: "0",
+    total_credited_wei: "0",
+    total_withdrawn_wei: String(2n * 10n ** 18n),
+    invariant_holds: true,
+  };
+  const context = {
+    contractAddress: "0x00000000000000000000000000000000000000AA",
+    roundId: "round-1",
+    requestId: "request-1",
+    provider: "0x00000000000000000000000000000000000000BB",
+    requester: "0x00000000000000000000000000000000000000CC",
+    score: 5,
+    evidence: "The bounded delivery satisfied the exact itinerary and calendar requirements.",
+    response: "The provider confirms the same artifact digest and requests independent review.",
+  };
+  const dependencies = {
+    readReputation: async () => ({ ...canonical }),
+    readProviderReputation: async () => ({ ...aggregate }),
+    readAccounting: async () => ({ ...accounting }),
+    submitReputation: async () => {
+      calls.submit += 1;
+      canonical.status = "PENDING";
+      canonical.score = "5";
+      canonical.evidence_digest = createHash("sha256").update(context.evidence, "utf8").digest("hex");
+      return { transactionHash: "0xsubmit", status: "FINALIZED", execution: "FINISHED_WITH_RETURN" };
+    },
+    challengeReputation: async () => {
+      calls.challenge += 1;
+      canonical.status = "CHALLENGED";
+      canonical.response_digest = createHash("sha256").update(context.response, "utf8").digest("hex");
+      return { transactionHash: "0xchallenge", status: "FINALIZED", execution: "FINISHED_WITH_RETURN" };
+    },
+    resolveReputation: async () => {
+      calls.resolve += 1;
+      canonical.status = "FINALIZED";
+      canonical.reason = "The score is supported by the bounded delivery record.";
+      aggregate.review_count = "1";
+      aggregate.score_total = "5";
+      aggregate.average_milli = "5000";
+      return { transactionHash: "0xresolve", status: "FINALIZED", execution: "FINISHED_WITH_RETURN" };
+    },
+    persist: () => {},
+  };
+
+  const proof = await executeReputationProof({}, context, dependencies);
+  assert.equal(proof.status, "FINALIZED_REPUTATION_PROOF");
+  assert.equal(proof.reputationStatus, "FINALIZED");
+  assert.equal(proof.providerReputation.review_count, "1");
+  assert.equal(proof.accounting.invariantUnchanged, true);
+  assert.deepEqual(calls, { submit: 1, challenge: 1, resolve: 1 });
+
+  await executeReputationProof(proof, context, dependencies);
+  assert.deepEqual(calls, { submit: 1, challenge: 1, resolve: 1 });
+});
+
+test("reputation evidence excludes review and response content", () => {
+  const projected = projectReputationProofEvidence({
+    network: "studionet",
+    contractAddress: "0x111",
+    roundId: "round-1",
+    requestId: "request-1",
+    provider: "0x222",
+    requester: "0x333",
+    score: 5,
+    evidence: "private review text",
+    response: "private challenge text",
+    evidenceDigest: "a".repeat(64),
+    responseDigest: "b".repeat(64),
+    reputationStatus: "FINALIZED",
+    transactions: { resolveReputation: { transactionHash: "0xaaa", status: "FINALIZED", trace: "secret" } },
+    accounting: { before: { invariant_holds: true }, after: { invariant_holds: true }, invariantUnchanged: true },
+    providerReputation: { review_count: "1", score_total: "5", average_milli: "5000", overturned_count: "0" },
+    status: "FINALIZED_REPUTATION_PROOF",
+  });
+  const serialized = JSON.stringify(projected);
+  assert.equal(serialized.includes("private review text"), false);
+  assert.equal(serialized.includes("private challenge text"), false);
+  assert.equal(serialized.includes("secret"), false);
+  assert.equal(projected.evidenceDigest, "a".repeat(64));
+});
+
+test("reputation-proof is exposed as a resumable deployment command", () => {
+  const root = path.resolve(import.meta.dirname, "..");
+  const source = readFileSync(path.join(root, "scripts", "deploy_studionet.mjs"), "utf8");
+  const packageJson = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"));
+  assert.match(source, /command === "reputation-proof"/);
+  assert.equal(packageJson.scripts["reputation:studionet"], "node scripts/deploy_studionet.mjs reputation-proof");
 });

@@ -46,10 +46,10 @@ capacity. An ordinary contract can enforce prices and capacity but cannot judge
 whether differently worded capability promises satisfy required and excluded
 meaning.
 
-The product sells an onchain access reservation, not proof that an agent works
-or completed a task. Provider performance, task quality, reputation, recurring
-subscriptions, private Agent Cards, legal service obligations, and dispute
-resolution are explicitly outside v1.
+The product sells an onchain access reservation and settles only the bounded evidence submitted to
+that reservation. MS-004 adds a contestable requester review of one terminal SkillSlot delivery, but
+does not prove real-world performance, task quality outside the submitted evidence, identity, legal
+obligations, Sybil resistance, or portable reputation.
 
 ## Seven-part fingerprint
 
@@ -97,12 +97,10 @@ resolution are explicitly outside v1.
 
 ## Locked contract-capability surface
 
-Human-visible writes are limited to: open a round; submit an offer with a
-provider bond; submit a request with a booking fee; lock a round; request or
-retry semantic clearing; cancel only from a safe open state; consume a matched
-one-time grant; authorize one exact task against an active matched grant; and withdraw canonical
-credit. Views expose round summary, the connected user's positions, a match outcome, route and exact
-dispatch permission, withdrawable credit, and transaction-independent accounting.
+Human-visible writes cover round creation and participation, clearing and recovery, one-time task and
+executor authorization, delivery settlement, post-settlement reputation, grant consumption, and
+credit withdrawal. Views expose canonical round/position/match state, exact routing and dispatch
+permissions, reputation records and provider aggregates, withdrawable credit, and accounting.
 
 The intended lifecycle is:
 
@@ -112,6 +110,8 @@ creator opens round
   -> creator locks round
   -> validators decide bounded compatibility edges
   -> deterministic clearing creates grants and credits
+  -> exact task dispatch and delivery settlement
+  -> requester review -> optional provider challenge -> final/overturned/void reputation
   -> requester consumes one grant
   -> actors withdraw canonical credits
 ```
@@ -128,7 +128,7 @@ The app is a focused three-destination marketplace, not a contract explorer.
 | --- | --- | --- | --- | --- |
 | Rounds | Browse every canonical round by lifecycle and inspect one selected market | Join as provider/requester, or operate a creator-owned round | no wallet, loading, open, locked, clearing, retryable, cleared, cancelled, failed | Browser and detail stack into one column; lifecycle controls stay full-width |
 | Create round | Start a self-service market from any connected Studionet wallet | Open a bounded round | no wallet, ready, validation error, wallet confirmation, finality, failed/retry | Editorial brief stacks above a compact creation form |
-| My activity | Aggregate wallet offers, requests, grants, and credits across all rounds | Consume a grant or withdraw credit | disconnected, empty, active/consumed/unmatched positions, credit ready, failed/retry | Compact cards and full-width actions |
+| My activity | Aggregate wallet offers, requests, grants, delivery, reputation, and credits across all rounds | Complete delivery/reputation actions, consume a grant, or withdraw credit | disconnected, empty, active/terminal positions, review/challenge/retry/final states, credit ready, failed/retry | Compact cards and full-width actions |
 
 Round creation is permanently available and is a first-class product job, while
 creator-only lifecycle controls remain contextual to the selected round.
@@ -251,6 +251,18 @@ lock_round(round_id)
 clear_round(round_id) -> normalized clearing result
 cancel_round(round_id)
 recover_expired_round(round_id)
+submit_delivery(round_id, request_id, artifact)
+accept_delivery(round_id, request_id)
+review_delivery(round_id, request_id) -> normalized delivery result
+recover_delivery(round_id, request_id)
+submit_reputation(round_id, request_id, score, evidence)
+challenge_reputation(round_id, request_id, response)
+resolve_reputation(round_id, request_id) -> normalized reputation result
+finalize_reputation(round_id, request_id)
+recover_reputation(round_id, request_id)
+authorize_dispatch(round_id, request_id, task_digest)
+authorize_executor(round_id, request_id, executor, expires_at)
+revoke_executor(round_id, request_id)
 consume_grant(round_id, request_id)
 withdraw_credit(amount_wei)
 ```
@@ -266,8 +278,12 @@ value through metadata/runtime semantics and static metadata tests.
 | `get_round` | `round_id` | phase, creator, terms, deadlines, expiry status, counts, attempt/match totals, bounded ID order, round liability |
 | `get_offer` | `round_id`, `offer_id` | immutable offer, authenticated metadata fields, matched request or empty result |
 | `get_request` | `round_id`, `request_id` | immutable request plus outcome/matched offer |
-| `get_match` | `round_id`, `request_id` | match actors/IDs and `ACTIVE`/`CONSUMED`, or empty result |
+| `get_match` | `round_id`, `request_id` | match actors/IDs, grant, dispatch, executor, delivery, and reputation state, or empty result |
+| `get_reputation` | `round_id`, `request_id` | canonical review, challenge, deadlines, attempt count, status, and resolution reason |
+| `get_provider_reputation` | `provider` | finalized review count, score total/average, and overturned count |
 | `can_route` | `round_id`, `request_id`, `requester` | true only for the matched requester while its grant is `ACTIVE` |
+| `can_dispatch` | `round_id`, `request_id`, `requester`, `task_digest` | exact requester/task authorization state |
+| `can_execute_dispatch` | exact task plus executor permit fields | true only for the current unexpired executor epoch and task |
 | `get_credit` | `owner` | current withdrawable amount in base units; frontend formats GEN |
 | `get_accounting` | none | four global totals, locked sum, and invariant flag |
 | `get_round_ids` | none | append-only round IDs in creation order |
@@ -314,6 +330,22 @@ ACTIVE --consume_grant by matched requester--> CONSUMED
 There is no grant before `CLEARED`, no grant for an unmatched request, and no
 path from `CONSUMED` back to `ACTIVE`. Grant consumption changes only the access
 right; it does not assert a task was delivered and moves no funds.
+
+### Post-settlement reputation
+
+```text
+NONE --submit by matched requester after terminal delivery--> PENDING
+PENDING --permissionless finalize at challenge deadline--> FINALIZED
+PENDING --challenge by matched provider before deadline--> CHALLENGED
+CHALLENGED/RETRYABLE --validator UPHOLD--> FINALIZED
+CHALLENGED/RETRYABLE --validator OVERTURN--> OVERTURNED
+CHALLENGED/RETRYABLE --validator UNVERIFIABLE--> RETRYABLE
+CHALLENGED/RETRYABLE --permissionless recovery at deadline--> VOID
+```
+
+Only `FINALIZED` increments the provider review count and score total. `OVERTURNED` increments only
+the overturned counter. Every reputation write is non-payable and preserves the accepted MS-003
+delivery outcome and the complete GEN accounting snapshot.
 
 ## Consensus task and normalized schema
 
@@ -382,6 +414,11 @@ in v1. Validator prose and response ordering cannot affect the result.
 | delivery review returns `UNVERIFIABLE` | set delivery `RETRYABLE`; move no value |
 | delivery timeout with no artifact | credit requester the 1 GEN fee plus matched provider's 1 GEN bond |
 | delivery timeout with unresolved artifact | refund requester fee and return provider bond without penalty |
+| unchallenged review reaches its deadline | finalize and count the bounded score once |
+| challenged review is upheld | finalize and count the score once |
+| challenged review is overturned | exclude score and increment overturned count once |
+| challenged review is unverifiable | set reputation `RETRYABLE`; move no value and update no aggregate |
+| challenged/retryable review reaches recovery boundary | set reputation `VOID`; move no value and update no aggregate |
 | `UNVERIFIABLE` | set `RETRYABLE`; no money/right consequence |
 | expired `OPEN`/`LOCKED`/`RETRYABLE` | any caller can credit each locked deposit back to its original actor and set `CANCELLED`; no provider fee is released |
 | failed, rejected, or undetermined transaction | no accepted canonical change; frontend offers transaction recovery |
@@ -403,7 +440,7 @@ total_received_wei
   `total_credited_wei`, increments `total_withdrawn_wei`, then emits the external
   transfer. A transfer failure reverts the whole transaction.
 - `open_round`, `lock_round`, `clear_round` returning `UNVERIFIABLE`, and
-  `consume_grant` move no value.
+  every reputation write move no value.
 - No match, retry, timeout recovery, duplicate cancellation, duplicate consumption, or duplicate
   withdrawal can double-credit, double-withdraw, or double-settle.
 
@@ -427,6 +464,11 @@ surfaces convert base units to GEN and use only small whole-GEN demo values.
 | `accept_delivery` | matched requester only | submitted/retryable artifact before recovery boundary | terminal second call rejects | credit provider the matched fee and bond exactly once | `get_match`, `get_credit`, `get_accounting` | wrong wallet, missing artifact, boundary, duplicate, exact payout/invariant |
 | `review_delivery` | any wallet | submitted/retryable artifact | `UNVERIFIABLE` remains retryable; terminal verdict cannot replay | `FULFILLED` pays provider; `FAILED` pays requester; `UNVERIFIABLE` moves none | `get_match`, `get_credit`, `get_accounting` | malformed/contradictory judgment, terminal replay, missing artifact, exact destinations/invariant |
 | `recover_delivery` | any wallet | unresolved delivery at or after recovery boundary | terminal call rejects | no artifact pays requester both deposits; unresolved artifact refunds fee and returns bond | `get_match`, `get_credit`, `get_accounting` | pre-boundary, both recovery branches, duplicate, exact destinations/invariant |
+| `submit_reputation` | matched requester only | terminal delivery and no review | duplicate rejects | none | `get_reputation`, `get_provider_reputation`, `get_accounting` | wrong wallet, nonterminal delivery, score/text bounds, duplicate, invariant unchanged |
+| `challenge_reputation` | matched provider only | `PENDING` and before challenge deadline | duplicate/late call rejects | none | `get_reputation`, `get_accounting` | wrong wallet, deadline equality, state, duplicate, invariant unchanged |
+| `resolve_reputation` | any wallet | `CHALLENGED`/`RETRYABLE` before recovery boundary | terminal replay rejects; unverifiable increments attempt | none | reputation/provider aggregate/accounting | malformed/injected/unverifiable/every verdict/terminal replay/invariant unchanged |
+| `finalize_reputation` | any wallet | `PENDING` at or after challenge deadline | terminal replay rejects | count score once; GEN unchanged | reputation/provider aggregate/accounting | early/equality/duplicate/exact aggregate/invariant |
+| `recover_reputation` | any wallet | `CHALLENGED`/`RETRYABLE` at or after recovery boundary | terminal replay rejects | void score; GEN unchanged | reputation/provider aggregate/accounting | early/equality/duplicate/aggregate exclusion/invariant |
 | `withdraw_credit` | caller may debit only own credit | positive amount no greater than credit | duplicate/over-credit rejects | debit before external transfer; credited decreases, withdrawn increases | `get_credit`, `get_accounting` | zero/negative/over-credit, double withdrawal, debit-before-transfer, external recipient, transfer revert, invariant |
 
 ## Threat model and controls
@@ -443,6 +485,8 @@ surfaces convert base units to GEN and use only small whole-GEN demo values.
 | Validator/source outage | funds penalized without evidence | `UNVERIFIABLE -> RETRYABLE`, no grant/credit movement |
 | Provider submits self-authored artifact as if it were external truth | unjustified payout | artifact is authenticated only as provider-authored; validators judge bounded semantic fulfillment, UI/docs do not claim independent real-world observation, and `UNVERIFIABLE` moves no value |
 | Creator/requester abandons matched escrow | funds remain locked indefinitely | fixed delivery and recovery boundaries; `recover_delivery` is permissionless and deterministic |
+| Requester publishes a misleading delivery score | unjustified public reputation consequence | provider-only challenge window, bounded evidence, independent validator resolution, and overturned counter |
+| Provider or requester abandons a review dispute | reputation remains pending indefinitely | permissionless exact-boundary finalization for unchallenged reviews and void recovery for unresolved challenges |
 | Frontend lies about success | user acts on nonexistent state | explicit transaction stages and canonical reload after finalization; no local canonical state |
 | Superseded deployment retains value | stranded GEN | revision identity, resumable scripts, close/refund/withdraw plan, zero-liability evidence |
 
@@ -459,6 +503,10 @@ surfaces convert base units to GEN and use only small whole-GEN demo values.
 | requester delivery acceptance | matched requester write | `gl.message.sender` and exact match | deterministic provider fee+bond release | wrong actor/state/deadline rejects |
 | delivery verdict | GenLayer equivalence principle over locked offer, need, capabilities, exclusions, and provider artifact | independent normalized verdict equality | deterministic provider/requester payout or no-movement retry | malformed/unavailable/contradictory result becomes `UNVERIFIABLE` |
 | delivery timeout | canonical timestamps and unresolved delivery state | GenVM time plus permissionless caller | deterministic recovery destination matrix | pre-boundary rejects; terminal state cannot settle twice |
+| requester review | matched requester write after terminal delivery | sender, canonical match/delivery, bounded score/evidence, stored digest | pending reputation only; no aggregate or GEN movement yet | wrong actor/state/bounds/duplicate rejects |
+| provider challenge | matched provider write before exact deadline | sender, canonical match, bounded response, stored digest | admits bounded dispute facts for validator resolution | wrong actor/state/late/duplicate rejects |
+| reputation verdict | GenLayer equivalence principle over locked match, delivery, review, and response | independent normalized `UPHOLD`/`OVERTURN`/`UNVERIFIABLE` | deterministic count/exclusion/retry only; no GEN movement | malformed/unavailable output becomes `RETRYABLE` |
+| reputation timeout | canonical challenge/recovery timestamps | GenVM time plus permissionless caller | unchallenged score finalizes or unresolved challenge becomes void | pre-boundary rejects; terminal state cannot aggregate twice |
 | exact A2A task authorization | canonical request SHA-256 committed by the matched requester | requester EOA plus active cleared grant in contract state | fixed-origin endpoint may return one deterministic `SUBMITTED` receipt for exact bytes only | HTTP rejection; no chain/accounting mutation or service-completion claim |
 | A2A Agent Cards and sample repo | official public source pinned for design research | repository commit and upstream provenance | none in v1 | omit from contract decision; no penalty |
 | transaction finality/result | Studionet receipt/explorer | network receipt, allowlisted safe projection | frontend may reload/show finalized state | failed/undetermined; no success claim |
@@ -469,6 +517,10 @@ independent proof of external real-world performance. MS-003 authenticates who
 submitted the bounded artifact and lets validators adjudicate its semantic fit
 to the locked marketplace commitments; it does not claim an external delivery
 oracle or third-party issuer.
+
+MS-004 likewise authenticates the review and response authors, not the truth of every statement. Its
+validator task is bounded to the canonical SkillSlot record and submitted evidence; the resulting
+aggregate is not a portable credential or proof of external performance.
 
 ## Claim-to-code matrix
 
@@ -482,6 +534,7 @@ oracle or third-party issuer.
 | unmatched fees and all bonds are recoverable | clear/cancel credit moves | `get_credit`, `get_accounting` | `test_accounting.py`, `test_recovery_and_grants.py` | Separate 1 GEN balance proof finalized `CANCELLED`, credited, withdrawn, and returned the actor balance exactly |
 | route permission is one-time | `consume_grant` | `get_match`, `can_route` | `test_recovery_and_grants.py::test_matched_requester_consumes_active_grant_once` | Finalized consume transaction; canonical grant is `CONSUMED` |
 | one exact A2A task can enter the reference boundary | `authorize_dispatch`; immutable dispatch digest | `get_match`, `can_dispatch` | direct authorization/idempotency tests plus A2A route-handler tests | Finalized authorization; two identical sends return one task ID; finalized consume then causes HTTP 403; accounting unchanged |
+| one settled delivery can produce contestable reputation | `submit_reputation`, `challenge_reputation`, `resolve_reputation`, `finalize_reputation`, `recover_reputation` | `get_reputation`, `get_provider_reputation` | `tests/direct/test_reputation.py`, adapter/component/deployment tests | `PENDING_MS004_NETWORK_EVIDENCE`; local lifecycle and unchanged-accounting proof pass |
 | withdrawals preserve exact accounting | `withdraw_credit` | `get_credit`, `get_accounting` | `test_recovery_and_grants.py::test_withdrawal_debits_before_external_send_and_preserves_invariant` | Aggregate canonical accounting is 5 GEN received/withdrawn, zero locked/credited, invariant true |
 
 ## Browser lifecycle coverage matrix
@@ -499,6 +552,7 @@ oracle or third-party issuer.
 | send exact A2A task | same-origin `sendA2aMessage` | handoff panel receipt/retry state | protocol, API, component, and app tests | endpoint recomputes digest and reads canonical state | Two live HTTP 200 responses returned one task ID; post-consume request returned HTTP 403 |
 | consume route grant | `consumeGrant` | matched requester action | `contractAdapter.test.ts` and `app.test.tsx` | finalized match/route reload | Production OKX Wallet transaction `0x00b61d...22ace` finalized; canonical grant reloaded as `CONSUMED` |
 | withdraw canonical credit | `withdrawCredit` | credit action for positive balance | `contractAdapter.test.ts` and `app.test.tsx` | finalized receipt plus credit/accounting reload | Production OKX Wallet transaction `0x44f212...0de0b` finalized; canonical credit reloaded as `0 GEN` |
+| publish/challenge/resolve/finalize/recover reputation | five reputation adapter writes | progressive My activity reputation section | `ReputationSettlement.test.tsx`, `contractAdapter.test.ts`, `app.test.tsx` | finalized transaction then canonical reputation/aggregate reload | Local product flow verified; production MS-004 deployment and browser proof pending |
 
 ## Deployment and evidence plan
 
@@ -567,15 +621,16 @@ absence of fixture-as-live behavior.
 
 ## Honest evidence status
 
-- Completed: all 14 idea gates; the one-contract `MS-001` 10-write/9-view schema; direct,
+- Completed: all 14 idea gates; the one-contract MS-004 21-write/12-view source; direct,
   static, deployment, and frontend suites; safe receipt parsing; resumable
   Studionet deployment; finalized semantic, grant, accounting, recovery, and
   balance evidence; the real `genlayer-js` frontend adapter; the three-destination
   self-service marketplace; public GitHub and Windows CI; Vercel production; and
   desktop/mobile browser inspection; plus finalized exact-task authorization, deterministic A2A retry
-  identity, post-consume denial, and zero-liability withdrawal evidence for `MS-001`.
-- Pending: final Portal submission authorization, complete browser-wallet evidence for all writes on
-  the new deployment, signed third-party Agent Cards, and external adoption.
+  identity, post-consume denial, and zero-liability withdrawal evidence for `MS-001`; accepted MS-003
+  delivery settlement; and locally verified MS-004 contestable-reputation contract, adapter, UI, and deployment tooling.
+- Pending for MS-004: Studionet deployment/lifecycle evidence, production browser proof, public CI/Vercel
+  release, and Portal submission authorization. Signed third-party Agent Cards and external adoption remain separate future work.
 
 ## Kill criteria
 

@@ -19,6 +19,7 @@
     "dispatch:studionet": "node scripts/deploy_studionet.mjs dispatch-proof",
     "executor:studionet": "node scripts/deploy_studionet.mjs executor-proof",
     "delivery:studionet": "node scripts/deploy_studionet.mjs delivery-proof",
+    "reputation:studionet": "node scripts/deploy_studionet.mjs reputation-proof",
     "seed:studionet": "node scripts/deploy_studionet.mjs seed-open-rounds",
     "inspect:studionet": "node scripts/deploy_studionet.mjs inspect",
     "check": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1"
