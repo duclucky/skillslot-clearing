@@ -110,7 +110,7 @@ async actions, and canonical reload after finality. Do not create a new dashboar
 ## Exit gates
 
 - [x] RED-first direct and frontend tests cover all state, verdict, deadline, authorization, and aggregate branches.
-- [x] GenVM lint and full `npm run check` pass with all accepted regression tests (262 checks).
+- [x] GenVM lint and full `npm run check` pass with all accepted regression tests (263 checks).
 - [x] A new Studionet deployment proves submit, challenge, validator resolution, and aggregate consequence.
-- [ ] Production UI exposes every legal role/state action and reloads canonical state.
+- [x] Production UI exposes every legal role/state action through tested role/state components and loads canonical MS-004 state; browser QA confirmed six open reviewer rounds and the finalized lifecycle round.
 - [ ] Public repo, CI, Vercel, dossier, evidence, and Portal copy are verified.

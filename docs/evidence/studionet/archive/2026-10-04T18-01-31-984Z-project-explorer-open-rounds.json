@@ -1,90 +1,90 @@
 {
   "network": "studionet",
   "chainId": 61999,
-  "contractAddress": "0x1C282781D79Def68E4eea7895e2F427C2dA18F35",
-  "sourceCommit": "f603a50014365e5f47491ab125f1ce3db71e2f54",
-  "contractSha256": "76e7570c9eb3ee874ebde629cf4c1a2652f7cce0bd5494461650981002488acd",
-  "createdAt": "2026-10-04T18:01:31.986Z",
-  "updatedAt": "2026-10-04T18:06:51.694Z",
+  "contractAddress": "0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5",
+  "sourceCommit": "afa040916d74a13044f3043022c633580e71bbbc",
+  "contractSha256": "6c3f04398c8c991eeebea0d7bd61398fd51760c43e2d336ca187df61b2e28949",
+  "createdAt": "2026-09-21T22:56:19.207Z",
+  "updatedAt": "2026-09-21T23:00:31.602Z",
   "purpose": "Project Explorer reviewer inventory: public rounds intentionally left OPEN so fresh users can join as provider or requester from the production web app.",
   "rounds": [
     {
-      "roundId": "explorer-1c282781-1",
+      "roundId": "explorer-fd8c2c65-1",
       "title": "Project Explorer live analyst access",
       "transaction": {
-        "transactionHash": "0x488ca598ce8579cd3b1820ca42ad81a15ad5cd5869128e819585eb53951b6886",
+        "transactionHash": "0x9b7e2f381cae1a679733a1403b498bb6bedb86653d2c8a947c8511f9d9af6a94",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-10-04T18:02:09.830Z"
+        "finalizedAt": "2026-09-21T22:56:56.838Z"
       },
       "phase": "OPEN",
       "expired": false,
-      "openDeadline": "1792951294"
+      "openDeadline": "1791845781"
     },
     {
-      "roundId": "explorer-1c282781-2",
+      "roundId": "explorer-fd8c2c65-2",
       "title": "Project Explorer travel agent access",
       "transaction": {
-        "transactionHash": "0x9c37239a4a6eac0c8627f3122db28307ad73f245eeb3f11c3c6357f979c5816f",
+        "transactionHash": "0x02c8c992b63d7c5cc8323b6899c0ef1d179417866f2b1fafaa4e284b7eb202c3",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-10-04T18:02:58.209Z"
+        "finalizedAt": "2026-09-21T22:57:35.861Z"
       },
       "phase": "OPEN",
       "expired": false,
-      "openDeadline": "1792951333"
+      "openDeadline": "1791845820"
     },
     {
-      "roundId": "explorer-1c282781-3",
+      "roundId": "explorer-fd8c2c65-3",
       "title": "Project Explorer calendar agent access",
       "transaction": {
-        "transactionHash": "0x3f48664eb2b6d23f30e7c69ffde244955c94bf2c08556468cae28d3ab91f016f",
+        "transactionHash": "0x5194574dda73055ad4de1a9e1eb8ed50b18744d401f9324151a07340211c72c3",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-10-04T18:03:37.009Z"
+        "finalizedAt": "2026-09-21T22:58:15.013Z"
       },
       "phase": "OPEN",
       "expired": false,
-      "openDeadline": "1792951382"
+      "openDeadline": "1791845859"
     },
     {
-      "roundId": "explorer-1c282781-4",
+      "roundId": "explorer-fd8c2c65-4",
       "title": "Project Explorer research assistant access",
       "transaction": {
-        "transactionHash": "0x549761cb5894673625c9c090f37429c9713bed925e242a4a3718ff9e75bdb113",
+        "transactionHash": "0xfd215fa3d270d3536c16ef19a6426fe7eb90ea77a7bd49be66fd32f57b47e14a",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "recoveredFromCanonicalStateAt": "2026-10-04T18:07:33.720Z"
+        "finalizedAt": "2026-09-21T22:58:54.207Z"
       },
       "phase": "OPEN",
       "expired": false,
-      "openDeadline": "1792951420"
+      "openDeadline": "1791845898"
     },
     {
-      "roundId": "explorer-1c282781-5",
+      "roundId": "explorer-fd8c2c65-5",
       "title": "Project Explorer procurement agent access",
       "transaction": {
-        "transactionHash": "0x6575d3efc8b64615b098d5be7ef71f98bbc68c27f298e47d6a80905776ad09e5",
+        "transactionHash": "0x561a44cd0661b22435f6bccee3de698eb0d9508bb46c0bced3287dfde96246d5",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-10-04T18:06:01.820Z"
+        "finalizedAt": "2026-09-21T22:59:41.696Z"
       },
       "phase": "OPEN",
       "expired": false,
-      "openDeadline": "1792951526"
+      "openDeadline": "1791845938"
     },
     {
-      "roundId": "explorer-1c282781-6",
+      "roundId": "explorer-fd8c2c65-6",
       "title": "Project Explorer support triage access",
       "transaction": {
-        "transactionHash": "0x7169e9f51afd0fc31fa7336ef1f5bb846c91453e31d4ba7e363e4a94892a9eb4",
+        "transactionHash": "0x5b60f3c1281146fad94aa5ea9e13a5371653617ea5a917bbb33684bc366d256f",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-10-04T18:06:49.013Z"
+        "finalizedAt": "2026-09-21T23:00:28.938Z"
       },
       "phase": "OPEN",
       "expired": false,
-      "openDeadline": "1792951565"
+      "openDeadline": "1791845985"
     }
   ],
   "summary": {

@@ -18,7 +18,7 @@ The product reserves access and adjudicates a bounded provider-submitted artifac
 - Milestone `MS-002` deployment: `0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b`; accepted on Portal (owner-confirmed; public contribution reference pending capture)
 - Milestone `MS-003` deployment: `0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5`; accepted on Portal (owner-confirmed; public contribution reference pending capture)
 - Milestone `MS-004`: locally and Studionet verified; public production release, CI, and Portal submission are still pending
-- Automated checks: 262 currently pass locally (11 static, 79 direct, 5 receipt parser, 21 deployment tooling, 146 frontend)
+- Automated checks: 263 currently pass locally (11 static, 79 direct, 5 receipt parser, 22 deployment tooling, 146 frontend)
 - Verified Windows CI: [`check` run 35666807829](https://github.com/duclucky/skillslot-clearing/actions/runs/35666807829) passed on MS-003 evidence commit `741cf12`
 - MS-001 dispatch proof: one finalized authorization, two identical HTTP requests returning one deterministic task ID, finalized grant consumption, post-consume HTTP 403, and unchanged GEN accounting during the handoff
 - MS-002 executor proof: finalized task and executor authorizations, two signed HTTP requests returning one deterministic task ID, wrong-signer HTTP 401, post-revoke HTTP 403, and unchanged GEN accounting
@@ -39,6 +39,7 @@ The product reserves access and adjudicates a bounded provider-submitted artifac
 - MS-004 address: [`0x1C282781D79Def68E4eea7895e2F427C2dA18F35`](https://explorer-studio.genlayer.com/address/0x1C282781D79Def68E4eea7895e2F427C2dA18F35)
 - MS-004 deployment transaction: [`0x8ebca1b07ad4b1e282d25fdedd8b16402262ddc2394e5299fb58daa1f084cd1f`](https://explorer-studio.genlayer.com/transactions/0x8ebca1b07ad4b1e282d25fdedd8b16402262ddc2394e5299fb58daa1f084cd1f)
 - MS-004 reputation evidence: [`docs/evidence/studionet/ms-004-contestable-reputation.json`](docs/evidence/studionet/ms-004-contestable-reputation.json)
+- MS-004 production evidence: [`docs/evidence/studionet/ms-004-production.json`](docs/evidence/studionet/ms-004-production.json)
 - Reviewer inventory: [`docs/evidence/studionet/project-explorer-open-rounds.json`](docs/evidence/studionet/project-explorer-open-rounds.json)
 - MS-001 address: [`0x0c43822abD25a0247d0814E7dD501fA19b1C8958`](https://explorer-studio.genlayer.com/address/0x0c43822abD25a0247d0814E7dD501fA19b1C8958)
 - MS-001 deployment transaction: [`0x9f89f92dffe12e9656e246659150914c9e181a0d92a6d645cc1dd21b17f6f785`](https://explorer-studio.genlayer.com/transactions/0x9f89f92dffe12e9656e246659150914c9e181a0d92a6d645cc1dd21b17f6f785)
@@ -156,5 +157,6 @@ The demo uses exactly 1 GEN for each value-bearing position and stops at `RETRYA
 - Delivery adjudication is bounded to authenticated marketplace state and the provider-submitted artifact; it does not independently observe or prove offchain real-world performance.
 - MS-004 reputation is a bounded, requester-authored review of one canonical SkillSlot delivery. It is not a portable credential, a Sybil-resistant ranking, or independent proof of real-world performance.
 - The MS-004 network proof demonstrates one upheld challenge path. Overturn, unverifiable retry, unchallenged finalization, and timeout voiding are verified locally rather than claimed as separate live transactions.
+- Production browser QA confirmed the MS-004 landing copy, six canonical open reviewer rounds, the finalized lifecycle round, disconnected My Activity state, and zero console errors/warnings. Wallet-signed reputation actions are evidenced by the Studionet script, not misrepresented as a separate browser signing run.
 
 See the [full specification](docs/README.md), [research record](docs/RESEARCH.md), and [design system](design-system/skillslot-clearing/MASTER.md).

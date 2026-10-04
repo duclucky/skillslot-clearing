@@ -115,7 +115,20 @@ export function rpcRetryDelayMs(error, seen = new Set()) {
     }
   }
   const message = String(typeof error === "object" ? error.message ?? "" : error).toLowerCase();
-  return message.includes("rate limit") ? 65_000 : null;
+  if (message.includes("rate limit")) return 65_000;
+  const transientReadFailure = [
+    "unexpected token '<'",
+    "not valid json",
+    "status 502",
+    "status 503",
+    "status 504",
+    "fetch failed",
+    "network error",
+    "socket hang up",
+    "econnreset",
+    "etimedout",
+  ].some((fragment) => message.includes(fragment));
+  return transientReadFailure ? 5_000 : null;
 }
 
 async function withRpcBackoff(operation, retries = 4) {

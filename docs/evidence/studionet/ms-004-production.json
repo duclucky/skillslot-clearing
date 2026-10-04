@@ -1,0 +1,23 @@
+{
+  "network": "studionet",
+  "chainId": 61999,
+  "contractAddress": "0x1C282781D79Def68E4eea7895e2F427C2dA18F35",
+  "productionUrl": "https://skillslot-clearing.vercel.app",
+  "vercelDeployment": {
+    "id": "dpl_5hVaHBvHGmd616sNWNsHtGJjPf2Z",
+    "url": "https://skillslot-clearing-bazo88eba-duckys-projects-bc83c6a0.vercel.app",
+    "status": "READY",
+    "alias": "https://skillslot-clearing.vercel.app"
+  },
+  "verifiedAt": "2026-10-04T18:07:33.720Z",
+  "browserChecks": {
+    "landingExplainsContestableReputation": true,
+    "canonicalOpenRoundCount": 6,
+    "canonicalHistoryRoundId": "slot-muu45fa1",
+    "canonicalHistoryRoundPhase": "CLEARED",
+    "disconnectedActivityStateVisible": true,
+    "consoleErrorOrWarningCount": 0
+  },
+  "evidenceBoundary": "Browser QA was read-only and did not claim a second wallet-signing run. Finalized submit, challenge, resolution, provider aggregate, and unchanged GEN accounting are recorded in ms-004-contestable-reputation.json.",
+  "status": "FINALIZED_PRODUCTION_QA"
+}

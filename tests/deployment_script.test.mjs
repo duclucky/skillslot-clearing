@@ -101,6 +101,16 @@ test("Studionet rate limits honor the server retry window through nested RPC cau
   assert.equal(rpcRetryDelayMs(new Error("ordinary contract failure")), null);
 });
 
+test("Studionet transient gateway and non-JSON responses are retryable reads", () => {
+  assert.equal(
+    rpcRetryDelayMs(new Error("Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON")),
+    5_000,
+  );
+  assert.equal(rpcRetryDelayMs(new Error("HTTP request failed with status 503")), 5_000);
+  assert.equal(rpcRetryDelayMs(new Error("fetch failed")), 5_000);
+  assert.equal(rpcRetryDelayMs(new Error("execution reverted: invalid state")), null);
+});
+
 test("balance evidence is reported in GEN rather than base-unit integers", () => {
   assert.equal(formatGenBalance(2n * 10n ** 18n), "2 GEN");
   assert.equal(formatGenBalance(15n * 10n ** 17n), "1.5 GEN");
