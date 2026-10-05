@@ -11,6 +11,8 @@
 | Accepted evidence head | `741cf12ebd1c16329f7b4c74bade83b61374063a` |
 | Working base | `305d615eac38a0e92f17a618a374ff025c1905f3` |
 | Implementation commit | `08a3db06312b78ede2c2f70fe9eafd536043a746` |
+| Finalized lifecycle evidence head | `8af4e497b99538da0cee4ec997d4b6a37384a602` |
+| Accepted-baseline delta | `741cf12ebd1c16329f7b4c74bade83b61374063a..8af4e497b99538da0cee4ec997d4b6a37384a602` |
 | Accepted deployment | Studionet `0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5` |
 | MS-004 deployment | Studionet `0x1C282781D79Def68E4eea7895e2F427C2dA18F35` |
 | Deployment transaction | `0x8ebca1b07ad4b1e282d25fdedd8b16402262ddc2394e5299fb58daa1f084cd1f` |
@@ -160,3 +162,9 @@ Controlled QA measurement window: browser transaction timestamps and finalized r
 deduplicated by contract + round ID + request ID. One additional review was finalized; this is a
 functional integration measurement, not an adoption metric. No independently sourced external use
 is claimed. Copy-ready Portal fields are in `docs/MILESTONE-SUBMISSION-MS-004.md` (under 1,000 characters).
+
+Final evidence range:
+https://github.com/duclucky/skillslot-clearing/compare/741cf12ebd1c16329f7b4c74bade83b61374063a...8af4e497b99538da0cee4ec997d4b6a37384a602.
+Acceptance reconciliation before working base `305d615eac38a0e92f17a618a374ff025c1905f3`
+is baseline context, not a new functionality claim. Later packet-only commits do not change the
+pinned implementation or lifecycle evidence. Status remains `SUBMISSION_READY / NOT_SUBMITTED`.

@@ -194,6 +194,10 @@ Current inventory: five open and two cleared rounds. Existing script-signed two-
 separate and unchanged. See `docs/evidence/studionet/ms-004-browser-lifecycle.json` for timestamped
 current totals and limitations. This maintenance is not a new phase; Portal remains `NOT_SUBMITTED`.
 
+Finalized lifecycle evidence head: `8af4e497b99538da0cee4ec997d4b6a37384a602`.
+Exact accepted-baseline delta: `741cf12ebd1c16329f7b4c74bade83b61374063a..8af4e497b99538da0cee4ec997d4b6a37384a602`.
+Subsequent packet-only changes pin those references without introducing another capability.
+
 - Active Milestone: `MS-004 — Contestable Delivery Reputation`
 - Program state: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 SUBMISSION_READY`
 - Last Portal reconciliation: `2026-10-05`
