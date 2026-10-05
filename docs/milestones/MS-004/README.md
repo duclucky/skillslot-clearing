@@ -109,9 +109,10 @@ async actions, and canonical reload after finality. Do not create a new dashboar
 - Accounting before and after all reputation writes is identical: 2 GEN received, 0 locked, 0
   credited, 2 GEN withdrawn, invariant true.
 - Sanitized evidence: `docs/evidence/studionet/ms-004-contestable-reputation.json`.
-- Production evidence: `docs/evidence/studionet/ms-004-production.json`. Browser QA covered public reads;
-  the reputation signing lifecycle was executed by script. A browser-wallet reputation signing run
-  remains uncaptured and is not represented as completed evidence.
+- Original production evidence: `docs/evidence/studionet/ms-004-production.json`. That historical
+  snapshot covered public reads; the original two-wallet reputation lifecycle was script-signed.
+  See the dated browser amendment below for additional evidence rather than interpreting this
+  original snapshot as a current inventory or global accounting read.
 - Public Windows CI: `https://github.com/duclucky/skillslot-clearing/actions/runs/37223282038` (`success`).
 
 ## Exit gates
@@ -121,3 +122,41 @@ async actions, and canonical reload after finality. Do not create a new dashboar
 - [x] A new Studionet deployment proves submit, challenge, validator resolution, and aggregate consequence.
 - [x] Production UI exposes every legal role/state action through tested role/state components and loads canonical MS-004 state; browser QA confirmed six open reviewer rounds and the finalized lifecycle round.
 - [x] Public repo, CI, Vercel, dossier, evidence, and Portal copy are verified.
+
+## Completion amendment — 2026-10-05
+
+The accepted MS-003 evidence head remains `741cf12ebd1c16329f7b4c74bade83b61374063a`.
+The code delta, including supporting layout maintenance, is pinned through
+`a9fc2d0b779cd479192bffb89b339a77ab8f63f2`. The original exit-gate observation of six
+open rounds is historical: the latest finalized inventory has five open and two cleared rounds.
+The six-round creation snapshot and original two-wallet accounting proof are preserved unchanged.
+
+Additional production Chrome/OKX QA exercised offer and request deposits of 1 GEN each, lock, clear,
+delivery submission, requester acceptance, review publication, and provider challenge. The user signed
+the transactions in the same persistent tab. Provider and requester were the same wallet in this
+additional run; this proves UI integration, not role independence, adoption, or external performance.
+The browser run completed user-signed validator resolution, with transaction
+`0x4e493059dd8bfcd93b8cf0e50ce309951fa621750550a3f0b8017d93d307867b` confirmed
+`FINALIZED` / execution `SUCCESS`. Canonical review status is `FINALIZED`; the UI reloaded that
+status without losing the session. The aggregate increased from one to two counted reviews and
+score total five to ten, average remained `5000`. Global accounting before/after resolution is
+identical: 4 GEN received, 0 locked, 2 GEN credited, 2 GEN previously withdrawn, invariant true.
+The available 2 GEN credit is not claimed as a new withdrawal. The original two-wallet script proof
+remains an independent historical snapshot.
+
+The activity layout defect was caused by sibling panels sharing a horizontal flex row. Supporting
+CSS maintenance changes the position card to a single-column grid, keeps panel width bounded, wraps
+actions/headings, and allows long digests to wrap. Production inspection verified no horizontal
+overflow at desktop card width 950 px and mobile viewport 375 px. The live tab received the deployed
+stylesheet without reload to preserve its wallet session; temporary viewport overrides were reset.
+
+Fresh `npm run check` passed all 263 checks and the frontend build. Public CI for the code head passed:
+https://github.com/duclucky/skillslot-clearing/actions/runs/37246525602.
+The latest Vercel production deployment is `dpl_EYdYHXBgpBb2LCh5gE2cFkLgdjoR` (`READY`).
+Detailed current evidence: `docs/evidence/studionet/ms-004-browser-lifecycle.json`.
+Portal remains `NOT_SUBMITTED`; MS-005 remains unlocked backlog only.
+
+Controlled QA measurement window: browser transaction timestamps and finalized reads on 2026-10-05,
+deduplicated by contract + round ID + request ID. One additional review was finalized; this is a
+functional integration measurement, not an adoption metric. No independently sourced external use
+is claimed. Copy-ready Portal fields are in `docs/MILESTONE-SUBMISSION-MS-004.md` (under 1,000 characters).

@@ -1,0 +1,62 @@
+{
+  "network": "studionet",
+  "chainId": 61999,
+  "contractAddress": "0x1C282781D79Def68E4eea7895e2F427C2dA18F35",
+  "productionUrl": "https://skillslot-clearing.vercel.app",
+  "verifiedAt": "2026-10-05T00:38:05.458Z",
+  "roundId": "explorer-1c282781-1",
+  "offerId": "qa-ms004-browser-provider",
+  "requestId": "qa-ms004-browser-request",
+  "actor": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+  "evidenceBoundary": "Controlled same-wallet browser QA with user-signed OKX transactions. This is not independent adoption or proof of external service performance. The prior two-wallet script proof remains a separate historical snapshot. Unrecovered full transaction hashes are not invented.",
+  "observedBrowserWrites": ["submit_offer", "submit_request", "lock_round", "clear_round", "submit_delivery", "accept_delivery", "submit_reputation", "challenge_reputation", "resolve_reputation"],
+  "transactions": {
+    "submitReputation": {"observedShortHash": "0x7d1b...4773", "transactionHash": null, "fullHashStatus": "UNRECOVERED"},
+    "challengeReputation": {"transactionHash": "0x3d57c98cecfacbad6b9646b259155226bbcba0603444ea502fd320bb1cf04d5b", "status": "FINALIZED", "execution": "SUCCESS", "createdAt": "2026-10-05T00:27:20.340847+00:00"},
+    "resolveReputation": {"transactionHash": "0x4e493059dd8bfcd93b8cf0e50ce309951fa621750550a3f0b8017d93d307867b", "status": "FINALIZED", "execution": "SUCCESS", "createdAt": "2026-10-05T00:36:07.708039+00:00"}
+  },
+  "canonical": {
+    "roundPhase": "CLEARED",
+    "deliveryStatus": "FULFILLED",
+    "grantStatus": "ACTIVE",
+    "reputationStatus": "FINALIZED",
+    "score": "5",
+    "attemptCount": "1",
+    "resolutionReason": "The 5/5 review is materially supported by the bounded evidence: the offer promise, request need, and delivery artifact all align on providing authenticated analyst access and a bounded research summary for browser lifecycle verification. The delivery status is FULFILLED, the requester accepted the d",
+    "deliveryDigest": "0832e6032a60b5a173157d8a646a5fd3a0ac4fe2d87d8284d1605c02078117e1",
+    "evidenceDigest": "238cc932cd111f1ba5d9bd9479fe5e13ec113ad12fd60d1f75a750cb42aca530",
+    "responseDigest": "fdf9005fab284633f786a6b09ee3e806a6e8d1cdc680c628644eae0e57f66191",
+    "challengeDeadline": "1791418091",
+    "recoveryAt": "1791763691"
+  },
+  "accounting": {
+    "beforeResolution": {
+      "invariant_holds": true,
+      "total_received_wei": "4000000000000000000",
+      "total_locked_wei": "0",
+      "total_credited_wei": "2000000000000000000",
+      "total_withdrawn_wei": "2000000000000000000"
+    },
+    "afterResolution": {
+      "invariant_holds": true,
+      "total_received_wei": "4000000000000000000",
+      "total_locked_wei": "0",
+      "total_credited_wei": "2000000000000000000",
+      "total_withdrawn_wei": "2000000000000000000"
+    },
+    "invariantUnchanged": true
+  },
+  "providerReputation": {"beforeResolution": {"review_count": "1", "score_total": "5", "average_milli": "5000", "overturned_count": "0"}, "afterResolution": {"review_count": "2", "score_total": "10", "average_milli": "5000", "overturned_count": "0"}},
+  "roundInventory": {"total": 7, "open": 5, "cleared": 2, "openIds": ["explorer-1c282781-2", "explorer-1c282781-3", "explorer-1c282781-4", "explorer-1c282781-5", "explorer-1c282781-6"]},
+  "layoutVerification": {
+    "codeCommit": "a9fc2d0b779cd479192bffb89b339a77ab8f63f2",
+    "desktop": {"positionCardWidth": 950, "panelWidth": 908, "horizontalOverflow": false},
+    "mobile": {"viewportWidth": 375, "documentWidth": 360, "positionCardWidth": 336, "panelWidth": 294, "horizontalOverflow": false},
+    "sessionPreserved": true,
+    "method": "Production CSS updated in the existing live tab without reload; temporary viewport override reset after inspection. No wallet state or application data was simulated."
+  },
+  "vercelDeployment": {"id": "dpl_EYdYHXBgpBb2LCh5gE2cFkLgdjoR", "url": "https://skillslot-clearing-firjxrjxr-duckys-projects-bc83c6a0.vercel.app", "status": "READY"},
+  "validation": {"command": "npm run check", "exitCode": 0, "checks": 263, "frontendTests": 146, "contractDirectTests": 79, "staticTests": 11, "pythonReceiptTests": 5, "nodeDeploymentTests": 22, "build": "PASS", "genvmLint": "PASS", "ciUrl": "https://github.com/duclucky/skillslot-clearing/actions/runs/37246525602", "ciConclusion": "success"},
+  "screenshots": ["ms-004-activity-layout.png", "ms-004-browser-finalized.png"],
+  "status": "FINALIZED_BROWSER_REPUTATION_PROOF"
+}

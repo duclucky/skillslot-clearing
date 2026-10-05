@@ -181,6 +181,19 @@ be finalized unchallenged, challenged by the matched provider, or voided/upheld 
 
 ## Current phase pointer
 
+### MS-004 completion amendment — 2026-10-05
+
+Preserve the original phase-row evidence head `79918f0` and its six-open-round observation as historical.
+Supporting activity-layout maintenance is now public at `a9fc2d0b779cd479192bffb89b339a77ab8f63f2`;
+263 local checks/build and public CI `37246525602` passed. The new Chrome/OKX same-wallet QA proves
+1 GEN bond + 1 GEN fee, matched delivery acceptance, review, and provider challenge. Browser validator
+resolution finalized successfully: `0x4e493059dd8bfcd93b8cf0e50ce309951fa621750550a3f0b8017d93d307867b`.
+Canonical status is `FINALIZED`; counted reviews increased from one to two, score total five to ten,
+average remained `5000`, and GEN accounting stayed unchanged across resolution.
+Current inventory: five open and two cleared rounds. Existing script-signed two-wallet proof remains
+separate and unchanged. See `docs/evidence/studionet/ms-004-browser-lifecycle.json` for timestamped
+current totals and limitations. This maintenance is not a new phase; Portal remains `NOT_SUBMITTED`.
+
 - Active Milestone: `MS-004 — Contestable Delivery Reputation`
 - Program state: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 SUBMISSION_READY`
 - Last Portal reconciliation: `2026-10-05`

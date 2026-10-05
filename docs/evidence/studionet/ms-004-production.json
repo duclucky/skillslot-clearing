@@ -19,5 +19,15 @@
     "consoleErrorOrWarningCount": 0
   },
   "evidenceBoundary": "Browser QA was read-only and did not claim a second wallet-signing run. Finalized submit, challenge, resolution, provider aggregate, and unchanged GEN accounting are recorded in ms-004-contestable-reputation.json.",
-  "status": "FINALIZED_PRODUCTION_QA"
+  "status": "FINALIZED_PRODUCTION_QA",
+  "historicalSnapshot": true,
+  "latestVerification": {
+    "verifiedAt": "2026-10-05T00:38:05.458Z",
+    "evidenceFile": "ms-004-browser-lifecycle.json",
+    "browserReputationStatus": "FINALIZED",
+    "canonicalOpenRoundCount": 5,
+    "vercelDeploymentId": "dpl_EYdYHXBgpBb2LCh5gE2cFkLgdjoR",
+    "codeCommit": "a9fc2d0b779cd479192bffb89b339a77ab8f63f2",
+    "note": "Original read-only snapshot remains intact. Current browser-wallet lifecycle and global accounting are separate timestamped evidence."
+  }
 }
