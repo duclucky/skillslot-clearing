@@ -1445,11 +1445,20 @@ h2 {
 }
 
 .position-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 20px;
   padding: 17px 20px;
+}
+
+.position-card > * {
+  min-width: 0;
+  width: 100%;
+}
+
+.position-card > .delivery-panel,
+.position-card > .reputation-panel {
+  width: 100%;
 }
 
 .position-link {
@@ -1486,7 +1495,8 @@ h2 {
 .position-actions {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  flex-wrap: wrap;
+  justify-content: flex-start;
   gap: 10px;
 }
 
@@ -1730,6 +1740,31 @@ h2 {
   margin: 4px 0 0;
   color: #fff;
   font-size: 20px;
+}
+
+.delivery-heading {
+  flex-wrap: wrap;
+}
+
+.delivery-heading > div {
+  min-width: 0;
+  flex: 1 1 180px;
+}
+
+.delivery-heading .status-badge {
+  flex-shrink: 0;
+}
+
+.delivery-panel > *,
+.reputation-panel > *,
+.reputation-panel form > * {
+  min-width: 0;
+}
+
+.delivery-artifact small,
+.reputation-record small,
+.delivery-meta dd {
+  overflow-wrap: anywhere;
 }
 
 .delivery-panel label {
