@@ -8,7 +8,7 @@
 - Live app: `https://skillslot-clearing.vercel.app`
 - Original Project contribution: `https://portal.genlayer.foundation/contribution/131883`
 - Latest accepted Milestone: `https://portal.genlayer.foundation/contribution/185631`
-- Portal status: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 SUBMISSION_READY`
+- Portal status: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 SUBMITTED (owner-reported; Portal reference pending capture)`
 - Portal contribution date: `2026-08-12`
 - Portal award: `320 points`
 - Ledger initialized: `2026-08-29`
@@ -199,9 +199,22 @@ Exact accepted-baseline delta: `741cf12ebd1c16329f7b4c74bade83b61374063a..8af4e4
 Subsequent packet-only changes pin those references without introducing another capability.
 
 - Active Milestone: `MS-004 — Contestable Delivery Reputation`
-- Program state: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 SUBMISSION_READY`
+- Program state: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 SUBMITTED (owner-reported)`
 - Last Portal reconciliation: `2026-10-05`
 - Reconciliation evidence: project-owner confirmation that MS-003 was approved. The exact public
   contribution reference remains an explicit historical evidence gap and must be captured when available.
-- Next allowed action: submit the copy-ready MS-004 packet only after explicit action-time Portal
-  authorization. Do not lock MS-005 before the MS-004 Portal outcome.
+- Next allowed action: capture the submitted Portal contribution reference and reconcile the reviewer
+  outcome when available. Do not submit again or lock MS-005 while MS-004 is review-pending.
+
+### MS-004 submission event — 2026-10-05
+
+The project owner reported that MS-004 was submitted to Portal: "oke, tao gửi rồi".
+Current phase status is `SUBMITTED`, based on that owner confirmation, not a direct Portal inspection.
+The earlier `SUBMISSION_READY` phase row and completion amendments are preserved as pre-submission
+history. Exact contribution URL, submission ID, Portal timestamp, and the actual submitted form copy
+remain `PENDING_REAL_EVIDENCE`; none is inferred from the prepared packet.
+Prepared repository head: `be794338f9a00a00e72baab466d229cd03467e2b`.
+Pinned lifecycle evidence head: `8af4e497b99538da0cee4ec997d4b6a37384a602`.
+Final public CI: https://github.com/duclucky/skillslot-clearing/actions/runs/37248571205 (`success`).
+The accepted baseline remains MS-003. No acceptance, award, reviewer feedback, or MS-005 selection
+is claimed. Do not replay the final Submit action.

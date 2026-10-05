@@ -5,7 +5,7 @@
 | Field | Value |
 | --- | --- |
 | Milestone ID | `MS-004` |
-| Status | `SUBMISSION_READY` |
+| Status | `SUBMITTED` — owner-reported; direct Portal record pending capture |
 | Selected on | `2026-10-05` |
 | Accepted baseline | MS-003, owner-confirmed accepted `2026-10-05` |
 | Accepted evidence head | `741cf12ebd1c16329f7b4c74bade83b61374063a` |
@@ -16,7 +16,7 @@
 | Accepted deployment | Studionet `0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5` |
 | MS-004 deployment | Studionet `0x1C282781D79Def68E4eea7895e2F427C2dA18F35` |
 | Deployment transaction | `0x8ebca1b07ad4b1e282d25fdedd8b16402262ddc2394e5299fb58daa1f084cd1f` |
-| Portal reference | `NOT_SUBMITTED` |
+| Portal reference | `PENDING_REAL_EVIDENCE` — owner confirmed submission on 2026-10-05 |
 
 ## Exact new capability
 
@@ -168,3 +168,16 @@ https://github.com/duclucky/skillslot-clearing/compare/741cf12ebd1c16329f7b4c74b
 Acceptance reconciliation before working base `305d615eac38a0e92f17a618a374ff025c1905f3`
 is baseline context, not a new functionality claim. Later packet-only commits do not change the
 pinned implementation or lifecycle evidence. Status remains `SUBMISSION_READY / NOT_SUBMITTED`.
+
+## Submission event — 2026-10-05
+
+The owner confirmed submission to Portal: "oke, tao gửi rồi". Current status is `SUBMITTED`,
+based on owner confirmation only. The preceding ready/not-submitted statements are historical
+checkpoints and are superseded by this event, not erased.
+Exact Portal contribution URL, submission ID, timestamp, and submitted field contents remain
+`PENDING_REAL_EVIDENCE`. The prepared packet is not represented as a captured Portal form.
+Prepared repository head: `be794338f9a00a00e72baab466d229cd03467e2b`;
+finalized lifecycle evidence head: `8af4e497b99538da0cee4ec997d4b6a37384a602`.
+Final public CI succeeded: https://github.com/duclucky/skillslot-clearing/actions/runs/37248571205.
+Await a verified Portal outcome before promoting the accepted baseline or selecting MS-005.
+Do not submit this phase again.
