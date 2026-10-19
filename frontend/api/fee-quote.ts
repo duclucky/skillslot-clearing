@@ -1,6 +1,6 @@
 import { createClient } from "genlayer-js";
 import { studioDevnet } from "genlayer-js/chains";
-import profile from "../fee-profile.json";
+import profile from "../fee-profile.json" with { type: "json" };
 
 type Request = { method?: string; query: { method?: unknown } };
 type Response = { setHeader(name: string, value: string): void; status(code: number): Response; json(value: unknown): void };

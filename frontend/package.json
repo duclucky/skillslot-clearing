@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check:api": "tsc --noEmit --target ES2022 --module ESNext --moduleResolution Bundler --resolveJsonModule --allowSyntheticDefaultImports --skipLibCheck api/a2a-message.ts api/agent-card.ts api/agent-metadata.ts api/studionet-rpc.ts api/fee-quote.ts api/transaction-outcome.ts"
+    "check:api": "tsc --noEmit --target ES2022 --module NodeNext --moduleResolution NodeNext --resolveJsonModule --allowSyntheticDefaultImports --skipLibCheck api/a2a-message.ts api/agent-card.ts api/agent-metadata.ts api/studionet-rpc.ts api/fee-quote.ts api/transaction-outcome.ts"
   },
   "dependencies": {
     "@phosphor-icons/react": "2.1.10",
