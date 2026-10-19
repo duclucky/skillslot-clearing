@@ -13,6 +13,7 @@ import { type ChangeEvent, type FormEvent, useState } from "react";
 import type { ContractAdapter, RoundView, WorkspaceSnapshot } from "./domain";
 import { validateCapabilityCsv, validateIdentifier, validateText } from "./formValidation";
 import { generateProviderMetadata } from "./providerMetadata";
+import { parseBookingPolicy } from "./bookingPolicy";
 import { filterRounds, type RoundFilter, roundFilter } from "./roundFilters";
 
 export type RunWrite = (
@@ -167,7 +168,7 @@ export function CreateRound({ snapshot, adapter, busy, runWrite, onCreated }: Sh
         <button className="button button-primary button-full" disabled={!ready || busy} type="submit">
           <Plus aria-hidden="true" /> {busy ? "Waiting for finality" : "Open round"}
         </button>
-        {!ready ? <p className="form-status">Connect a Studionet wallet to create a round.</p> : null}
+        {!ready ? <p className="form-status">Connect a Studio Dev wallet to create a round.</p> : null}
       </form>
     </section>
   );
@@ -208,7 +209,7 @@ function RoundDetail({ snapshot, adapter, busy, runWrite, round, onCreateRound }
       </div>
 
       {snapshot.availability !== "ready" || !account ? (
-        <div className="inline-guidance"><LockKey aria-hidden="true" /><p>Connect a Studionet wallet to join or operate this round.</p></div>
+        <div className="inline-guidance"><LockKey aria-hidden="true" /><p>Connect a Studio Dev wallet to join or operate this round.</p></div>
       ) : null}
 
       {round.phase === "OPEN" && account && !round.expired ? (
@@ -292,7 +293,7 @@ function OfferForm({ roundId, account, adapter, busy, runWrite }: Pick<SharedPro
       ...(checkedIssuer.error ? { metadataIssuer: checkedIssuer.error } : {}),
       ...(checkedSignature.error ? { metadataSignature: checkedSignature.error } : {}),
       ...(checkedExpiresAt.error || !/^\d+$/.test(checkedExpiresAt.value) ? { metadataExpiresAt: checkedExpiresAt.error || "Metadata expiry must be a Unix timestamp." } : {}),
-      ...(!account ? { generatedMetadata: "Connect a Studionet wallet so generated metadata can bind to your provider address." } : {}),
+      ...(!account ? { generatedMetadata: "Connect a Studio Dev wallet so generated metadata can bind to your provider address." } : {}),
     };
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
@@ -363,6 +364,8 @@ function RequestForm({ roundId, adapter, busy, runWrite }: Pick<SharedProps, "ad
   const [need, setNeed] = useState("");
   const [requiredIds, setRequiredIds] = useState("");
   const [excludedIds, setExcludedIds] = useState("");
+  const [minimumReviews, setMinimumReviews] = useState("");
+  const [minimumScore, setMinimumScore] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -371,12 +374,17 @@ function RequestForm({ roundId, adapter, busy, runWrite }: Pick<SharedProps, "ad
     const checkedNeed = validateText(need, "Access need", 1, 600);
     const checkedRequired = validateCapabilityCsv(requiredIds, "Required capability IDs");
     const checkedExcluded = validateCapabilityCsv(excludedIds, "Excluded capability IDs");
+    let policy = { minimumReviewCount: 0, minimumAverageMilli: 0 };
+    let policyError = "";
+    try { policy = parseBookingPolicy(minimumReviews, minimumScore); }
+    catch (error) { policyError = error instanceof Error ? error.message : "Reputation policy is invalid"; }
     const nextErrors = {
       ...(checkedId.error ? { requestId: checkedId.error } : {}),
       ...(checkedLabel.error ? { label: checkedLabel.error } : {}),
       ...(checkedNeed.error ? { need: checkedNeed.error } : {}),
       ...(checkedRequired.error ? { requiredIds: checkedRequired.error } : {}),
       ...(checkedExcluded.error ? { excludedIds: checkedExcluded.error } : {}),
+      ...(policyError ? { policy: policyError } : {}),
     };
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
@@ -387,6 +395,7 @@ function RequestForm({ roundId, adapter, busy, runWrite }: Pick<SharedProps, "ad
       need: checkedNeed.value,
       requiredIds: checkedRequired.value,
       excludedIds: checkedExcluded.value,
+      ...policy,
     }));
   }
   return <details className="action-disclosure"><summary>Request access</summary><form className="action-form" onSubmit={submit} noValidate>
@@ -395,6 +404,12 @@ function RequestForm({ roundId, adapter, busy, runWrite }: Pick<SharedProps, "ad
     <Field id="request-need" label="Access need" value={need} onChange={setNeed} error={errors.need} maxLength={600} multiline required />
     <Field id="required-capabilities" label="Required capability IDs" value={requiredIds} onChange={setRequiredIds} error={errors.requiredIds} maxLength={600} hint="Example: scheduling,flight-search" />
     <Field id="excluded-capabilities" label="Excluded capability IDs" value={excludedIds} onChange={setExcludedIds} error={errors.excludedIds} maxLength={600} hint="Optional. Example: ticket-purchase" />
+    <details className="action-disclosure">
+      <summary>Reputation requirements (optional)</summary>
+      <p className="section-note">Only finalized reviews from this deployment count. Provider reputation is frozen when the creator locks this round. Leave both fields blank to accept providers without review history.</p>
+      <Field id="minimum-reviews" label="Minimum finalized reviews" value={minimumReviews} onChange={setMinimumReviews} error={errors.policy} maxLength={4} hint="0–1000 whole reviews. A positive score requires at least one review." />
+      <Field id="minimum-score" label="Minimum average score (0–5)" value={minimumScore} onChange={setMinimumScore} maxLength={5} hint="Up to 3 decimals, for example 4.125. This does not prove identity or real-world service quality." />
+    </details>
     <button className="button button-primary button-full" disabled={busy} type="submit"><PaperPlaneTilt aria-hidden="true" />Submit request for 1 GEN</button>
   </form></details>;
 }

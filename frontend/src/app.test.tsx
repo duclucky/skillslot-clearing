@@ -62,7 +62,7 @@ async function navigateToCreate() {
 const ready: WorkspaceSnapshot = {
   availability: "ready",
   account: "0x0000000000000000000000000000000000000001",
-  networkName: "GenLayer Studionet",
+  networkName: "GenLayer Studio Dev",
   contractAddress: "0x00000000000000000000000000000000000000aa",
   rounds: [{
     id: "round-1",
@@ -256,8 +256,12 @@ describe("SkillSlot Clearing marketplace", () => {
     fireEvent.change(within(detail).getByLabelText("Request ID"), { target: { value: "request-2" } });
     fireEvent.change(within(detail).getByLabelText("Request label"), { target: { value: "Need sources" } });
     fireEvent.change(within(detail).getByLabelText("Access need"), { target: { value: "Find authoritative sources" } });
+    fireEvent.click(within(detail).getByText("Reputation requirements (optional)"));
+    fireEvent.change(within(detail).getByLabelText("Minimum finalized reviews"), { target: { value: "1" } });
+    fireEvent.change(within(detail).getByLabelText("Minimum average score (0–5)"), { target: { value: "4.125" } });
     fireEvent.click(within(detail).getByRole("button", { name: /Submit request for 1 GEN/i }));
     await waitFor(() => expect(adapter.submitRequest).toHaveBeenCalledTimes(1));
+    expect(adapter.submitRequest).toHaveBeenCalledWith(expect.objectContaining({ minimumReviewCount: 1, minimumAverageMilli: 4125 }));
 
     fireEvent.click(within(detail).getByRole("button", { name: "Lock round" }));
     await waitFor(() => expect(adapter.lockRound).toHaveBeenCalledWith("round-1"));
@@ -585,7 +589,7 @@ describe("SkillSlot Clearing marketplace", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Connect wallet" }));
 
     expect(await screen.findByRole("dialog", { name: "Choose wallet" })).toBeVisible();
-    expect(screen.getByText("No EVM wallet extension was detected. Install or unlock a Studionet-compatible wallet, then try again.")).toBeVisible();
+    expect(screen.getByText("No EVM wallet extension was detected. Install or unlock a Studio Dev-compatible wallet, then try again.")).toBeVisible();
     expect(disconnected.connectWallet).not.toHaveBeenCalled();
   });
 
@@ -621,12 +625,12 @@ describe("SkillSlot Clearing marketplace", () => {
     expect(screen.getByRole("button", { name: "Connect wallet" })).toBeEnabled();
   });
 
-  it("uses the connected wallet control to switch wrong-network sessions to Studionet", async () => {
+  it("uses the connected wallet control to switch wrong-network sessions to Studio Dev", async () => {
     const wrongNetwork = { ...ready, availability: "wrong_network" as const };
     const adapter = adapterFor(wrongNetwork);
     render(<App adapter={adapter} />);
 
-    fireEvent.click(await screen.findByRole("button", { name: "Switch to Studionet" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Switch to Studio Dev" }));
 
     await waitFor(() => expect(adapter.connectWallet).toHaveBeenCalledWith(undefined));
     expect(screen.queryByRole("menu", { name: "Wallet account" })).not.toBeInTheDocument();

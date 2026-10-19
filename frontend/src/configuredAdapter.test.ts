@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => {
-  const defaultRpcUrl = "https://studio.genlayer.com/api";
+  const defaultRpcUrl = "https://studio-dev.genlayer.com/api";
   const studionet = {
-    id: 61999,
+    id: 61997,
     rpcUrls: { default: { http: [defaultRpcUrl] } },
   };
   const getActiveWalletSession = vi.fn<() => unknown>(() => null);
@@ -22,7 +22,7 @@ const mocks = vi.hoisted(() => {
 
 vi.mock("genlayer-js", () => ({ createClient: mocks.createClient }));
 vi.mock("genlayer-js/chains", () => ({
-  studionet: mocks.studionet,
+  studioDevnet: mocks.studionet,
 }));
 vi.mock("./wallet", () => ({
   connectStudionetWallet: vi.fn(),
@@ -37,13 +37,14 @@ import { createConfiguredAdapter } from "./contractAdapter";
 
 describe("configured GenLayer adapter", () => {
   beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => ({ ok: true, json: async () => url.includes("fee-quote") ? ({ chainId: 61997, quotedAt: Date.now(), feeValue: "50", distribution: { leaderTimeunitsAllocation: "125", validatorTimeunitsAllocation: "250", appealRounds: "0", executionBudgetPerRound: "1000", totalMessageFees: "0", maxPriceGenPerTimeUnit: "2", storageFeeMaxGasPrice: "3", receiptFeeMaxGasPrice: "3", rotations: ["1"] } }) : ({ status: "FINALIZED", execution: "SUCCESS" }) })));
     mocks.createClient.mockClear();
     mocks.getActiveWalletSession.mockReset();
     mocks.getActiveWalletSession.mockReturnValue(null);
     mocks.studionet.rpcUrls.default.http = [mocks.defaultRpcUrl];
   });
 
-  it("routes canonical reads through the same-origin Studionet RPC proxy", () => {
+  it("routes canonical reads through the same-origin Studio Dev RPC proxy", () => {
     createConfiguredAdapter("0x00000000000000000000000000000000000000aa");
 
     expect(mocks.createClient).toHaveBeenNthCalledWith(1, expect.objectContaining({

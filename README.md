@@ -10,6 +10,16 @@ The product reserves access and adjudicates a bounded provider-submitted artifac
 
 ## Verified status
 
+**Current work: MS-005 — Reputation-Bound Booking Policies (`BUILDING`, not submitted).**
+Requesters can atomically attach minimum finalized review count/average to a booking. Provider
+reputation is frozen at round lock; deterministic allocation excludes ineligible pairs even when
+semantic consensus says MATCH. Defaults remain unrestricted. See the [phase dossier](docs/milestones/MS-005/README.md).
+The source has 21 writes and 13 views and targets Studio Dev (61997), Python contract API v0.3 (GenVM v0.6.0-rc5), pinned runner
+`5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng`, and frontend SDK 2.0.0-rc.1.
+The primary-network compatibility probe succeeded; full new-contract lifecycle, browser proof and
+production rollout are still pending. The deployment/CI records below describe accepted history,
+not proof of MS-005. Previous Studionet funds/reputation are not migrated.
+
 - Track: GenLayer **Projects**
 - Contract: one `SkillSlotClearing` Intelligent Contract with 21 writes and 12 views in the locally verified `MS-004` source
 - Network: Studionet (`61999`)
@@ -17,8 +27,8 @@ The product reserves access and adjudicates a bounded provider-submitted artifac
 - Milestone `MS-001` deployment: `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`; accepted as Portal contribution `185631`
 - Milestone `MS-002` deployment: `0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b`; accepted on Portal (owner-confirmed; public contribution reference pending capture)
 - Milestone `MS-003` deployment: `0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5`; accepted on Portal (owner-confirmed; public contribution reference pending capture)
-- Milestone `MS-004`: submission-ready with local, Studionet, production, and public CI evidence; Portal submission has not been sent
-- Automated checks: 263 currently pass locally (11 static, 79 direct, 5 receipt parser, 22 deployment tooling, 146 frontend)
+- Milestone `MS-004`: accepted, owner-confirmed 2026-10-19; public Portal reference pending capture, no recheck requested
+- Accepted MS-004 check baseline: 263 (11 static, 79 direct, 5 receipt parser, 22 deployment tooling, 146 frontend); MS-005 final totals will be recorded in its dossier after integration checks
 - Verified Windows CI: [`check` run 35666807829](https://github.com/duclucky/skillslot-clearing/actions/runs/35666807829) passed on MS-003 evidence commit `741cf12`
 - MS-004 Windows CI: [`check` run 37223282038](https://github.com/duclucky/skillslot-clearing/actions/runs/37223282038) passed on evidence head `79918f0`
 - MS-001 dispatch proof: one finalized authorization, two identical HTTP requests returning one deterministic task ID, finalized grant consumption, post-consume HTTP 403, and unchanged GEN accounting during the handoff
@@ -44,7 +54,7 @@ The product reserves access and adjudicates a bounded provider-submitted artifac
 - Reviewer inventory: [`docs/evidence/studionet/project-explorer-open-rounds.json`](docs/evidence/studionet/project-explorer-open-rounds.json)
 - MS-001 address: [`0x0c43822abD25a0247d0814E7dD501fA19b1C8958`](https://explorer-studio.genlayer.com/address/0x0c43822abD25a0247d0814E7dD501fA19b1C8958)
 - MS-001 deployment transaction: [`0x9f89f92dffe12e9656e246659150914c9e181a0d92a6d645cc1dd21b17f6f785`](https://explorer-studio.genlayer.com/transactions/0x9f89f92dffe12e9656e246659150914c9e181a0d92a6d645cc1dd21b17f6f785)
-- Current sanitized evidence: [`docs/evidence/studionet/deployment.json`](docs/evidence/studionet/deployment.json)
+- Retained Studionet deployment evidence: [`docs/evidence/studionet/deployment.json`](docs/evidence/studionet/deployment.json)
 - MS-001 dispatch evidence: [`docs/evidence/studionet/ms-001-a2a-dispatch.json`](docs/evidence/studionet/ms-001-a2a-dispatch.json)
 - Production protocol/browser evidence: [`docs/evidence/studionet/ms-001-production.json`](docs/evidence/studionet/ms-001-production.json)
 - Accepted Project address: [`0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`](https://explorer-studio.genlayer.com/address/0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834)
@@ -120,7 +130,7 @@ The script loads ignored configuration from the project `.env`, then the authori
 
 ```powershell
 npm run inspect:studionet   # read-only
-npm run deploy:studionet    # exact contract/API revision; resumable
+npm run deploy:studionet    # legacy route; refuses the new v0.3 source
 npm run timeout:studionet   # expired locked round -> permissionless refund-only recovery
 npm run demo:studionet      # semantic match -> grant -> withdrawal
 npm run balance:studionet   # deposit -> cancel -> withdraw balance proof

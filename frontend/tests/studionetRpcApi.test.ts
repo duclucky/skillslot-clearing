@@ -33,15 +33,15 @@ function response(): MockResponse {
   };
 }
 
-describe("Studionet RPC proxy", () => {
+describe("Studio Dev RPC proxy", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllEnvs();
   });
 
-  it("forwards browser-safe Studionet read calls through the server", async () => {
-    vi.stubEnv("STUDIONET_RPC_URL", "https://studio.genlayer.com/api");
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ jsonrpc: "2.0", id: 1, result: "0xf22f" }), {
+  it("forwards browser-safe Studio Dev read calls through the server", async () => {
+    vi.stubEnv("STUDIO_DEV_RPC_URL", "https://studio-dev.genlayer.com/api");
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ jsonrpc: "2.0", id: 1, result: "0xf22d" }), {
       headers: { "content-type": "application/json" },
       status: 200,
     })));
@@ -49,13 +49,13 @@ describe("Studionet RPC proxy", () => {
 
     await handler({ method: "POST", body: { jsonrpc: "2.0", id: 1, method: "eth_chainId", params: [] } }, res);
 
-    expect(fetch).toHaveBeenCalledWith("https://studio.genlayer.com/api", expect.objectContaining({
+    expect(fetch).toHaveBeenCalledWith("https://studio-dev.genlayer.com/api", expect.objectContaining({
       method: "POST",
       body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_chainId", params: [] }),
     }));
     expect(res.statusCode).toBe(200);
     expect(res.headers["cache-control"]).toBe("no-store");
-    expect(res.body).toBe(JSON.stringify({ jsonrpc: "2.0", id: 1, result: "0xf22f" }));
+    expect(res.body).toBe(JSON.stringify({ jsonrpc: "2.0", id: 1, result: "0xf22d" }));
   });
 
   it("rejects wallet write RPC methods so signing still stays in the wallet provider", async () => {
@@ -80,7 +80,7 @@ describe("Studionet RPC proxy", () => {
 
     await handler({ method: "POST", body }, res);
 
-    expect(fetch).toHaveBeenCalledWith("https://studio.genlayer.com/api", expect.objectContaining({ body }));
+    expect(fetch).toHaveBeenCalledWith("https://studio-dev.genlayer.com/api", expect.objectContaining({ body }));
     expect(res.statusCode).toBe(200);
   });
 });

@@ -6,7 +6,7 @@ import { getExplorerGuide } from "./explorerGuide";
 const baseSnapshot: WorkspaceSnapshot = {
   availability: "ready",
   account: null,
-  networkName: "GenLayer Studionet",
+  networkName: "GenLayer Studio Dev",
   contractAddress: "0x00000000000000000000000000000000000000aa",
   rounds: [],
   positions: [],

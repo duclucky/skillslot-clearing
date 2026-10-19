@@ -1,5 +1,5 @@
 import { createClient } from "genlayer-js";
-import { studionet } from "genlayer-js/chains";
+import { studioDevnet } from "genlayer-js/chains";
 import { verifyMessage } from "viem";
 
 import { evaluateA2ADispatch } from "../src/a2aDispatchApi.js";
@@ -19,7 +19,7 @@ type VercelResponse = {
 
 declare const process: { env: Record<string, string | undefined> };
 
-const DEFAULT_STUDIONET_RPC_URL = "https://studio.genlayer.com/api";
+const DEFAULT_STUDIONET_RPC_URL = "https://studio-dev.genlayer.com/api";
 
 function parseBody(body: unknown) {
   if (typeof body !== "string") return body;
@@ -69,8 +69,8 @@ export default async function handler(request: VercelRequest, response: VercelRe
     response.status(503).json({ ok: false, error: "SkillSlot contract is not configured" });
     return;
   }
-  const endpoint = (process.env.STUDIONET_RPC_URL || process.env.GENLAYER_RPC_URL || DEFAULT_STUDIONET_RPC_URL).trim();
-  const client = createClient({ chain: studionet, endpoint });
+  const endpoint = (process.env.STUDIO_DEV_RPC_URL || process.env.GENLAYER_RPC_URL || DEFAULT_STUDIONET_RPC_URL).trim();
+  const client = createClient({ chain: studioDevnet, endpoint });
   const executor = header(request, "skillslot-executor");
   const epoch = header(request, "skillslot-executor-epoch");
   const expiresAt = header(request, "skillslot-executor-expires-at");

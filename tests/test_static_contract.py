@@ -5,7 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "contracts" / "skill_slot_clearing.py"
 PUBLIC_DOCS = [ROOT / "README.md", ROOT / "docs" / "README.md", ROOT / "docs" / "POSTMORTEM.md"]
-EXPECTED_HEADER = '# { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }'
+EXPECTED_HEADER = '# { "Depends": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng" }'
 
 
 def _source() -> str:
@@ -18,8 +18,9 @@ def _tree() -> ast.Module:
 
 def test_contract_is_ascii_and_uses_locked_header():
     lines = _source().splitlines()
-    assert lines[0] == EXPECTED_HEADER
-    assert lines[1] == "from genlayer import *"
+    assert lines[0] == "# v0.3.0"
+    assert lines[1] == EXPECTED_HEADER
+    assert lines[2] == "import genlayer as gl"
 
 
 def test_contract_has_one_named_contract_class_and_explicit_init():
@@ -29,12 +30,12 @@ def test_contract_has_one_named_contract_class_and_explicit_init():
         if isinstance(node, ast.ClassDef)
         and any(isinstance(base, ast.Attribute) and base.attr == "Contract" for base in node.bases)
     ]
-    assert [node.name for node in contract_classes] == ["Contract"]
+    assert [node.name for node in contract_classes] == ["SkillSlotClearing"]
     assert any(isinstance(node, ast.FunctionDef) and node.name == "__init__" for node in contract_classes[0].body)
 
 
 def test_init_does_not_reassign_storage_collections():
-    contract_class = next(node for node in _tree().body if isinstance(node, ast.ClassDef) and node.name == "Contract")
+    contract_class = next(node for node in _tree().body if isinstance(node, ast.ClassDef) and node.name == "SkillSlotClearing")
     init = next(node for node in contract_class.body if isinstance(node, ast.FunctionDef) and node.name == "__init__")
     rendered = ast.unparse(init)
     assert "TreeMap(" not in rendered
@@ -58,13 +59,13 @@ def test_all_treemap_keys_are_str_and_records_are_storage_dataclasses():
     assert {node.name for node in storage_records} == {"Round", "Offer", "Request", "Match"}
     for record in storage_records:
         decorators = {ast.unparse(item) for item in record.decorator_list}
-        assert decorators == {"allow_storage", "dataclass"}
+        assert decorators == {"gl.storage.allow", "dataclass"}
 
 
 def test_position_public_surface_and_nondeterminism_boundary_are_locked():
     source = _source()
     tree = _tree()
-    contract_class = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "Contract")
+    contract_class = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "SkillSlotClearing")
     methods = {node.name for node in contract_class.body if isinstance(node, ast.FunctionDef)}
     assert {
         "open_round",
@@ -115,7 +116,7 @@ def test_position_public_surface_and_nondeterminism_boundary_are_locked():
 
 def test_only_value_receiving_position_methods_are_payable():
     tree = _tree()
-    contract_class = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "Contract")
+    contract_class = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "SkillSlotClearing")
     methods = {
         node.name: node
         for node in contract_class.body
@@ -134,7 +135,7 @@ def test_only_value_receiving_position_methods_are_payable():
 
 def test_clear_round_uses_bounded_custom_semantic_consensus():
     source = _source()
-    assert "gl.vm.run_nondet(" in source
+    assert "gl.vm.run_nondet_default(" in source
     assert "gl.nondet.exec_prompt(" in source
     assert 'response_format="json"' in source
     assert "isinstance(leader_result, gl.vm.Return)" in source
@@ -146,11 +147,11 @@ def test_clear_round_uses_bounded_custom_semantic_consensus():
 def test_delivery_review_uses_bounded_semantic_consensus_and_nonpayable_writes():
     source = _source()
     tree = _tree()
-    contract_class = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "Contract")
+    contract_class = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "SkillSlotClearing")
     methods = {node.name: node for node in contract_class.body if isinstance(node, ast.FunctionDef)}
 
     review = ast.unparse(methods["review_delivery"])
-    assert "gl.vm.run_nondet(" in review
+    assert "gl.vm.run_nondet_default(" in review
     assert "gl.nondet.exec_prompt(" in review
     assert "_normalize_delivery" in review
     assert "_delivery_fingerprint" in review
@@ -163,10 +164,10 @@ def test_delivery_review_uses_bounded_semantic_consensus_and_nonpayable_writes()
 
 def test_reputation_resolution_uses_independent_consensus_and_nonpayable_writes():
     tree = _tree()
-    contract_class = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "Contract")
+    contract_class = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "SkillSlotClearing")
     methods = {node.name: node for node in contract_class.body if isinstance(node, ast.FunctionDef)}
     review = ast.unparse(methods["resolve_reputation"])
-    assert "gl.vm.run_nondet(" in review
+    assert "gl.vm.run_nondet_default(" in review
     assert "gl.nondet.exec_prompt(" in review
     assert "_normalize_reputation" in review
     assert "_reputation_fingerprint" in review
@@ -184,11 +185,11 @@ def test_reputation_resolution_uses_independent_consensus_and_nonpayable_writes(
 
 def test_withdrawal_uses_external_recipient_and_debits_before_transfer():
     tree = _tree()
-    contract_class = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "Contract")
+    contract_class = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "SkillSlotClearing")
     method = next(node for node in contract_class.body if isinstance(node, ast.FunctionDef) and node.name == "withdraw_credit")
     rendered = ast.unparse(method)
     assert rendered.index("self.credits[account]") < rendered.index("_ExternalRecipient(sender).emit_transfer")
-    assert "_ExternalRecipient(sender).emit_transfer(value=u256(requested))" in rendered
+    assert "_ExternalRecipient(sender).emit_transfer(value=int(requested))" in rendered
     assert "gl.eth" not in rendered
 
 

@@ -8,7 +8,7 @@
 - Live app: `https://skillslot-clearing.vercel.app`
 - Original Project contribution: `https://portal.genlayer.foundation/contribution/131883`
 - Latest accepted Milestone: `https://portal.genlayer.foundation/contribution/185631`
-- Portal status: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 SUBMITTED (owner-reported; Portal reference pending capture)`
+- Portal status: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 ACCEPTED (owner-confirmed 2026-10-19; public reference pending) / MS-005 BUILDING`
 - Portal contribution date: `2026-08-12`
 - Portal award: `320 points`
 - Ledger initialized: `2026-08-29`
@@ -198,13 +198,11 @@ Finalized lifecycle evidence head: `8af4e497b99538da0cee4ec997d4b6a37384a602`.
 Exact accepted-baseline delta: `741cf12ebd1c16329f7b4c74bade83b61374063a..8af4e497b99538da0cee4ec997d4b6a37384a602`.
 Subsequent packet-only changes pin those references without introducing another capability.
 
-- Active Milestone: `MS-004 — Contestable Delivery Reputation`
-- Program state: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 SUBMITTED (owner-reported)`
-- Last Portal reconciliation: `2026-10-05`
-- Reconciliation evidence: project-owner confirmation that MS-003 was approved. The exact public
-  contribution reference remains an explicit historical evidence gap and must be captured when available.
-- Next allowed action: capture the submitted Portal contribution reference and reconcile the reviewer
-  outcome when available. Do not submit again or lock MS-005 while MS-004 is review-pending.
+- Active Milestone: `MS-005 — Reputation-Bound Booking Policies`
+- Program state: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 ACCEPTED / MS-005 SELECTED`
+- Last Portal reconciliation: `2026-10-19`, owner-confirmed; no Portal recheck requested or performed.
+- Next allowed action: implement and verify MS-005 against the accepted MS-004 baseline. Final Portal
+  submission remains a separate authorization boundary.
 
 ### MS-004 submission event — 2026-10-05
 
@@ -218,3 +216,23 @@ Pinned lifecycle evidence head: `8af4e497b99538da0cee4ec997d4b6a37384a602`.
 Final public CI: https://github.com/duclucky/skillslot-clearing/actions/runs/37248571205 (`success`).
 The accepted baseline remains MS-003. No acceptance, award, reviewer feedback, or MS-005 selection
 is claimed. Do not replay the final Submit action.
+
+### MS-004 accepted; MS-005 selection — 2026-10-19
+
+Owner confirmation: "MS-004 được duyệt rồi, không cần phải check , triển khai MS-005".
+MS-004 is now `ACCEPTED` on that authority; the exact public contribution reference and award remain
+pending capture. Preserve the earlier submitted/ready rows as historical records. Accepted product
+head: `be794338f9a00a00e72baab466d229cd03467e2b`; lifecycle evidence head:
+`8af4e497b99538da0cee4ec997d4b6a37384a602`. MS-005 working base is the subsequent submission-log
+commit `1866857`; accepted contract is Studionet `0x1C282781D79Def68E4eea7895e2F427C2dA18F35`.
+
+| Candidate | Relationship and decision |
+| --- | --- |
+| BL-008 portable credentials | Defer: no independent external verifier; do not manufacture adoption or an unnecessary mirror contract. |
+| BL-009 discovery/search | Supporting backlog only: sorting/display alone is not a substantial consensus consequence. |
+| BL-010 reputation-bound booking | Select as MS-005: a request commits count/score requirements atomically with its fee; immutable lock-time provider snapshots deterministically exclude otherwise semantically compatible offers from grants/escrow. |
+| BL-001B signed third-party cards | Defer: key authority/rotation and a real third-party origin remain separate work. |
+
+MS-005 extends MS-004's verdict with a new booking consequence, not another reputation judgment.
+Scope, safety cards, admission gates, and execution plan: `docs/milestones/MS-005/README.md`.
+No deployment, browser lifecycle, passing tests, adoption, or submission is claimed at selection.

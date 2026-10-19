@@ -33,6 +33,9 @@ def set_time(vm, iso_datetime=DEFAULT_NOW):
     gl = sys.modules.get("genlayer.gl")
     if gl is not None and hasattr(gl, "message_raw") and gl.message_raw is not None:
         gl.message_raw["datetime"] = iso_datetime
+    message = sys.modules.get("genlayer.message")
+    if message is not None and isinstance(getattr(message, "raw", None), dict):
+        message.raw["datetime"] = iso_datetime
 
 
 def metadata_body(provider, agent_id="agent-alpha", capability_ids_csv="CALENDAR.WRITE,FLIGHT.BOOK", expires_at=DEFAULT_METADATA_EXPIRES_AT):

@@ -76,9 +76,9 @@ export function getExplorerGuide(snapshot: WorkspaceSnapshot, selectedRoundId: s
   const steps: ExplorerGuideStep[] = [
     {
       id: "connect-wallet",
-      title: "Connect a Studionet wallet",
+      title: "Connect a Studio Dev wallet",
       role: "Any reviewer",
-      action: "Choose a detected EVM wallet and switch to Studionet.",
+      action: "Choose a detected EVM wallet and switch to Studio Dev.",
       state: accountReady ? "done" : snapshot.availability === "unconfigured" ? "blocked" : "available",
       detail: accountReady ? `Connected as ${snapshot.account}` : "Required before any write action.",
     },

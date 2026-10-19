@@ -1,12 +1,15 @@
-export const STUDIONET_CHAIN_ID = "0xf22f" as const;
+import { ACTIVE_CHAIN, EXPLORER_URL, RPC_URL } from "./network";
+
+// Retain the exported identifier for adapter compatibility; it now names the selected D1 chain.
+export const STUDIONET_CHAIN_ID = `0x${ACTIVE_CHAIN.id.toString(16)}`;
 const STUDIONET_WALLET_GAS_PRICE = "0x3b9aca00";
 
 const STUDIONET_CONFIGURATION = {
   chainId: STUDIONET_CHAIN_ID,
-  chainName: "GenLayer Studionet",
+  chainName: "GenLayer Studio Dev",
   nativeCurrency: { name: "GEN", symbol: "GEN", decimals: 18 },
-  rpcUrls: ["https://studio.genlayer.com/api"],
-  blockExplorerUrls: ["https://explorer-studio.genlayer.com"],
+  rpcUrls: [RPC_URL],
+  blockExplorerUrls: [EXPLORER_URL],
 };
 
 const storageKeys = {
@@ -72,7 +75,7 @@ export function withStudionetFeeCompatibility(provider: WalletProvider): WalletP
           params: [compatibleTransaction, ...rest],
         });
       } catch (error) {
-        console.warn("[SkillSlot] Studionet wallet submission failed", {
+        console.warn("[SkillSlot] Studio Dev wallet submission failed", {
           error: diagnosticError(error),
           transaction: diagnosticTransaction(compatibleTransaction as Record<string, unknown>),
         });

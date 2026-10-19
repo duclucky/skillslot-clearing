@@ -22,6 +22,10 @@
     "reputation:studionet": "node scripts/deploy_studionet.mjs reputation-proof",
     "seed:studionet": "node scripts/deploy_studionet.mjs seed-open-rounds",
     "inspect:studionet": "node scripts/deploy_studionet.mjs inspect",
+    "inspect:studio-dev": "node frontend/scripts/ms005-studio-dev.mjs inspect",
+    "deploy:studio-dev": "node frontend/scripts/ms005-studio-dev.mjs deploy",
+    "policy:studio-dev": "node frontend/scripts/ms005-studio-dev.mjs proof",
+    "seed:studio-dev": "node frontend/scripts/ms005-studio-dev.mjs seed",
     "check": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1"
   },
   "dependencies": {

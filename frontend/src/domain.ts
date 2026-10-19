@@ -51,6 +51,9 @@ export interface PositionView {
   reputationChallengeDeadline?: string;
   reputationRecoveryAt?: string;
   reputationAttemptCount?: string;
+  minimumReviewCount?: string;
+  minimumAverageMilli?: string;
+  bookingEligibility?: Array<{ offerId: string; eligible: boolean; reason: string; reviewCount: string; snapshotTaken: boolean }>;
 }
 
 export interface WorkspaceSnapshot {
@@ -90,6 +93,8 @@ export interface RequestInput {
   need: string;
   requiredIds: string;
   excludedIds: string;
+  minimumReviewCount?: number;
+  minimumAverageMilli?: number;
 }
 
 export interface TransactionReceipt {
@@ -99,6 +104,7 @@ export interface TransactionReceipt {
 export type TransactionRecoveryReason = "submission_uncertain" | "status_poll" | "canonical_sync";
 
 export type TransactionStage =
+  | "quoting"
   | "wallet"
   | "submitted"
   | "accepted"
@@ -113,6 +119,8 @@ export interface TransactionProgress {
   functionName: string;
   reason?: TransactionRecoveryReason;
   error?: string;
+  feeDepositWei?: string;
+  applicationValueWei?: string;
 }
 
 export interface WalletChoice {

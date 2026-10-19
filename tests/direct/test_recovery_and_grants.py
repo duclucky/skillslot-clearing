@@ -186,13 +186,14 @@ def test_withdrawal_debits_before_external_send_and_preserves_invariant(
     sends = []
 
     def capture_send(vm, request):
-        if "EthSend" in request:
-            sends.append(request["EthSend"])
+        if "EthSend" in request or "EmitExternalMessage" in request:
+            payload = request.get("EthSend", request.get("EmitExternalMessage"))
+            sends.append(payload)
             assert contract.get_credit(to_hex(direct_bob)) == "0"
             assert contract.get_accounting()["total_withdrawn_wei"] == str(UNIT_GEN)
             contract_address = vm._contract_address
             balance = vm._balances.get(bytes(contract_address), 0)
-            vm.deal(contract_address, balance - int(request["EthSend"]["value"]))
+            vm.deal(contract_address, balance - int(payload["value"]))
             return {"ok": None}
         return None
 

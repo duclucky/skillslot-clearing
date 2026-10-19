@@ -1,5 +1,15 @@
 # SkillSlot Clearing product and contract brief
 
+## Current delta: MS-005 (BUILDING)
+
+The requester may commit a minimum finalized review count and average (integer milli-points) with
+the exact booking fee. At round lock, canonical provider aggregates are frozen per offer. Allocation
+requires both semantic compatibility and deterministic reputation eligibility. An excluded pair
+receives no grant or delivery escrow; inherited unmatched refund credit remains available.
+Zero/zero preserves unrestricted booking. No external reputation import or Sybil-resistance claim.
+The [MS-005 dossier](milestones/MS-005/README.md) controls current verification status. Its target is
+Studio Dev chain 61997; the accepted Studionet history below is separate, not migrated evidence.
+
 ## MS-001 protocol handoff delta
 
 The accepted Project ends with a canonical one-time route grant. Milestone `MS-001` extends that state
@@ -27,10 +37,10 @@ are intentionally outside `MS-001`. The phase dossier and claim-to-code matrix l
 - Project name: SkillSlot Clearing
 - Project slug: `skillslot-clearing`
 - Category: Projects
-- Status: `SUBMISSION_READY`
+- Status: accepted Project, MS-004 accepted (owner-confirmed); MS-005 `BUILDING`
 - Repository: `https://github.com/duclucky/skillslot-clearing`
 - Live app: `https://skillslot-clearing.vercel.app`
-- Target network: `studionet`
+- Active phase target: `studio-dev` (61997); accepted history: `studionet` (61999)
 
 ## One-sentence product hook
 

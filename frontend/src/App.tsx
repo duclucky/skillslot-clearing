@@ -14,6 +14,7 @@ import {
   configuredContractAddress,
   createConfiguredAdapter,
   createUnconfiguredAdapter,
+  formatGen,
 } from "./contractAdapter";
 import { Activity } from "./Activity";
 import type { ContractAdapter, TransactionProgress, WalletChoice, WorkspaceSnapshot } from "./domain";
@@ -342,7 +343,7 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
               }}
             >
               <Wallet aria-hidden="true" />
-              {snapshot.availability === "wrong_network" ? "Switch to Studionet" : snapshot.account ? shortAddress(snapshot.account) : busy ? "Waiting for wallet" : "Connect wallet"}
+              {snapshot.availability === "wrong_network" ? "Switch to Studio Dev" : snapshot.account ? shortAddress(snapshot.account) : busy ? "Waiting for wallet" : "Connect wallet"}
             </button>
             {snapshot.account && accountMenuOpen ? <AccountMenu account={snapshot.account} onDisconnect={() => void disconnect()} /> : null}
           </div>
@@ -411,6 +412,7 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
         {!loading && destination === "create" ? <CreateRound snapshot={snapshot} adapter={adapter} busy={busy} runWrite={runWrite} onCreated={showCreated} /> : null}
         {!loading && destination === "activity" ? <Activity snapshot={snapshot} adapter={adapter} busy={busy} runWrite={runWrite} onOpenRound={(roundId) => { setSelectedRoundId(roundId); setDestination("rounds"); }} /> : null}
       </main>
+      <footer className="legacy-access section-note"><a href="https://skillslot-clearing-firjxrjxr-duckys-projects-bc83c6a0.vercel.app" target="_blank" rel="noreferrer">Previous Studionet deployment — view positions and withdraw legacy credit</a><p>Studio Dev uses separate balances and reputation. No previous funds or reviews were migrated.</p></footer>
     </div>
   );
 }
@@ -554,13 +556,13 @@ function WalletModal({
           </div>
           <button className="text-action" type="button" onClick={onClose}>Close</button>
         </div>
-        <p className="wallet-modal-copy">Select the EVM wallet that should sign Studionet transactions. The app will not choose a provider automatically.</p>
+        <p className="wallet-modal-copy">Select the EVM wallet that should sign Studio Dev transactions. The app will not choose a provider automatically.</p>
         {loading ? <p className="form-status">Detecting browser wallets...</p> : null}
         {!loading && wallets.length === 0 ? (
           <div className="empty-state compact-empty">
             <ShieldWarning aria-hidden="true" />
             <h2>No wallet detected</h2>
-            <p>No EVM wallet extension was detected. Install or unlock a Studionet-compatible wallet, then try again.</p>
+            <p>No EVM wallet extension was detected. Install or unlock a Studio Dev-compatible wallet, then try again.</p>
           </div>
         ) : null}
         {wallets.length ? (
@@ -580,7 +582,7 @@ function WalletModal({
 }
 
 function AccountMenu({ account, onDisconnect }: { account: string; onDisconnect: () => void }) {
-  const explorerUrl = `https://explorer-studio.genlayer.com/address/${account}`;
+  const explorerUrl = `https://explorer-studio-dev.genlayer.com/address/${account}`;
   return (
     <div className="account-menu" role="menu" aria-label="Wallet account">
       <p>{account}</p>
@@ -593,8 +595,9 @@ function AccountMenu({ account, onDisconnect }: { account: string; onDisconnect:
 
 function TransactionNotice({ transaction }: { transaction: TransactionProgress }) {
   const labels: Record<TransactionProgress["stage"], string> = {
+    quoting: "Quoting current network fees",
     wallet: "Confirm in wallet",
-    submitted: "Submitted to Studionet",
+    submitted: "Submitted to Studio Dev",
     accepted: "Accepted by the network",
     recovering: transaction.reason === "canonical_sync" ? "Syncing canonical state" : "Checking network status",
     finalized: "Finalized",
@@ -606,6 +609,7 @@ function TransactionNotice({ transaction }: { transaction: TransactionProgress }
     <section className={transaction.stage === "failed" ? "transaction-strip transaction-failed" : "transaction-strip"} aria-live="polite">
       <ArrowsClockwise aria-hidden="true" />
       <span><strong>{labels[transaction.stage]}</strong><small>{transaction.functionName}{transaction.hash ? ` ${shortAddress(transaction.hash)}` : ""}</small></span>
+      {transaction.stage === "wallet" && transaction.feeDepositWei ? <small>Application value: {formatGen(transaction.applicationValueWei || "0")} GEN · Network fee budget: up to {formatGen(transaction.feeDepositWei)} GEN. Unused budget is settled by the network; this is not the consumed fee.</small> : null}
     </section>
   );
 }

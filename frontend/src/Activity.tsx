@@ -39,6 +39,15 @@ export function Activity({ snapshot, adapter, busy, runWrite, onOpenRound }: Act
               <button className="position-link" type="button" onClick={() => onOpenRound(position.roundId)}>
                 <span>{position.kind}</span><h2>{position.summary}</h2><p>{position.id} {position.status}</p>
               </button>
+              {position.kind === "request" && position.minimumReviewCount !== undefined ? (
+                <p className="section-note">Booking policy: {position.minimumReviewCount === "0" ? "No reputation minimum." : `At least ${position.minimumReviewCount} finalized reviews, average ${(Number(position.minimumAverageMilli || "0") / 1000).toFixed(3)}/5 at round lock.`}</p>
+              ) : null}
+              {position.kind === "request" && position.bookingEligibility?.length ? (
+                <div className="section-note" aria-label="Canonical reputation eligibility">
+                  <p>Reputation gate only — semantic fit and capacity are checked separately.</p>
+                  <ul>{position.bookingEligibility.map(pair => <li key={pair.offerId}>{pair.offerId}: {pair.reason === "ELIGIBLE" ? "Meets reputation policy" : pair.reason === "INSUFFICIENT_REVIEWS" ? "Below minimum review count" : pair.reason === "AVERAGE_TOO_LOW" ? "Below minimum average score" : "Awaiting round lock"}{pair.snapshotTaken ? ` (${pair.reviewCount} finalized reviews at lock).` : "."}</li>)}</ul>
+                </div>
+              ) : null}
               {position.kind === "grant" && position.status === "ACTIVE" && position.requestId ? (
                 <div className="position-actions">
                   {snapshot.account && snapshot.contractAddress ? (

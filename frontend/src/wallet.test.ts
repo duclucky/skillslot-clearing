@@ -62,7 +62,7 @@ describe("browser wallet integration", () => {
     expect(restored.request).not.toHaveBeenCalledWith(expect.objectContaining({ method: "wallet_switchEthereumChain" }));
   });
 
-  it("switches a restored wallet to Studionet before returning an active session", async () => {
+  it("switches a restored wallet to Studio Dev before returning an active session", async () => {
     const calls: string[] = [];
     const restored: WalletProvider = {
       request: vi.fn(async ({ method }) => {
@@ -83,7 +83,7 @@ describe("browser wallet integration", () => {
     expect(restored.request).not.toHaveBeenCalledWith(expect.objectContaining({ method: "eth_requestAccounts" }));
   });
 
-  it("keeps a restored wallet marked wrong-network when the user rejects Studionet switching", async () => {
+  it("keeps a restored wallet marked wrong-network when the user rejects Studio Dev switching", async () => {
     const restored: WalletProvider = {
       request: vi.fn(async ({ method }) => {
         if (method === "eth_accounts") return ["0x0000000000000000000000000000000000000001"];
@@ -101,7 +101,7 @@ describe("browser wallet integration", () => {
     expect(session?.onStudionet).toBe(false);
   });
 
-  it("retries Studionet switching from an active restored wrong-network session without requesting accounts again", async () => {
+  it("retries Studio Dev switching from an active restored wrong-network session without requesting accounts again", async () => {
     const calls: string[] = [];
     const restored: WalletProvider = {
       request: vi.fn(async ({ method }) => {
@@ -126,7 +126,7 @@ describe("browser wallet integration", () => {
     expect(restored.request).not.toHaveBeenCalledWith(expect.objectContaining({ method: "eth_requestAccounts" }));
   });
 
-  it("adds an unknown Studionet chain and switches before returning the connected account", async () => {
+  it("adds an unknown Studio Dev chain and switches before returning the connected account", async () => {
     const calls: string[] = [];
     const injected: WalletProvider = {
       request: vi.fn(async ({ method }) => {
@@ -184,7 +184,7 @@ describe("browser wallet integration", () => {
   });
 
   it.each([undefined, "0x0", "0x00"])(
-    "adds a one-gwei compatibility price when a Studionet wallet receives gasPrice %s",
+    "adds a one-gwei compatibility price when a Studio Dev wallet receives gasPrice %s",
     async (gasPrice) => {
       const request = vi.fn(async () => "0xhash");
       const compatible = withStudionetFeeCompatibility({ request });
@@ -221,7 +221,7 @@ describe("browser wallet integration", () => {
     expect(request).toHaveBeenNthCalledWith(2, { method: "eth_accounts" });
   });
 
-  it("logs sanitized transaction diagnostics when Studionet submission fails", async () => {
+  it("logs sanitized transaction diagnostics when Studio Dev submission fails", async () => {
     const failure = Object.assign(new Error("unknown RPC error"), { code: -32603 });
     const request = vi.fn(async () => {
       throw failure;
@@ -235,7 +235,7 @@ describe("browser wallet integration", () => {
       value: "0x0",
       gas: "0x30d40",
       nonce: "0x182",
-      chainId: "0xf22f",
+      chainId: "0xf22d",
     };
 
     await expect(compatible.request({ method: "eth_sendTransaction", params: [transaction] })).rejects.toThrow(
@@ -243,11 +243,11 @@ describe("browser wallet integration", () => {
     );
 
     expect(warn).toHaveBeenCalledWith(
-      "[SkillSlot] Studionet wallet submission failed",
+      "[SkillSlot] Studio Dev wallet submission failed",
       {
         error: { code: -32603, message: "unknown RPC error" },
         transaction: {
-          chainId: "0xf22f",
+          chainId: "0xf22d",
           dataLength: 8,
           from: "0x0000000000000000000000000000000000000001",
           gas: "0x30d40",

@@ -43,7 +43,7 @@ describe("transaction recovery classification", () => {
   });
 
   it("does not treat a wallet network mismatch as a transient RPC outage", () => {
-    const error = { message: "Wrong network selected. Switch to GenLayer Studionet." };
+    const error = { message: "Wrong network selected. Switch to GenLayer Studio Dev." };
     expect(classifyTransactionError(error)).toBe("deterministic_failure");
     expect(isTransientReadError(error)).toBe(false);
   });

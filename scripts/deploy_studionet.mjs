@@ -736,8 +736,8 @@ function git(args) {
 }
 
 function currentIdentity() {
-  const firstLine = readFileSync(CONTRACT_PATH, "utf8").split(/\r?\n/, 1)[0];
-  const runner = firstLine.match(/py-genlayer:[^" ]+/)?.[0];
+  const header = readFileSync(CONTRACT_PATH, "utf8").split(/\r?\n/).slice(0, 3).join("\n");
+  const runner = header.match(/py-genlayer:[^" ]+/)?.[0];
   if (!runner) throw new Error("Contract runner identity is missing");
   return deploymentIdentity({
     sourceCommit: git(["rev-parse", "HEAD"]),
@@ -1895,6 +1895,9 @@ async function inspect(env) {
 async function main() {
   const env = loadEnvironment();
   const command = process.argv[2] ?? "inspect";
+  if (command === "deploy" && readFileSync(CONTRACT_PATH, "utf8").startsWith("# v0.3.0")) {
+    throw new Error("This source targets Studio Dev. Use frontend/scripts/ms005-studio-dev.mjs deploy; retained Studionet evidence is historical.");
+  }
   if (command === "inspect") await inspect(env);
   else if (command === "metadata") prepareMetadata(env);
   else if (command === "deploy") await deploy(env);

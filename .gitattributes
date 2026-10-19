@@ -1,0 +1,2 @@
+# Deployment identities bind exact source bytes across Windows and CI.
+contracts/*.py text eol=lf

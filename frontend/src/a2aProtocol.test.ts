@@ -45,7 +45,7 @@ describe("bounded A2A 1.0 request", () => {
       configuration: { returnImmediately: true },
       metadata: {
         skillslot: {
-          chainId: 61999,
+          chainId: 61997,
           contract: contract.toLowerCase(),
           roundId: "round-1",
           requestId: "request-1",
@@ -56,7 +56,7 @@ describe("bounded A2A 1.0 request", () => {
       },
     });
     expect(parseSkillSlotBinding(body)).toMatchObject({
-      chainId: 61999,
+      chainId: 61997,
       contract: contract.toLowerCase(),
       requester: requester.toLowerCase(),
       protocolVersion: "1.0",

@@ -4,7 +4,7 @@ $ErrorActionPreference = "Stop"
 $env:PYTHONUTF8 = "1"
 # This release contains the exact pinned py-genlayer runner declared by the contract header.
 # Newer cached prerelease bundles may not retain historical runner hashes.
-$env:GENVM_VERSION = "v0.2.16"
+$env:GENVM_VERSION = "v0.6.0-rc5"
 $Python = ".\.venv\Scripts\python.exe"
 
 if (-not (Test-Path -LiteralPath $Python)) {
@@ -20,37 +20,12 @@ function Assert-LastExitCode([string]$Step) {
 if ($Only -eq "" -or $Only -eq "lint") {
   & $Python scripts/ascii_contract_check.py
   Assert-LastExitCode "ASCII/header contract check"
-  & ".\.venv\Scripts\genvm-lint.exe" lint contracts/skill_slot_clearing.py
-  Assert-LastExitCode "GenVM AST lint"
-
-  # genvm-lint 0.11.0 cannot discover a user class literally named Contract.
-  # Keep the deployable source canonical and rename only an ASCII temp copy for schema discovery.
-  $TempRoot = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath())
-  $TempDir = Join-Path $TempRoot ("skillslot-genvm-" + [System.Guid]::NewGuid().ToString())
-  $ResolvedTempDir = [System.IO.Path]::GetFullPath($TempDir)
-  if (-not $ResolvedTempDir.StartsWith($TempRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
-    throw "Refusing unsafe temporary lint path"
-  }
-  New-Item -ItemType Directory -Path $ResolvedTempDir | Out-Null
-  $TempContract = Join-Path $ResolvedTempDir "skill_slot_clearing_lint.py"
-  try {
-    $Source = Get-Content -LiteralPath "contracts/skill_slot_clearing.py" -Raw
-    $Source = $Source.Replace("class Contract(gl.Contract):", "class SkillSlotClearing(gl.Contract):")
-    Set-Content -LiteralPath $TempContract -Value $Source -Encoding ascii
-    & ".\.venv\Scripts\genvm-lint.exe" check $TempContract
-    Assert-LastExitCode "GenVM schema check"
-  } finally {
-    if (Test-Path -LiteralPath $TempContract) {
-      Remove-Item -LiteralPath $TempContract -Force
-    }
-    if (Test-Path -LiteralPath $ResolvedTempDir) {
-      [System.IO.Directory]::Delete($ResolvedTempDir, $true)
-    }
-  }
+  & $Python scripts/lint_contract.py check contracts/skill_slot_clearing.py
+  Assert-LastExitCode "GenVM AST and semantic schema check"
 }
 
 if ($Only -eq "" -or $Only -eq "static") {
-  & $Python -m pytest tests/test_static_contract.py -v
+  & $Python -m pytest tests/test_static_contract.py tests/test_linter_compatibility.py -v
   Assert-LastExitCode "Static contract tests"
 }
 
@@ -62,7 +37,7 @@ if ($Only -eq "" -or $Only -eq "direct") {
 if ($Only -eq "" -or $Only -eq "deployment") {
   & $Python -m pytest tests/test_deployment_receipts.py -v
   Assert-LastExitCode "Deployment receipt parser tests"
-  node --test tests/deployment_script.test.mjs
+  node --test tests/deployment_script.test.mjs tests/fee_evidence.test.mjs
   Assert-LastExitCode "Deployment script tests"
 }
 

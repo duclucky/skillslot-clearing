@@ -38,7 +38,7 @@ describe("delegated executor permit", () => {
     expect(message).toBe([
       "SkillSlot Delegated Execution Permit",
       `version:${EXECUTOR_PERMIT_VERSION}`,
-      "chainId:61999",
+      "chainId:61997",
       `contract:${contract}`,
       "roundId:round-1",
       "requestId:request-1",

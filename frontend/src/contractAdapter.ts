@@ -1,5 +1,8 @@
 import { createClient } from "genlayer-js";
-import { studionet } from "genlayer-js/chains";
+import { ACTIVE_CHAIN as studionet } from "./network";
+import { validateBookingPolicy } from "./bookingPolicy";
+import { assertSuccessfulExecution } from "./transactionOutcome";
+import { quoteMethodFees, type TransactionFees } from "./fees";
 
 import type {
   ContractAdapter,
@@ -48,6 +51,7 @@ export interface GenLayerClientLike {
     functionName: string;
     args?: unknown[];
     value: bigint;
+    fees?: TransactionFees;
   }): Promise<unknown>;
   request(args: { method: string; params: unknown[] }): Promise<unknown>;
 }
@@ -80,6 +84,16 @@ interface RequestRecord {
   label: string;
   matched_offer_id: string;
   outcome: string;
+  minimum_review_count?: string;
+  minimum_average_milli?: string;
+}
+
+interface BookingEligibilityRecord {
+  offer_id: string;
+  eligible: boolean;
+  reason: string;
+  review_count: string;
+  snapshot_taken: boolean;
 }
 
 interface MatchRecord {
@@ -123,6 +137,8 @@ type Clients = {
 type AdapterOptions = {
   contractAddress: `0x${string}`;
   clients: () => Clients;
+  verifyExecution: (hash: string) => Promise<{ status: string; execution: string }>;
+  quoteFees?: (functionName: string) => Promise<TransactionFees>;
   connect?: (selected?: WalletOption) => Promise<WalletSession>;
   disconnect?: () => void;
   restore?: () => Promise<WalletSession | null>;
@@ -242,7 +258,13 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
           summary: offer.label,
         });
         });
-        requests.filter((request) => sameAddress(request.requester, account)).forEach((request) => {
+        for (const request of requests.filter((request) => sameAddress(request.requester, account))) {
+        const bookingEligibility = request.minimum_review_count && request.minimum_review_count !== "0"
+          ? await Promise.all(offers.map(async offer => {
+              const canonical = await read<BookingEligibilityRecord>(readClient, "get_booking_eligibility", [round.round_id, offer.offer_id, request.request_id]);
+              return { offerId: canonical.offer_id, eligible: canonical.eligible, reason: canonical.reason, reviewCount: canonical.review_count, snapshotTaken: canonical.snapshot_taken };
+            }))
+          : undefined;
         positions.push({
           id: request.request_id,
           requestId: request.request_id,
@@ -250,8 +272,11 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
           kind: "request",
           status: request.outcome,
           summary: request.label,
+          minimumReviewCount: request.minimum_review_count || "0",
+          minimumAverageMilli: request.minimum_average_milli || "0",
+          ...(bookingEligibility ? { bookingEligibility } : {}),
         });
-        });
+        }
         for (const match of matches) {
           if (!match.request_id) continue;
           if (sameAddress(match.requester, account)) {
@@ -324,7 +349,7 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
     return {
       availability: account && !onStudionet ? "wrong_network" : "ready",
       account,
-      networkName: "GenLayer Studionet",
+      networkName: "GenLayer Studio Dev",
       contractAddress,
       rounds: rounds.map((round) => ({
             id: round.round_id,
@@ -345,12 +370,14 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
 
   async function execute(functionName: string, args: unknown[], value = 0n): Promise<TransactionReceipt> {
     const { readClient, writeClient } = await currentClients();
-    if (!writeClient) throw new Error("Connect a Studionet wallet before sending a transaction");
+    if (!writeClient) throw new Error("Connect a Studio Dev wallet before sending a transaction");
     let hash = "";
     try {
-      emitTransaction({ stage: "wallet", hash, functionName });
+      if (options.quoteFees) emitTransaction({ stage: "quoting", hash, functionName });
+      const fees = await options.quoteFees?.(functionName);
+      emitTransaction({ stage: "wallet", hash, functionName, feeDepositWei: fees?.feeValue.toString(), applicationValueWei: value.toString() });
       try {
-        hash = String(await writeClient.writeContract({ address: contractAddress, functionName, args, value }));
+        hash = String(await writeClient.writeContract({ address: contractAddress, functionName, args, value, ...(fees ? { fees } : {}) }));
       } catch (error) {
         const kind = classifyTransactionError(error);
         if (kind === "wallet_cancelled") {
@@ -382,6 +409,7 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
           emitTransaction({ stage: "accepted", hash, functionName });
         }
         if (status === "FINALIZED") {
+          assertSuccessfulExecution(await options.verifyExecution(hash));
           emitTransaction({ stage: "finalized", hash, functionName });
           return { hash };
         }
@@ -437,12 +465,16 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
         ],
         ONE_GEN_WEI,
       ),
-    submitRequest: (input: RequestInput) =>
-      execute(
+    submitRequest: (input: RequestInput) => {
+      const policy = validateBookingPolicy(input.minimumReviewCount ?? 0, input.minimumAverageMilli ?? 0);
+      const args: unknown[] = [input.roundId, input.requestId, input.label, input.need, input.requiredIds, input.excludedIds];
+      if (policy.minimumReviewCount > 0 || policy.minimumAverageMilli > 0) args.push(BigInt(policy.minimumReviewCount), BigInt(policy.minimumAverageMilli));
+      return execute(
         "submit_request",
-        [input.roundId, input.requestId, input.label, input.need, input.requiredIds, input.excludedIds],
+        args,
         ONE_GEN_WEI,
-      ),
+      );
+    },
     lockRound: (roundId: string) => execute("lock_round", [roundId]),
     clearRound: (roundId: string) => execute("clear_round", [roundId]),
     cancelRound: (roundId: string) => execute("cancel_round", [roundId]),
@@ -519,6 +551,12 @@ export function createConfiguredAdapter(
   const readClient = createClient({ chain: studionetClientChain(), endpoint: "/api/studionet-rpc" }) as unknown as GenLayerClientLike;
   return createGenLayerAdapter({
     contractAddress,
+    quoteFees: quoteMethodFees,
+    verifyExecution: async (hash) => {
+      const response = await fetch(`/api/transaction-outcome?hash=${encodeURIComponent(hash)}`);
+      if (!response.ok) throw new Error("Execution verification unavailable. Check the transaction before resubmitting.");
+      return response.json();
+    },
     restore: restoreStudionetWallet,
     connect: connectStudionetWallet,
     disconnect: disconnectStudionetWallet,

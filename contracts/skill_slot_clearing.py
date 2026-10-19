@@ -1,5 +1,8 @@
-# { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
-from genlayer import *
+# v0.3.0
+# { "Depends": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng" }
+import genlayer as gl
+from genlayer.types import Address, bigint, u256
+from genlayer.storage import TreeMap, DynArray
 
 from dataclasses import dataclass
 import hashlib
@@ -65,7 +68,7 @@ REPUTATION_VERDICT_UPHOLD = "UPHOLD"
 REPUTATION_VERDICT_OVERTURN = "OVERTURN"
 
 
-@allow_storage
+@gl.storage.allow
 @dataclass
 class Round:
     round_id: str
@@ -85,7 +88,7 @@ class Round:
     locked_liability_wei: bigint
 
 
-@allow_storage
+@gl.storage.allow
 @dataclass
 class Offer:
     round_id: str
@@ -103,9 +106,12 @@ class Offer:
     deposit_wei: bigint
     matched_request_id: str
     active: bool
+    reputation_snapshot_taken: bool
+    reputation_review_count: u256
+    reputation_score_total: u256
 
 
-@allow_storage
+@gl.storage.allow
 @dataclass
 class Request:
     round_id: str
@@ -118,9 +124,11 @@ class Request:
     deposit_wei: bigint
     matched_offer_id: str
     outcome: str
+    minimum_review_count: u256
+    minimum_average_milli: u256
 
 
-@allow_storage
+@gl.storage.allow
 @dataclass
 class Match:
     round_id: str
@@ -353,7 +361,7 @@ def _timestamp_seconds(value: str) -> int:
 
 def _now_seconds() -> int:
     try:
-        raw = str(gl.message_raw.get("datetime", ""))
+        raw = str(gl.message.raw.get("datetime", ""))
     except Exception:
         raw = ""
     return _timestamp_seconds(raw)
@@ -706,6 +714,9 @@ def _offer_view(offer: Offer) -> dict:
         "deposit_wei": str(offer.deposit_wei),
         "matched_request_id": offer.matched_request_id,
         "active": offer.active,
+        "reputation_snapshot_taken": offer.reputation_snapshot_taken,
+        "reputation_review_count": str(offer.reputation_review_count),
+        "reputation_score_total": str(offer.reputation_score_total),
     }
 
 
@@ -721,6 +732,8 @@ def _request_view(request: Request) -> dict:
         "deposit_wei": str(request.deposit_wei),
         "matched_offer_id": request.matched_offer_id,
         "outcome": request.outcome,
+        "minimum_review_count": str(request.minimum_review_count),
+        "minimum_average_milli": str(request.minimum_average_milli),
     }
 
 
@@ -767,7 +780,7 @@ def _round_is_expired(round_record: Round) -> bool:
     return False
 
 
-class Contract(gl.Contract):
+class SkillSlotClearing(gl.contract.Contract):
     rounds: TreeMap[str, Round]
     offers: TreeMap[str, Offer]
     requests: TreeMap[str, Request]
@@ -786,10 +799,10 @@ class Contract(gl.Contract):
     total_withdrawn_wei: bigint
 
     def __init__(self) -> None:
-        self.total_received_wei = bigint(0)
-        self.total_locked_wei = bigint(0)
-        self.total_credited_wei = bigint(0)
-        self.total_withdrawn_wei = bigint(0)
+        self.total_received_wei = int(0)
+        self.total_locked_wei = int(0)
+        self.total_credited_wei = int(0)
+        self.total_withdrawn_wei = int(0)
 
     @gl.public.write
     def open_round(
@@ -819,17 +832,17 @@ class Contract(gl.Contract):
             creator=gl.message.sender_address,
             title=normalized_title,
             phase=PHASE_OPEN,
-            booking_fee_wei=bigint(booking_fee_wei),
-            provider_bond_wei=bigint(provider_bond_wei),
-            open_deadline=u256(now + open_timeout),
-            clear_deadline=u256(now + clear_timeout),
+            booking_fee_wei=int(booking_fee_wei),
+            provider_bond_wei=int(provider_bond_wei),
+            open_deadline=int(now + open_timeout),
+            clear_deadline=int(now + clear_timeout),
             offer_ids_csv="",
             request_ids_csv="",
-            offer_count=u256(0),
-            request_count=u256(0),
-            attempt_count=u256(0),
-            match_count=u256(0),
-            locked_liability_wei=bigint(0),
+            offer_count=int(0),
+            request_count=int(0),
+            attempt_count=int(0),
+            match_count=int(0),
+            locked_liability_wei=int(0),
         )
         self.round_ids.append(round_id)
 
@@ -911,17 +924,20 @@ class Contract(gl.Contract):
             metadata_hash=normalized_hash,
             metadata_issuer=normalized_issuer,
             metadata_authenticated=True,
-            metadata_expires_at=u256(expires_at),
-            deposit_wei=bigint(deposit),
+            metadata_expires_at=int(expires_at),
+            deposit_wei=int(deposit),
             matched_request_id="",
             active=True,
+            reputation_snapshot_taken=False,
+            reputation_review_count=int(0),
+            reputation_score_total=int(0),
         )
         self.offer_by_actor[actor_key] = offer_id
         round_record.offer_ids_csv = _append_csv(round_record.offer_ids_csv, offer_id)
-        round_record.offer_count = u256(int(round_record.offer_count) + 1)
-        round_record.locked_liability_wei = bigint(int(round_record.locked_liability_wei) + deposit)
-        self.total_received_wei = bigint(int(self.total_received_wei) + deposit)
-        self.total_locked_wei = bigint(int(self.total_locked_wei) + deposit)
+        round_record.offer_count = int(int(round_record.offer_count) + 1)
+        round_record.locked_liability_wei = int(int(round_record.locked_liability_wei) + deposit)
+        self.total_received_wei = int(int(self.total_received_wei) + deposit)
+        self.total_locked_wei = int(int(self.total_locked_wei) + deposit)
 
     def _verify_agent_metadata(
         self,
@@ -958,7 +974,7 @@ class Contract(gl.Contract):
             independent = fetch_metadata()
             return _metadata_fingerprint(leader) == _metadata_fingerprint(independent)
 
-        return gl.vm.run_nondet(fetch_metadata, validator_fn)
+        return gl.vm.run_nondet_default(fetch_metadata, validator_fn)
 
     @gl.public.write.payable
     def submit_request(
@@ -969,6 +985,8 @@ class Contract(gl.Contract):
         need_text: str,
         required_ids_csv: str,
         excluded_ids_csv: str,
+        minimum_review_count: int = 0,
+        minimum_average_milli: int = 0,
     ) -> None:
         if round_id not in self.rounds:
             raise gl.vm.UserError("Round does not exist")
@@ -995,6 +1013,12 @@ class Contract(gl.Contract):
         normalized_need = _validate_bounded_text(need_text, "Need text", MAX_TEXT_LENGTH)
         normalized_required = _normalize_csv(required_ids_csv, "Required IDs")
         normalized_excluded = _normalize_csv(excluded_ids_csv, "Excluded IDs")
+        if (
+            minimum_review_count < 0 or minimum_review_count > 1000
+            or minimum_average_milli < 0 or minimum_average_milli > 5000
+            or (minimum_average_milli > 0 and minimum_review_count == 0)
+        ):
+            raise gl.vm.UserError("Reputation policy is invalid")
         deposit = int(gl.message.value)
         self.requests[request_key] = Request(
             round_id=round_id,
@@ -1004,16 +1028,18 @@ class Contract(gl.Contract):
             need_text=normalized_need,
             required_ids_csv=normalized_required,
             excluded_ids_csv=normalized_excluded,
-            deposit_wei=bigint(deposit),
+            deposit_wei=int(deposit),
             matched_offer_id="",
             outcome=OUTCOME_PENDING,
+            minimum_review_count=int(minimum_review_count),
+            minimum_average_milli=int(minimum_average_milli),
         )
         self.request_by_actor[actor_key] = request_id
         round_record.request_ids_csv = _append_csv(round_record.request_ids_csv, request_id)
-        round_record.request_count = u256(int(round_record.request_count) + 1)
-        round_record.locked_liability_wei = bigint(int(round_record.locked_liability_wei) + deposit)
-        self.total_received_wei = bigint(int(self.total_received_wei) + deposit)
-        self.total_locked_wei = bigint(int(self.total_locked_wei) + deposit)
+        round_record.request_count = int(int(round_record.request_count) + 1)
+        round_record.locked_liability_wei = int(int(round_record.locked_liability_wei) + deposit)
+        self.total_received_wei = int(int(self.total_received_wei) + deposit)
+        self.total_locked_wei = int(int(self.total_locked_wei) + deposit)
 
     @gl.public.write
     def lock_round(self, round_id: str) -> None:
@@ -1028,6 +1054,12 @@ class Contract(gl.Contract):
             raise gl.vm.UserError("Round open deadline has passed")
         if int(round_record.offer_count) == 0 or int(round_record.request_count) == 0:
             raise gl.vm.UserError("Round needs at least one offer and request")
+        for offer_id in _split_csv(round_record.offer_ids_csv):
+            offer = self.offers[_position_key(round_id, offer_id)]
+            provider_key = _addr_key(offer.provider)
+            offer.reputation_review_count = self.provider_review_count.get(provider_key, int(0))
+            offer.reputation_score_total = self.provider_score_total.get(provider_key, int(0))
+            offer.reputation_snapshot_taken = True
         round_record.phase = PHASE_LOCKED
 
     @gl.public.write
@@ -1123,7 +1155,7 @@ class Contract(gl.Contract):
             independent = evaluate()
             return _critical_fingerprint(leader) == _critical_fingerprint(independent)
 
-        result = gl.vm.run_nondet(evaluate, validator_fn)
+        result = gl.vm.run_nondet_default(evaluate, validator_fn)
         normalized = _normalize_clearing(
             result,
             offer_ids,
@@ -1131,7 +1163,7 @@ class Contract(gl.Contract):
             required_by_request,
             excluded_by_request,
         )
-        round_record.attempt_count = u256(int(round_record.attempt_count) + 1)
+        round_record.attempt_count = int(int(round_record.attempt_count) + 1)
         attempt_key = round_id + "|" + str(round_record.attempt_count)
         self.attempt_fingerprints[attempt_key] = _critical_fingerprint(normalized)
         if normalized["verdict"] == VERDICT_UNVERIFIABLE:
@@ -1158,6 +1190,9 @@ class Contract(gl.Contract):
                 if (
                     not _contains(used_offers, offer_id)
                     and _pair_decision(pairs, offer_id, request_id) == DECISION_MATCH
+                    and self._booking_eligibility(
+                        self.offers[_position_key(round_record.round_id, offer_id)], request
+                    )["eligible"]
                 ):
                     selected_offer_id = offer_id
                     break
@@ -1178,29 +1213,29 @@ class Contract(gl.Contract):
                     dispatch_status=DISPATCH_NONE,
                     executor="",
                     executor_status=EXECUTOR_NONE,
-                    executor_expires_at=u256(0),
-                    executor_epoch=u256(0),
+                    executor_expires_at=int(0),
+                    executor_epoch=int(0),
                     delivery_status=DELIVERY_AWAITING,
                     delivery_artifact="",
                     delivery_digest="",
                     delivery_reason="",
-                    delivery_deadline=u256(now + DELIVERY_WINDOW_SECONDS),
-                    delivery_recovery_at=u256(
+                    delivery_deadline=int(now + DELIVERY_WINDOW_SECONDS),
+                    delivery_recovery_at=int(
                         now + DELIVERY_WINDOW_SECONDS + DELIVERY_RECOVERY_GRACE_SECONDS
                     ),
-                    delivery_attempt_count=u256(0),
+                    delivery_attempt_count=int(0),
                     reputation_status=REPUTATION_NONE,
-                    reputation_score=u256(0),
+                    reputation_score=int(0),
                     reputation_evidence="",
                     reputation_evidence_digest="",
                     reputation_response="",
                     reputation_response_digest="",
                     reputation_reason="",
-                    reputation_challenge_deadline=u256(0),
-                    reputation_recovery_at=u256(0),
-                    reputation_attempt_count=u256(0),
+                    reputation_challenge_deadline=int(0),
+                    reputation_recovery_at=int(0),
+                    reputation_attempt_count=int(0),
                 )
-                round_record.match_count = u256(int(round_record.match_count) + 1)
+                round_record.match_count = int(int(round_record.match_count) + 1)
             else:
                 request.outcome = OUTCOME_UNMATCHED
                 self._credit_locked(round_record, request.requester, int(request.deposit_wei))
@@ -1313,8 +1348,8 @@ class Contract(gl.Contract):
             independent = evaluate()
             return _delivery_fingerprint(leader) == _delivery_fingerprint(independent)
 
-        result = _normalize_delivery(gl.vm.run_nondet(evaluate, validator_fn))
-        match_record.delivery_attempt_count = u256(int(match_record.delivery_attempt_count) + 1)
+        result = _normalize_delivery(gl.vm.run_nondet_default(evaluate, validator_fn))
+        match_record.delivery_attempt_count = int(int(match_record.delivery_attempt_count) + 1)
         match_record.delivery_reason = result["reason"]
         if result["verdict"] == VERDICT_UNVERIFIABLE:
             match_record.delivery_status = DELIVERY_RETRYABLE
@@ -1368,19 +1403,19 @@ class Contract(gl.Contract):
         )
         now = _now_seconds()
         match_record.reputation_status = REPUTATION_PENDING
-        match_record.reputation_score = u256(normalized_score)
+        match_record.reputation_score = int(normalized_score)
         match_record.reputation_evidence = normalized_evidence
         match_record.reputation_evidence_digest = _sha256_hex(normalized_evidence)
         match_record.reputation_response = ""
         match_record.reputation_response_digest = ""
         match_record.reputation_reason = "Awaiting provider challenge window."
-        match_record.reputation_challenge_deadline = u256(
+        match_record.reputation_challenge_deadline = int(
             now + REPUTATION_CHALLENGE_SECONDS
         )
-        match_record.reputation_recovery_at = u256(
+        match_record.reputation_recovery_at = int(
             now + REPUTATION_CHALLENGE_SECONDS + REPUTATION_RECOVERY_GRACE_SECONDS
         )
-        match_record.reputation_attempt_count = u256(0)
+        match_record.reputation_attempt_count = int(0)
 
     @gl.public.write
     def challenge_reputation(
@@ -1403,10 +1438,10 @@ class Contract(gl.Contract):
 
     def _record_finalized_reputation(self, match_record: Match) -> None:
         provider = _addr_key(match_record.provider)
-        count = int(self.provider_review_count.get(provider, u256(0)))
-        total = int(self.provider_score_total.get(provider, u256(0)))
-        self.provider_review_count[provider] = u256(count + 1)
-        self.provider_score_total[provider] = u256(
+        count = int(self.provider_review_count.get(provider, int(0)))
+        total = int(self.provider_score_total.get(provider, int(0)))
+        self.provider_review_count[provider] = int(count + 1)
+        self.provider_score_total[provider] = int(
             total + int(match_record.reputation_score)
         )
         match_record.reputation_status = REPUTATION_FINALIZED
@@ -1467,8 +1502,8 @@ class Contract(gl.Contract):
             independent = evaluate()
             return _reputation_fingerprint(leader) == _reputation_fingerprint(independent)
 
-        result = _normalize_reputation(gl.vm.run_nondet(evaluate, validator_fn))
-        match_record.reputation_attempt_count = u256(
+        result = _normalize_reputation(gl.vm.run_nondet_default(evaluate, validator_fn))
+        match_record.reputation_attempt_count = int(
             int(match_record.reputation_attempt_count) + 1
         )
         match_record.reputation_reason = result["reason"]
@@ -1479,8 +1514,8 @@ class Contract(gl.Contract):
             self._record_finalized_reputation(match_record)
         else:
             provider = _addr_key(match_record.provider)
-            overturned = int(self.provider_overturned_count.get(provider, u256(0)))
-            self.provider_overturned_count[provider] = u256(overturned + 1)
+            overturned = int(self.provider_overturned_count.get(provider, int(0)))
+            self.provider_overturned_count[provider] = int(overturned + 1)
             match_record.reputation_status = REPUTATION_OVERTURNED
         return result
 
@@ -1517,11 +1552,11 @@ class Contract(gl.Contract):
         if amount <= 0:
             return
         account = _addr_key(recipient)
-        current = self.credits.get(account, bigint(0))
-        self.credits[account] = bigint(int(current) + amount)
-        round_record.locked_liability_wei = bigint(int(round_record.locked_liability_wei) - amount)
-        self.total_locked_wei = bigint(int(self.total_locked_wei) - amount)
-        self.total_credited_wei = bigint(int(self.total_credited_wei) + amount)
+        current = self.credits.get(account, int(0))
+        self.credits[account] = int(int(current) + amount)
+        round_record.locked_liability_wei = int(int(round_record.locked_liability_wei) - amount)
+        self.total_locked_wei = int(int(self.total_locked_wei) - amount)
+        self.total_credited_wei = int(int(self.total_credited_wei) + amount)
 
     @gl.public.write
     def cancel_round(self, round_id: str) -> None:
@@ -1629,8 +1664,8 @@ class Contract(gl.Contract):
 
         match_record.executor = normalized_executor
         match_record.executor_status = EXECUTOR_AUTHORIZED
-        match_record.executor_expires_at = u256(normalized_expiry)
-        match_record.executor_epoch = u256(int(match_record.executor_epoch) + 1)
+        match_record.executor_expires_at = int(normalized_expiry)
+        match_record.executor_epoch = int(int(match_record.executor_epoch) + 1)
 
     @gl.public.write
     def revoke_executor(self, round_id: str, request_id: str) -> None:
@@ -1665,16 +1700,16 @@ class Contract(gl.Contract):
             raise gl.vm.UserError("Withdrawal amount must be positive")
         sender = gl.message.sender_address
         account = _addr_key(sender)
-        available = self.credits.get(account, bigint(0))
+        available = self.credits.get(account, int(0))
         if requested > int(available):
             raise gl.vm.UserError("Insufficient credit")
         if requested > int(self.total_credited_wei):
             raise gl.vm.UserError("Withdrawal exceeds credited liability")
 
-        self.credits[account] = bigint(int(available) - requested)
-        self.total_credited_wei = bigint(int(self.total_credited_wei) - requested)
-        self.total_withdrawn_wei = bigint(int(self.total_withdrawn_wei) + requested)
-        _ExternalRecipient(sender).emit_transfer(value=u256(requested))
+        self.credits[account] = int(int(available) - requested)
+        self.total_credited_wei = int(int(self.total_credited_wei) - requested)
+        self.total_withdrawn_wei = int(int(self.total_withdrawn_wei) + requested)
+        _ExternalRecipient(sender).emit_transfer(value=int(requested))
 
     @gl.public.view
     def get_round(self, round_id: str) -> dict:
@@ -1729,8 +1764,8 @@ class Contract(gl.Contract):
     @gl.public.view
     def get_provider_reputation(self, provider: str) -> dict:
         key = provider.lower()
-        count = int(self.provider_review_count.get(key, u256(0)))
-        total = int(self.provider_score_total.get(key, u256(0)))
+        count = int(self.provider_review_count.get(key, int(0)))
+        total = int(self.provider_score_total.get(key, int(0)))
         average_milli = 0 if count == 0 else total * 1000 // count
         return {
             "provider": provider,
@@ -1738,9 +1773,43 @@ class Contract(gl.Contract):
             "score_total": str(total),
             "average_milli": str(average_milli),
             "overturned_count": str(
-                self.provider_overturned_count.get(key, u256(0))
+                self.provider_overturned_count.get(key, int(0))
             ),
         }
+
+    def _booking_eligibility(self, offer: Offer, request: Request) -> dict:
+        count = int(offer.reputation_review_count)
+        total = int(offer.reputation_score_total)
+        minimum_count = int(request.minimum_review_count)
+        minimum_average = int(request.minimum_average_milli)
+        reason = "ELIGIBLE"
+        if not offer.reputation_snapshot_taken:
+            reason = "SNAPSHOT_PENDING"
+        elif count < minimum_count:
+            reason = "INSUFFICIENT_REVIEWS"
+        elif minimum_average > 0 and (count == 0 or total * 1000 < minimum_average * count):
+            reason = "AVERAGE_TOO_LOW"
+        return {
+            "round_id": request.round_id,
+            "offer_id": offer.offer_id,
+            "request_id": request.request_id,
+            "provider": _addr_str(offer.provider),
+            "snapshot_taken": offer.reputation_snapshot_taken,
+            "review_count": str(count),
+            "score_total": str(total),
+            "minimum_review_count": str(minimum_count),
+            "minimum_average_milli": str(minimum_average),
+            "eligible": reason == "ELIGIBLE",
+            "reason": reason,
+        }
+
+    @gl.public.view
+    def get_booking_eligibility(self, round_id: str, offer_id: str, request_id: str) -> dict:
+        offer_key = _position_key(round_id, offer_id)
+        request_key = _position_key(round_id, request_id)
+        if offer_key not in self.offers or request_key not in self.requests:
+            return {}
+        return self._booking_eligibility(self.offers[offer_key], self.requests[request_key])
 
     @gl.public.view
     def can_route(self, round_id: str, request_id: str, requester: str) -> bool:
@@ -1796,7 +1865,7 @@ class Contract(gl.Contract):
 
     @gl.public.view
     def get_credit(self, owner: str) -> str:
-        return str(self.credits.get(owner.lower(), bigint(0)))
+        return str(self.credits.get(owner.lower(), int(0)))
 
     @gl.public.view
     def get_round_ids(self) -> list[str]:

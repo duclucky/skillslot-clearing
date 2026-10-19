@@ -8,7 +8,7 @@ import pytest
 from gltest.direct.loader import deploy_contract
 
 
-DIRECT_SDK_VERSION = "v0.2.16"
+DIRECT_SDK_VERSION = os.environ.get("SKILLSLOT_DIRECT_VERSION", "v0.6.0-rc5")
 
 
 def _install_windows_stdin_patch() -> None:
@@ -22,8 +22,12 @@ def _install_windows_stdin_patch() -> None:
         return
 
     def inject_message_to_fd0(vm: VMContext) -> None:
-        from genlayer.py import calldata
-        from genlayer.py.types import Address
+        if DIRECT_SDK_VERSION == "v0.2.16":
+            from genlayer.py import calldata
+            from genlayer.py.types import Address
+        else:
+            from genlayer import calldata
+            from genlayer.types import Address
 
         sender = Address(vm.sender) if isinstance(vm.sender, bytes) else vm.sender
         contract = Address(vm._contract_address) if isinstance(vm._contract_address, bytes) else vm._contract_address
@@ -76,10 +80,32 @@ def _install_windows_stdin_patch() -> None:
 _install_windows_stdin_patch()
 
 
+def _install_v03_llm_mock_compatibility() -> None:
+    if DIRECT_SDK_VERSION == "v0.2.16":
+        return
+    import json
+    from gltest.direct import wasi_mock
+
+    original = wasi_mock._handle_llm_request
+
+    def textual_json_mock(vm, data):
+        result = original(vm, data)
+        # The RC mock pre-parses JSON, but v0.3 SDK expects model text and parses it itself.
+        # Preserve the fixture's decision; only restore the real response transport shape.
+        if isinstance(result, dict) and "ok" in result and not isinstance(result["ok"], str):
+            return {"ok": json.dumps(result["ok"])}
+        return result
+
+    wasi_mock._handle_llm_request = textual_json_mock
+
+
+_install_v03_llm_mock_compatibility()
+
+
 @pytest.fixture
 def direct_deploy(direct_vm):
     def _deploy(contract_path: str, *args, sdk_version: str = DIRECT_SDK_VERSION, **kwargs):
-        path = Path(contract_path)
+        path = Path(os.environ.get("SKILLSLOT_CANDIDATE_PATH", contract_path))
         if not path.is_absolute():
             path = (Path.cwd() / path).resolve()
         return deploy_contract(path, direct_vm, *args, sdk_version=sdk_version, **kwargs)
@@ -90,6 +116,9 @@ def direct_deploy(direct_vm):
 def to_hex(address) -> str:
     if hasattr(address, "as_hex"):
         return address.as_hex
-    from genlayer.py.types import Address
+    if DIRECT_SDK_VERSION == "v0.2.16":
+        from genlayer.py.types import Address
+    else:
+        from genlayer.types import Address
 
     return Address(address).as_hex

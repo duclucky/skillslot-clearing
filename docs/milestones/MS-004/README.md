@@ -5,7 +5,7 @@
 | Field | Value |
 | --- | --- |
 | Milestone ID | `MS-004` |
-| Status | `SUBMITTED` — owner-reported; direct Portal record pending capture |
+| Status | `ACCEPTED` — owner-confirmed 2026-10-19; public contribution reference pending |
 | Selected on | `2026-10-05` |
 | Accepted baseline | MS-003, owner-confirmed accepted `2026-10-05` |
 | Accepted evidence head | `741cf12ebd1c16329f7b4c74bade83b61374063a` |
@@ -181,3 +181,13 @@ finalized lifecycle evidence head: `8af4e497b99538da0cee4ec997d4b6a37384a602`.
 Final public CI succeeded: https://github.com/duclucky/skillslot-clearing/actions/runs/37248571205.
 Await a verified Portal outcome before promoting the accepted baseline or selecting MS-005.
 Do not submit this phase again.
+
+## Acceptance event — 2026-10-19
+
+The owner explicitly confirmed MS-004 was approved and requested MS-005 without another Portal check.
+Record `ACCEPTED` on that confirmation; no independent Portal inspection, award, exact outcome date,
+or public contribution reference is invented. The prepared product head `be794338f9a00a00e72baab466d229cd03467e2b`
+and pinned lifecycle evidence head `8af4e497b99538da0cee4ec997d4b6a37384a602` form the next accepted baseline.
+The existing Studionet deployment and evidence remain on their original network. MS-005 may now be
+selected; requester reviews, challenges, resolution, aggregate accounting and layout work are reserved
+as accepted MS-004 scope and cannot be counted again.

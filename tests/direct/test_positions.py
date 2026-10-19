@@ -40,6 +40,9 @@ def test_offer_and_request_are_canonical_and_exactly_bonded(
         "deposit_wei": str(UNIT_GEN),
         "matched_request_id": "",
         "active": True,
+        "reputation_snapshot_taken": False,
+        "reputation_review_count": "0",
+        "reputation_score_total": "0",
     }
     assert contract.get_request("round-alpha", "request-alpha") == {
         "round_id": "round-alpha",
@@ -52,6 +55,8 @@ def test_offer_and_request_are_canonical_and_exactly_bonded(
         "deposit_wei": str(UNIT_GEN),
         "matched_offer_id": "",
         "outcome": "PENDING",
+        "minimum_review_count": "0",
+        "minimum_average_milli": "0",
     }
     round_view = contract.get_round("round-alpha")
     assert round_view["offer_ids_csv"] == "offer-alpha"

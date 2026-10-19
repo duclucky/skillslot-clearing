@@ -1,10 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createGenLayerAdapter, ONE_GEN_WEI, type GenLayerClientLike } from "./contractAdapter";
+import { createGenLayerAdapter as makeAdapter, ONE_GEN_WEI, type GenLayerClientLike } from "./contractAdapter";
 import type { ContractAdapter } from "./domain";
 
 const address = "0x00000000000000000000000000000000000000aa" as const;
 const account = "0x00000000000000000000000000000000000000bb" as const;
+
+// Unit tests supply an explicit successful verifier unless the case overrides it.
+function createGenLayerAdapter(options: Omit<Parameters<typeof makeAdapter>[0], "verifyExecution"> & Partial<Pick<Parameters<typeof makeAdapter>[0], "verifyExecution">>) {
+  return makeAdapter({ verifyExecution: async () => ({ status: "FINALIZED", execution: "SUCCESS" }), ...options });
+}
 
 function offerInput(overrides = {}) {
   return {
@@ -93,6 +98,42 @@ function clients() {
 }
 
 describe("GenLayer contract adapter", () => {
+  it("loads policy exclusions from the canonical pair view, not client score arithmetic", async () => {
+    const { readClient, writeClient } = clients();
+    const original = vi.mocked(readClient.readContract).getMockImplementation()!;
+    vi.mocked(readClient.readContract).mockImplementation(async input => {
+      if (input.functionName === "get_request") return { request_id: "request-1", requester: account, label: "Need", outcome: "UNMATCHED", minimum_review_count: "1", minimum_average_milli: "4000" };
+      if (input.functionName === "get_booking_eligibility") return { offer_id: "offer-1", eligible: false, reason: "INSUFFICIENT_REVIEWS", review_count: "0", score_total: "0", snapshot_taken: true };
+      return original(input);
+    });
+    const adapter = createGenLayerAdapter({ contractAddress: address, clients: () => ({ readClient, writeClient, account }) });
+    const snapshot = await adapter.loadWorkspace();
+    expect(snapshot.positions.find(position => position.kind === "request")).toEqual(expect.objectContaining({ bookingEligibility: [{ offerId: "offer-1", eligible: false, reason: "INSUFFICIENT_REVIEWS", reviewCount: "0", snapshotTaken: true }] }));
+  });
+  it("passes the quoted fee budget separately from exact application value", async () => {
+    const { readClient, writeClient } = clients();
+    const fees = { feeValue: 50n, distribution: { appealRounds: 0n } };
+    const quoteFees = vi.fn(async () => fees);
+    const adapter = createGenLayerAdapter({ contractAddress: address, clients: () => ({ readClient, writeClient, account }), pollIntervalMs: 0, quoteFees } as Parameters<typeof createGenLayerAdapter>[0]);
+    await adapter.submitRequest({ roundId: "round-1", requestId: "policy", label: "Need", need: "Research", requiredIds: "web", excludedIds: "", minimumReviewCount: 1, minimumAverageMilli: 4000 });
+    expect(quoteFees).toHaveBeenCalledWith("submit_request");
+    expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({ value: ONE_GEN_WEI, fees }));
+  });
+  it("does not report success for a finalized transaction with failed execution", async () => {
+    const { readClient, writeClient } = clients();
+    const onTransaction = vi.fn();
+    const adapter = createGenLayerAdapter({ contractAddress: address, clients: () => ({ readClient, writeClient, account }), pollIntervalMs: 0, onTransaction,
+      verifyExecution: async () => ({ status: "FINALIZED", execution: "ERROR" }),
+    } as Parameters<typeof createGenLayerAdapter>[0]);
+    await expect(adapter.lockRound("round-1")).rejects.toThrow("Execution not successful");
+    expect(onTransaction).not.toHaveBeenCalledWith(expect.objectContaining({ stage: "finalized" }));
+  });
+  it("encodes requester reputation policy atomically with the exact 1 GEN fee", async () => {
+    const { readClient, writeClient } = clients();
+    const adapter = createGenLayerAdapter({ contractAddress: address, clients: () => ({ readClient, writeClient, account }), pollIntervalMs: 0 });
+    await adapter.submitRequest({ roundId: "round-1", requestId: "request-new", label: "Need", need: "Research", requiredIds: "web", excludedIds: "", minimumReviewCount: 2, minimumAverageMilli: 4125 } as Parameters<ContractAdapter["submitRequest"]>[0]);
+    expect(writeClient.writeContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "submit_request", args: ["round-1", "request-new", "Need", "Research", "web", "", 2n, 4125n], value: ONE_GEN_WEI }));
+  });
   it("retries transient canonical reads before failing the workspace load", async () => {
     const { readClient, writeClient } = clients();
     const originalRead = vi.mocked(readClient.readContract).getMockImplementation()!;

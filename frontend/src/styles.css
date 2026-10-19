@@ -2013,6 +2013,7 @@ h2 {
 }
 
 .transaction-strip {
+  flex-wrap: wrap;
   gap: 11px;
   max-width: 780px;
   margin-bottom: 20px;
@@ -2028,6 +2029,22 @@ h2 {
   height: 21px;
   flex: 0 0 auto;
 }
+
+.transaction-strip > small {
+  flex-basis: 100%;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.legacy-access {
+  max-width: 1040px;
+  margin: 24px auto;
+  padding: 0 16px;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.legacy-access a { color: #c6e5d6; }
 
 .transaction-strip span,
 .transaction-strip strong,

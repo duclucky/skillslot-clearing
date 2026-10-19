@@ -14,11 +14,11 @@ declare const process: {
   env: Record<string, string | undefined>;
 };
 
-const DEFAULT_STUDIONET_RPC_URL = "https://studio.genlayer.com/api";
+const DEFAULT_STUDIONET_RPC_URL = "https://studio-dev.genlayer.com/api";
 const ALLOWED_METHODS = new Set(["eth_chainId", "gen_call", "gen_getTransactionStatus"]);
 
 function rpcUrl() {
-  return process.env.STUDIONET_RPC_URL?.trim() || process.env.GENLAYER_RPC_URL?.trim() || DEFAULT_STUDIONET_RPC_URL;
+  return process.env.STUDIO_DEV_RPC_URL?.trim() || process.env.GENLAYER_RPC_URL?.trim() || DEFAULT_STUDIONET_RPC_URL;
 }
 
 function entries(payload: unknown): Array<Record<string, unknown>> | null {
@@ -53,7 +53,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
     return;
   }
   if (request.method !== "POST") {
-    response.status(405).json({ ok: false, error: "Use POST for Studionet RPC reads" });
+    response.status(405).json({ ok: false, error: "Use POST for Studio Dev RPC reads" });
     return;
   }
   const payload = parseBody(request.body);
@@ -72,6 +72,6 @@ export default async function handler(request: VercelRequest, response: VercelRe
     response.setHeader("content-type", upstream.headers.get("content-type") || "application/json; charset=utf-8");
     response.status(upstream.status).send(body);
   } catch {
-    response.status(502).json({ ok: false, error: "Studionet RPC proxy could not reach upstream" });
+    response.status(502).json({ ok: false, error: "Studio Dev RPC proxy could not reach upstream" });
   }
 }

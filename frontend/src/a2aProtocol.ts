@@ -1,7 +1,9 @@
+import { ACTIVE_CHAIN } from "./network.js";
+
 export type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
 
-export const STUDIONET_CHAIN_ID = 61999;
+export const STUDIONET_CHAIN_ID = ACTIVE_CHAIN.id;
 export const A2A_PROTOCOL_VERSION = "1.0";
 export const MAX_A2A_TASK_LENGTH = 600;
 

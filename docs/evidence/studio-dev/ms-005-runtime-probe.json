@@ -1,0 +1,19 @@
+{
+  "purpose": "Runtime/SDK compatibility only; not the SkillSlot deployment or policy lifecycle",
+  "network": "studio-dev",
+  "chainId": 61997,
+  "runner": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng",
+  "sdk": "genlayer-js@2.0.0-rc.1",
+  "contractSha256": "2c7f700c6ab705e76d67cb012b51ed0f8c65db9bb5b6e6e79708ba61b171b83c",
+  "contractAddress": "0x70EE5C71d57C2DF50fB7Fa8D32BF443b3F5508E3",
+  "transactionHash": "0x1f19d96337877f8c7585cc65229a9fba8d1d60976284dded88104b6a265fb4a8",
+  "status": "FINALIZED",
+  "execution": "SUCCESS",
+  "applicationValueWei": "0",
+  "feeDepositWei": "50000000000005176",
+  "executionConsumedWei": "78632750000000",
+  "messageFeesConsumedWei": "0",
+  "canonicalRevision": "5",
+  "verifiedAt": "2026-10-19T05:31:12.174Z",
+  "evidenceBoundary": "No raw receipt, validator configuration, logs or wallet secrets persisted. Fee budget is not described as actual consumed cost."
+}
