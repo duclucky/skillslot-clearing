@@ -8,7 +8,7 @@
 - Live app: `https://skillslot-clearing.vercel.app`
 - Original Project contribution: `https://portal.genlayer.foundation/contribution/131883`
 - Latest accepted Milestone: `https://portal.genlayer.foundation/contribution/185631`
-- Portal status: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 ACCEPTED (owner-confirmed 2026-10-19; public reference pending) / MS-005 BUILDING`
+- Portal status: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 ACCEPTED (owner-confirmed 2026-10-19; public reference pending) / MS-005 VERIFIED, NOT_SUBMITTED`
 - Portal contribution date: `2026-08-12`
 - Portal award: `320 points`
 - Ledger initialized: `2026-08-29`
@@ -214,10 +214,10 @@ Exact accepted-baseline delta: `741cf12ebd1c16329f7b4c74bade83b61374063a..8af4e4
 Subsequent packet-only changes pin those references without introducing another capability.
 
 - Active Milestone: `MS-005 — Reputation-Bound Booking Policies`
-- Program state: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 ACCEPTED / MS-005 BUILDING`
+- Program state: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 ACCEPTED / MS-005 VERIFIED`
 - Last Portal reconciliation: `2026-10-19`, owner-confirmed; no Portal recheck requested or performed.
-- Next allowed action: implement and verify MS-005 against the accepted MS-004 baseline. Final Portal
-  submission remains a separate authorization boundary.
+- Next allowed action: publish final MS-005 evidence and package one submission against MS-004.
+  Final Portal submission remains a separate authorization boundary.
 
 ### MS-004 submission event — 2026-10-05
 
@@ -251,3 +251,28 @@ commit `1866857`; accepted contract is Studionet `0x1C282781D79Def68E4eea7895e2F
 MS-005 extends MS-004's verdict with a new booking consequence, not another reputation judgment.
 Scope, safety cards, admission gates, and execution plan: `docs/milestones/MS-005/README.md`.
 No deployment, browser lifecycle, passing tests, adoption, or submission is claimed at selection.
+
+### MS-005 verified execution — 2026-10-19
+
+| Field | Verified phase value |
+| --- | --- |
+| Milestone / title | MS-005 — Reputation-Bound Booking Policies |
+| Status | `VERIFIED / NOT_SUBMITTED`; final evidence publication and packet in progress |
+| Baseline | Accepted MS-004 product `be794338f9a00a00e72baab466d229cd03467e2b`; original Studionet contract retained |
+| Delta fingerprint | Wallet-authenticated immutable booking policy + canonical lock-time provider reputation snapshot + deterministic grant/escrow exclusion even for semantic MATCH |
+| Implementation range | `be794338f9a00a00e72baab466d229cd03467e2b..7c54c9c3fe776046a3a3a0472bdcb22388606ea0`; final evidence head to be pinned in packet |
+| Deployment | Studio Dev 61997, `0x3835fDE18eF5FF14c5Bdc87fE7a24043A231746d`; source `11be3f21f09c8b7a51d2880779076043bdbef1da`, API v0.3 / pinned `5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng`; frontend source `7c54c9c` |
+| Evidence index | [MS-005 dossier](milestones/MS-005/README.md), `docs/evidence/studio-dev/ms-005-*.json` |
+| Portal reference / outcome date | `NOT_SUBMITTED` / none |
+| Extends | MS-004 finalized reputation is inherited; MS-001 authorization, MS-002 executor and MS-003 delivery remain baseline infrastructure |
+| Checks | 326 local checks, build and NodeNext API check; deployed code CI `39214981065` success |
+| Measurements | 3 script policy rounds; 1 additional browser request + web cancel; exact 1 GEN supplemental native withdrawal; developer QA only |
+| Latest accounting | 7 GEN received, 0 locked, 4 credited, 3 withdrawn; invariant true; five seeded OPEN rounds |
+| Lessons | Preserve historical measurement snapshots; FINALIZED must also execute SUCCESS; bracket both native balances; wallet-cancelled attempts are not automatic write retries |
+| Follow-up | No MS-006 until a recorded MS-005 Portal outcome; BL-008, BL-009, BL-001B and external adoption remain unlocked backlog |
+
+The browser cancellation returned exactly 1 GEN to credit. The owner then separately approved a
+script withdrawal of exactly 1 GEN; the whole-credit web control was not used. Native contract
+balance decreased 5 -> 4 GEN and the recipient increased by 0.999873694749999177 GEN after fees.
+The historical 6 / 0 / 4 / 2 GEN script snapshot is not rewritten as today's global accounting.
+No final Portal action, reviewer acceptance or award is claimed.

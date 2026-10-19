@@ -1,6 +1,6 @@
 # SkillSlot Clearing product and contract brief
 
-## Current delta: MS-005 (BUILDING)
+## Current delta: MS-005 (VERIFIED; evidence publication in progress)
 
 The requester may commit a minimum finalized review count and average (integer milli-points) with
 the exact booking fee. At round lock, canonical provider aggregates are frozen per offer. Allocation
@@ -9,6 +9,13 @@ receives no grant or delivery escrow; inherited unmatched refund credit remains 
 Zero/zero preserves unrestricted booking. No external reputation import or Sybil-resistance claim.
 The [MS-005 dossier](milestones/MS-005/README.md) controls current verification status. Its target is
 Studio Dev chain 61997; the accepted Studionet history below is separate, not migrated evidence.
+The live policy contrast, signed Chrome/OKX request and web cancellation, and separately authorized
+1 GEN native withdrawal are verified. Final accounting is 7 GEN received, 0 locked, 4 credited,
+3 withdrawn; invariant true. The historical 6 GEN script snapshot is retained separately.
+Current local checks: 326, production build and NodeNext API type checking passed. See the
+[browser record](evidence/studio-dev/ms-005-browser-lifecycle.json),
+[native transfer record](evidence/studio-dev/ms-005-native-withdrawal.json) and
+[production record](evidence/studio-dev/ms-005-production.json).
 
 ## MS-001 protocol handoff delta
 
@@ -37,7 +44,7 @@ are intentionally outside `MS-001`. The phase dossier and claim-to-code matrix l
 - Project name: SkillSlot Clearing
 - Project slug: `skillslot-clearing`
 - Category: Projects
-- Status: accepted Project, MS-004 accepted (owner-confirmed); MS-005 `BUILDING`
+- Status: accepted Project, MS-004 accepted (owner-confirmed); MS-005 `VERIFIED`, not submitted
 - Repository: `https://github.com/duclucky/skillslot-clearing`
 - Live app: `https://skillslot-clearing.vercel.app`
 - Active phase target: `studio-dev` (61997); accepted history: `studionet` (61999)

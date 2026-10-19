@@ -1,0 +1,53 @@
+{
+  "milestone": "MS-005",
+  "network": "studio-dev",
+  "chainId": 61997,
+  "contractAddress": "0x3835fDE18eF5FF14c5Bdc87fE7a24043A231746d",
+  "actor": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+  "method": "withdraw_credit",
+  "amountWei": "1000000000000000000",
+  "authorization": "Owner explicitly approved exactly 1 GEN script withdrawal after browser cancellation on 2026-10-19",
+  "before": {
+    "observedAt": "2026-10-19T07:36:19.439Z",
+    "contractBalanceWei": "5000000000000000000",
+    "walletBalanceWei": "32277579487582788785",
+    "creditWei": "5000000000000000000",
+    "accounting": {
+      "invariant_holds": true,
+      "total_credited_wei": "5000000000000000000",
+      "total_locked_wei": "0",
+      "total_received_wei": "7000000000000000000",
+      "total_withdrawn_wei": "2000000000000000000"
+    }
+  },
+  "status": "VERIFIED_NATIVE_TRANSFER",
+  "finality": "FINALIZED",
+  "quotedFeeBudgetWei": "454899000005176",
+  "intentAt": "2026-10-19T07:36:24.537Z",
+  "hash": "0xfe2e75c91eb368701a9c938e1b9bc0fb13d05f494ed1fa50d58385f29a155301",
+  "execution": "SUCCESS",
+  "fees": {
+    "feeDepositWei": "454899000005176",
+    "applicationValueWei": "0",
+    "executionConsumedWei": "126305250000000",
+    "messageFeesConsumedWei": "125000000000000"
+  },
+  "after": {
+    "observedAt": "2026-10-19T07:37:02.226Z",
+    "contractBalanceWei": "4000000000000000000",
+    "walletBalanceWei": "33277453182332787962",
+    "creditWei": "4000000000000000000",
+    "accounting": {
+      "invariant_holds": true,
+      "total_credited_wei": "4000000000000000000",
+      "total_locked_wei": "0",
+      "total_received_wei": "7000000000000000000",
+      "total_withdrawn_wei": "3000000000000000000"
+    }
+  },
+  "contractBalanceDecreaseWei": "1000000000000000000",
+  "walletNetIncreaseWei": "999873694749999177",
+  "creditDecreaseWei": "1000000000000000000",
+  "verifiedAt": "2026-10-19T07:37:05.978Z",
+  "explorerUrl": "https://explorer-studio-dev.genlayer.com/transactions/0xfe2e75c91eb368701a9c938e1b9bc0fb13d05f494ed1fa50d58385f29a155301"
+}

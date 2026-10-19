@@ -1,0 +1,150 @@
+{
+  "milestone": "MS-005",
+  "status": "FINALIZED_BROWSER_POLICY_AND_CANCEL",
+  "verifiedAt": "2026-10-19T07:34:13.737Z",
+  "network": "studio-dev",
+  "chainId": 61997,
+  "contractAddress": "0x3835fDE18eF5FF14c5Bdc87fE7a24043A231746d",
+  "sourceCommit": "7c54c9c3fe776046a3a3a0472bdcb22388606ea0",
+  "appUrl": "https://skillslot-clearing.vercel.app/?ms=005-qa",
+  "wallet": "OKX",
+  "actor": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+  "roundId": "ms005-explore-6",
+  "requestId": "ms005-browser-policy-1",
+  "actions": {
+    "invalidPolicyBeforeWallet": "Positive average with blank minimum count was rejected before wallet submission",
+    "booking": "User signed exactly 1 GEN application value with count 1 and average 4.000/5",
+    "reload": "Same Chrome tab reloaded after booking finality; canonical policy persisted in My activity",
+    "cancel": "User chose to retry the web button; user-signed retry finalized and credited the 1 GEN booking",
+    "retainedSession": true
+  },
+  "transactions": {
+    "booking": {
+      "hash": "0x399f88be4e57b4b4a6302d269393db7b0ba9566190f7dfc81551e2dae8a72653",
+      "method": "submit_request",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "status": "FINALIZED",
+      "execution": "SUCCESS",
+      "fees": {
+        "feeDepositWei": "491479687541661",
+        "applicationValueWei": "1000000000000000000",
+        "executionConsumedWei": "78637500000000",
+        "messageFeesConsumedWei": "0"
+      },
+      "verifiedAt": "2026-10-19T07:33:58.652Z",
+      "explorerUrl": "https://explorer-studio-dev.genlayer.com/transactions/0x399f88be4e57b4b4a6302d269393db7b0ba9566190f7dfc81551e2dae8a72653"
+    },
+    "cancel": {
+      "hash": "0x963ae9866fb767af436f22122dddd071f6522b91df9c8013acf9133f3489d638",
+      "method": "cancel_round",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "status": "FINALIZED",
+      "execution": "SUCCESS",
+      "fees": {
+        "feeDepositWei": "125000000000033329",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "78630750000000",
+        "messageFeesConsumedWei": "0"
+      },
+      "verifiedAt": "2026-10-19T07:33:59.092Z",
+      "explorerUrl": "https://explorer-studio-dev.genlayer.com/transactions/0x963ae9866fb767af436f22122dddd071f6522b91df9c8013acf9133f3489d638"
+    }
+  },
+  "canonical": {
+    "round": {
+      "attempt_count": "0",
+      "booking_fee_wei": "1000000000000000000",
+      "clear_deadline": "1793603216",
+      "creator": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "expired": false,
+      "locked_liability_wei": "0",
+      "match_count": "0",
+      "offer_count": "0",
+      "offer_ids_csv": "",
+      "open_deadline": "1792998416",
+      "phase": "CANCELLED",
+      "provider_bond_wei": "1000000000000000000",
+      "request_count": "1",
+      "request_ids_csv": "ms005-browser-policy-1",
+      "round_id": "ms005-explore-6",
+      "title": "Explore reputation-bound agent access 6"
+    },
+    "request": {
+      "deposit_wei": "1000000000000000000",
+      "excluded_ids_csv": "HOTEL.BOOK",
+      "label": "Browser QA reputation-gated booking",
+      "matched_offer_id": "",
+      "minimum_average_milli": "4000",
+      "minimum_review_count": "1",
+      "need_text": "Book flight GL-203 departing at 09:30 and add the confirmed itinerary to my calendar.",
+      "outcome": "CANCELLED",
+      "request_id": "ms005-browser-policy-1",
+      "requester": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "required_ids_csv": "FLIGHT.BOOK,CALENDAR.WRITE",
+      "round_id": "ms005-explore-6"
+    },
+    "creditWei": "5000000000000000000",
+    "accounting": {
+      "invariant_holds": true,
+      "total_credited_wei": "5000000000000000000",
+      "total_locked_wei": "0",
+      "total_received_wei": "7000000000000000000",
+      "total_withdrawn_wei": "2000000000000000000"
+    },
+    "phases": [
+      {
+        "id": "ms005-excluded",
+        "phase": "CLEARED"
+      },
+      {
+        "id": "ms005-unrestricted",
+        "phase": "CLEARED"
+      },
+      {
+        "id": "ms005-eligible",
+        "phase": "CLEARED"
+      },
+      {
+        "id": "ms005-explore-1",
+        "phase": "OPEN"
+      },
+      {
+        "id": "ms005-explore-2",
+        "phase": "OPEN"
+      },
+      {
+        "id": "ms005-explore-3",
+        "phase": "OPEN"
+      },
+      {
+        "id": "ms005-explore-4",
+        "phase": "OPEN"
+      },
+      {
+        "id": "ms005-explore-5",
+        "phase": "OPEN"
+      },
+      {
+        "id": "ms005-explore-6",
+        "phase": "CANCELLED"
+      }
+    ]
+  },
+  "creditBeforeBookingAndCancelWei": "4000000000000000000",
+  "creditAfterCancelWei": "5000000000000000000",
+  "refundCreditDeltaWei": "1000000000000000000",
+  "nativeWithdrawalPerformed": false,
+  "subsequentObservation": {
+    "source": "Separate owner-authorized script withdrawal; see ms-005-native-withdrawal.json",
+    "webReloadAfterFinality": true,
+    "walletReconnectedToSameAccount": true,
+    "displayedCreditGen": "4",
+    "note": "The 5 GEN cancellation snapshot above is historical and intentionally preserved."
+  },
+  "limitations": [
+    "Controlled developer QA; browser requester and round creator are the same wallet, not independent adoption",
+    "The separate two-wallet script proof covers semantic allocation, snapshot exclusion and eligible delivery",
+    "Refund became withdrawable credit, not a native refund transfer",
+    "Earlier wallet-cancelled attempts had no transaction hash and were not replayed automatically"
+  ]
+}

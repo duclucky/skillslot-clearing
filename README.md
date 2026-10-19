@@ -10,7 +10,7 @@ The product reserves access and adjudicates a bounded provider-submitted artifac
 
 ## Verified status
 
-**Current work: MS-005 — Reputation-Bound Booking Policies (`BUILDING`, not submitted).**
+**Current work: MS-005 — Reputation-Bound Booking Policies (`VERIFIED`, final evidence publication in progress; not submitted).**
 Requesters can atomically attach minimum finalized review count/average to a booking. Provider
 reputation is frozen at round lock; deterministic allocation excludes ineligible pairs even when
 semantic consensus says MATCH. Defaults remain unrestricted. See the [phase dossier](docs/milestones/MS-005/README.md).
@@ -19,11 +19,20 @@ The source has 21 writes and 13 views and targets Studio Dev (61997), Python con
 The new contract is [`0x3835fDE18eF5FF14c5Bdc87fE7a24043A231746d`](https://explorer-studio-dev.genlayer.com/address/0x3835fDE18eF5FF14c5Bdc87fE7a24043A231746d).
 Its 25-transaction two-wallet policy lifecycle finalized successfully: three semantically compatible
 MATCH results with distinct policy consequences, one finalized review, preserved earlier snapshots,
-and two 1 GEN withdrawals with native balance increases. Final accounting: 6 GEN received,
+and two 1 GEN withdrawals with native balance increases. Historical script accounting: 6 GEN received,
 0 locked, 4 credited, 2 withdrawn, invariant true. See [safe policy proof](docs/evidence/studio-dev/ms-005-booking-policy.json).
 The source CI [39207602466](https://github.com/duclucky/skillslot-clearing/actions/runs/39207602466) passed.
-Browser-signed policy proof and production rollout remain pending. The older deployment/CI records
-below describe accepted history, not MS-005 proof. Previous Studionet funds/reputation are not migrated.
+Production Chrome/OKX now proves a signed 1 GEN policy booking, canonical reload and web cancellation
+with the 1 GEN returned to credit. A separately authorized 1 GEN script withdrawal proves an exact
+native contract-balance decrease and recipient increase. Latest totals: 7 GEN received, 0 locked,
+4 credited, 3 withdrawn, invariant true. Five developer-seeded rounds remain open at the evidence read.
+See [browser proof](docs/evidence/studio-dev/ms-005-browser-lifecycle.json),
+[native transfer proof](docs/evidence/studio-dev/ms-005-native-withdrawal.json), and
+[production QA](docs/evidence/studio-dev/ms-005-production.json).
+All **326 checks**, production build and NodeNext API checking pass; the
+[deployed code CI](https://github.com/duclucky/skillslot-clearing/actions/runs/39214981065) passed.
+These are controlled developer tests, not independent adoption. The older records below describe
+accepted history, not MS-005 proof. Previous Studionet funds/reputation are not migrated.
 
 [Previous MS-004 app and credit withdrawal](https://skillslot-ms004.vercel.app/?ms=004-legacy-public)
 remains on the original Studionet contract. Only this alias was made public with owner approval;
@@ -37,7 +46,7 @@ project-wide deployment protection was not disabled.
 - Milestone `MS-002` deployment: `0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b`; accepted on Portal (owner-confirmed; public contribution reference pending capture)
 - Milestone `MS-003` deployment: `0xFd8C2c655dc3cc1C8270292087B75eD4B80757B5`; accepted on Portal (owner-confirmed; public contribution reference pending capture)
 - Milestone `MS-004`: accepted, owner-confirmed 2026-10-19; public Portal reference pending capture, no recheck requested
-- Accepted MS-004 check baseline: 263 (11 static, 79 direct, 5 receipt parser, 22 deployment tooling, 146 frontend); MS-005 final totals will be recorded in its dossier after integration checks
+- Accepted MS-004 check baseline: 263 (11 static, 79 direct, 5 receipt parser, 22 deployment tooling, 146 frontend); MS-005: 326 (14 static, 96 direct, 5 receipt parser, 26 deployment/fee, 185 frontend/API)
 - Verified Windows CI: [`check` run 35666807829](https://github.com/duclucky/skillslot-clearing/actions/runs/35666807829) passed on MS-003 evidence commit `741cf12`
 - MS-004 Windows CI: [`check` run 37223282038](https://github.com/duclucky/skillslot-clearing/actions/runs/37223282038) passed on evidence head `79918f0`
 - MS-001 dispatch proof: one finalized authorization, two identical HTTP requests returning one deterministic task ID, finalized grant consumption, post-consume HTTP 403, and unchanged GEN accounting during the handoff
@@ -69,9 +78,14 @@ project-wide deployment protection was not disabled.
 - Accepted Project address: [`0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`](https://explorer-studio.genlayer.com/address/0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834)
 - Accepted production browser-wallet evidence: [`docs/evidence/studionet/browser-lifecycle.json`](docs/evidence/studionet/browser-lifecycle.json)
 
-## Live app — accepted MS-004 history (MS-005 rollout pending)
+## Live app — current MS-005 and retained MS-004 history
 
-[`https://skillslot-clearing.vercel.app`](https://skillslot-clearing.vercel.app) is the verified production deployment. It returned HTTP 200, contained the project title and React root, and loaded the canonical `CLEARED` Studionet round on desktop and mobile browser QA. Production OKX Wallet testing finalized `consume_grant` and `withdraw_credit` through the webapp. The UI retained one transaction hash per action, recovered transient status reads without resubmission, and reloaded canonical grant `CONSUMED`, credit `0 GEN`, and accounting invariant true.
+[`https://skillslot-clearing.vercel.app`](https://skillslot-clearing.vercel.app) serves MS-005 on
+Studio Dev 61997. It returns HTTP 200 with the project title and React root. Chrome/OKX testing
+finalized the new policy booking and cancellation; desktop and 375 px mobile policy layout passed.
+The retained [MS-004 app](https://skillslot-ms004.vercel.app/?ms=004-legacy-public) remains on Studionet
+61999. Historical MS-004 `consume_grant` and browser `withdraw_credit` evidence belongs to that old
+contract, not the fresh Studio Dev deployment. MS-005's latest native withdrawal was script-signed.
 
 The public URL above is configured for the current milestone deployment and exposes the fixed-origin A2A reference interface at
 `POST /a2a/v1/message:send` and a discovery-only Agent Card at

@@ -1,0 +1,76 @@
+{
+  "milestone": "MS-005",
+  "network": "studio-dev",
+  "chainId": 61997,
+  "contractAddress": "0x3835fDE18eF5FF14c5Bdc87fE7a24043A231746d",
+  "status": "VERIFIED_PRODUCTION",
+  "verifiedAt": "2026-10-19T07:38:01.540Z",
+  "codeCommit": "7c54c9c3fe776046a3a3a0472bdcb22388606ea0",
+  "deployment": {
+    "id": "dpl_7B2jqXmdBNDnr9Yfng2pp6HcraQc",
+    "url": "https://skillslot-clearing-npdy06wpv-duckys-projects-bc83c6a0.vercel.app",
+    "target": "production",
+    "state": "READY"
+  },
+  "checks": [
+    {
+      "url": "https://skillslot-clearing.vercel.app/?ms=005-final",
+      "finalUrl": "https://skillslot-clearing.vercel.app/?ms=005-final",
+      "status": 200,
+      "appNamePresent": true,
+      "reactRootPresent": true,
+      "authenticationRedirect": false
+    },
+    {
+      "url": "https://skillslot-ms004.vercel.app/?ms=004-legacy-public",
+      "finalUrl": "https://skillslot-ms004.vercel.app/?ms=004-legacy-public",
+      "status": 200,
+      "appNamePresent": true,
+      "reactRootPresent": true,
+      "authenticationRedirect": false
+    },
+    {
+      "url": "https://explorer-studio-dev.genlayer.com/address/0x3835fDE18eF5FF14c5Bdc87fE7a24043A231746d",
+      "finalUrl": "https://explorer-studio-dev.genlayer.com/address/0x3835fDE18eF5FF14c5Bdc87fE7a24043A231746d",
+      "status": 200
+    }
+  ],
+  "chainProbe": {
+    "status": 200,
+    "chainHex": "0xf22d"
+  },
+  "feeQuote": {
+    "status": 200,
+    "chainId": 61997,
+    "source": "measured-profile",
+    "feeValueWei": "491479687541661",
+    "applicationValueIncluded": false
+  },
+  "invalidHashProbeStatus": 400,
+  "browser": {
+    "chromeTabRetained": true,
+    "wallet": "OKX",
+    "bookingAndCancellation": "See ms-005-browser-lifecycle.json",
+    "desktop": "Canonical policy and request position visible without squeezed sibling panels",
+    "mobile": {
+      "viewportWidth": 375,
+      "documentScrollWidth": 360,
+      "horizontalOverflow": false,
+      "policyTextWrapped": true,
+      "overrideReset": true
+    },
+    "console": "Earlier server-busy and user-cancelled wallet attempts were observed; final browser lifecycle succeeded. No claim of an error-free historical console."
+  },
+  "ci": {
+    "url": "https://github.com/duclucky/skillslot-clearing/actions/runs/39214981065",
+    "head": "7c54c9c3fe776046a3a3a0472bdcb22388606ea0",
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "limitations": [
+    "Studio Dev only; no Bradbury/Asimov/mainnet evidence",
+    "No independent external adoption",
+    "Legacy alias preserves the old contract access and does not migrate balances or reputation",
+    "Earlier production attempts are superseded by this READY deployment; only this deployment passed the final browser policy lifecycle"
+  ]
+}

@@ -27,9 +27,12 @@ for (const tag of ["excluded", "unrestricted", "eligible"]) {
   proof.canonical[tag].semanticConsensus = { transactionHash: hash, ...decision };
 }
 const accounting = await client.readContract({ address: proof.contractAddress, functionName: "get_accounting", args: [], stateStatus: "finalized", jsonSafeReturn: true });
-if (accounting.invariant_holds !== true || accounting.total_locked_wei !== "0") throw new Error("Accounting/locked-liability exit gate failed");
+if (accounting.invariant_holds !== true) throw new Error("Current accounting invariant failed");
 if (proof.status !== "FINALIZED_POLICY_PROOF") throw new Error("Value lifecycle proof is incomplete");
-proof.canonical.accounting = accounting;
+// The completed script lifecycle is a historical measurement. Later browser bookings
+// must not silently replace its accounting or fail verification merely by locking value.
+if (proof.canonical.accounting?.invariant_holds !== true || proof.canonical.accounting.total_locked_wei !== "0") throw new Error("Historical lifecycle accounting exit gate failed");
+proof.latestReadOnlyVerification = { verifiedAt: new Date().toISOString(), accounting };
 proof.semanticPolicyContrastVerifiedAt = new Date().toISOString();
 writeFileSync(evidence, `${JSON.stringify(proof, null, 2)}\n`);
-console.log(JSON.stringify({ status: "VERIFIED", contractAddress: proof.contractAddress, otherwiseCompatibleMatches: 3, excludedWithoutGrant: 1, protectedEligibleGrant: 1, frozenSnapshotPreserved: true, accountingInvariant: true, lockedGen: "0" }));
+console.log(JSON.stringify({ status: "VERIFIED", contractAddress: proof.contractAddress, otherwiseCompatibleMatches: 3, excludedWithoutGrant: 1, protectedEligibleGrant: 1, frozenSnapshotPreserved: true, accountingInvariant: true, historicalLockedGen: "0", currentLockedWei: accounting.total_locked_wei }));

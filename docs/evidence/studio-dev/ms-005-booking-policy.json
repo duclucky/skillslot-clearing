@@ -968,7 +968,7 @@
     }
   },
   "verifiedAt": "2026-10-19T06:25:51.832Z",
-  "semanticPolicyContrastVerifiedAt": "2026-10-19T07:09:05.826Z",
+  "semanticPolicyContrastVerifiedAt": "2026-10-19T07:39:44.030Z",
   "seededRoundIds": [
     "ms005-explore-1",
     "ms005-explore-2",
@@ -976,5 +976,15 @@
     "ms005-explore-4",
     "ms005-explore-5",
     "ms005-explore-6"
-  ]
+  ],
+  "latestReadOnlyVerification": {
+    "verifiedAt": "2026-10-19T07:39:44.030Z",
+    "accounting": {
+      "invariant_holds": true,
+      "total_credited_wei": "4000000000000000000",
+      "total_locked_wei": "0",
+      "total_received_wei": "7000000000000000000",
+      "total_withdrawn_wei": "3000000000000000000"
+    }
+  }
 }

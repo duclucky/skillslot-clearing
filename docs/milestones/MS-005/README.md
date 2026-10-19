@@ -2,14 +2,14 @@
 
 ## Phase record
 
-- Status: `BUILDING`; execution evidence `LOCAL_VERIFIED / PRIMARY_RUNTIME_PROBE_VERIFIED / FULL_LIFECYCLE_PENDING`; Portal `NOT_SUBMITTED`.
+- Status: `VERIFIED`; execution evidence `LOCAL / STUDIO_DEV_LIFECYCLE / BROWSER / NATIVE_TRANSFER / PRODUCTION_VERIFIED`; evidence publication in progress; Portal `NOT_SUBMITTED`.
 - Selected: 2026-10-19. Track: Milestones on the accepted SkillSlot Project.
 - Accepted MS-004: owner-confirmed 2026-10-19, no Portal recheck; public reference pending capture.
 - Accepted product head: `be794338f9a00a00e72baab466d229cd03467e2b`.
 - Accepted lifecycle evidence: `8af4e497b99538da0cee4ec997d4b6a37384a602`.
 - Working base: `1866857` (submission-log-only changes after accepted product).
 - Accepted contract: Studionet `0x1C282781D79Def68E4eea7895e2F427C2dA18F35`.
-- Target: D1 Studio Dev, observed chain `61997` responsive on 2026-10-19. Runtime/SDK migration and deployment evidence remain pending; never mix the old Studionet aggregate into a fresh deployment.
+- Target: D1 Studio Dev, chain `61997`. Coherent v0.3 runtime/SDK deployment and lifecycle verified on 2026-10-19; the old Studionet aggregate is not imported.
 
 ## Exact delta and why it matters
 
@@ -179,3 +179,64 @@ network defaults. Only the measured withdrawal path has an emitted-message profi
 Post-correction `npm run check`: **326 checks passed** (14 static/linter, 96 direct,
 5 receipt parser, 26 deployment/fee tooling, 185 frontend/API), plus production build and NodeNext
 API type checking. These local checks do not replace the pending Chrome policy-signing gate.
+
+## Final execution amendment — 2026-10-19
+
+The preceding pending statements are historical checkpoints, superseded by the evidence below.
+
+- Final `npm run check` passed **326** checks (14 static/linter, 96 direct, 5 receipt parser,
+  26 deployment/fee, 185 frontend/API), production build and NodeNext API checking. No critical skips.
+  Contract source and deployed frontend are unchanged by this evidence amendment.
+- Deployed application source: `7c54c9c3fe776046a3a3a0472bdcb22388606ea0`;
+  [public CI](https://github.com/duclucky/skillslot-clearing/actions/runs/39214981065) completed `success`.
+  Vercel production `dpl_7B2jqXmdBNDnr9Yfng2pp6HcraQc` is `READY`. App, old public alias and new contract
+  explorer returned HTTP 200; live RPC returned `0xf22d`; measured request quote and invalid-hash
+  rejection passed. [Production record](../../evidence/studio-dev/ms-005-production.json).
+- Persistent Chrome/OKX exercised invalid policy rejection before wallet submission, then the user
+  signed count **1**, average **4.000/5**, and exact **1 GEN** booking. Transaction
+  `0x399f88be4e57b4b4a6302d269393db7b0ba9566190f7dfc81551e2dae8a72653`
+  finalized `SUCCESS`; canonical policy survived reload. The user-approved web cancellation retry
+  `0x963ae9866fb767af436f22122dddd071f6522b91df9c8013acf9133f3489d638`
+  finalized `SUCCESS`; request/round became `CANCELLED`, credit increased 4 -> 5 GEN, locked value 0.
+  This is refund **credit**, not a native transfer. Earlier wallet-cancelled attempts had no hash.
+  [Browser record](../../evidence/studio-dev/ms-005-browser-lifecycle.json).
+- The owner separately authorized a script withdrawal of **exactly 1 GEN**, not the web button's
+  whole 5 GEN. Transaction `0xfe2e75c91eb368701a9c938e1b9bc0fb13d05f494ed1fa50d58385f29a155301`
+  finalized `SUCCESS`. Native contract balance decreased exactly **5 -> 4 GEN**; credit decreased
+  **5 -> 4 GEN**; recipient increased **0.999873694749999177 GEN** net of fees. This supplemental
+  proof brackets both native balances, unlike the earlier two actor-only withdrawal observations.
+  [Native transfer record](../../evidence/studio-dev/ms-005-native-withdrawal.json).
+- Latest global accounting: **7 GEN received, 0 locked, 4 credited, 3 withdrawn**, invariant true.
+  The original script lifecycle retains its historical **6 / 0 / 4 / 2 GEN** snapshot. Read-only
+  re-verification now appends a separate current observation rather than overwriting that history.
+- Inventory now has **five OPEN** developer-seeded rounds and the browser QA round cancelled.
+  The earlier six-round creation observation is historical. A visitor can inspect existing rounds
+  but does not gain creator permission to lock/clear them; full reproduction uses their own round.
+- Desktop policy cards and 375 px mobile layout were inspected, with no horizontal overflow
+  (document width 360 px); the temporary override was reset. Screenshots were inspected in the
+  browser tool output; no uncreated screenshot artifact/path is claimed.
+
+### Delta measurement and limitations
+
+Measurement window: finalized receipts and timestamped state reads on **2026-10-19**. Identity key:
+**chain + contract + round + request**. Three script policy rounds prove semantic MATCH contrasted
+with reputation exclusion/default admission/exact-threshold admission. One additional browser policy
+request proves the actual consumer write/reload and cancellation. These are controlled developer QA;
+the two-wallet script proof is distinct from the same-wallet browser requester/creator flow. Six
+seeded rounds are inventory, not users. No independent adoption, imported reputation, Sybil resistance,
+mainnet, Bradbury or Asimov result is claimed. Same-contract reviewed delivery evidence is bounded;
+it does not certify external real-world performance. Network fee deposits are not consumed costs.
+
+### Final claim-to-evidence cross-check
+
+| New claim | Code / current tests | Executed evidence |
+| --- | --- | --- |
+| Immutable requester threshold with exact fee | `submit_request`; policy parsing, bounds and atomic adapter cases | Browser policy 1/4000, 1 GEN, finalized and reloaded |
+| Frozen authoritative provider reputation | `lock_round`; retry/later-review/cross-wallet tests | Excluded snapshot remains count 0 after later finalized count 1 |
+| Semantic MATCH cannot override policy | deterministic settle filter; threshold 3999/4000/4001 and alternate-offer tests | Three decoded MATCH graphs, excluded no-grant vs eligible grant/escrow |
+| Recoverable value with no duplicated payout | existing cancel/withdraw and accounting regressions | Browser cancel gives 1 GEN credit; supplemental exact 1 GEN native debit and wallet increase |
+
+MS-001 to MS-004 remain accepted infrastructure, not re-submitted capability claims. Runtime migration,
+fee handling, read throttling and layout checks support this vertical slice; they are not separate
+Milestones. BL-008, BL-009, BL-001B and independent adoption remain unlocked backlog. No MS-006 may be
+selected before MS-005 has a recorded Portal outcome. Final Portal Submit is not authorized.
