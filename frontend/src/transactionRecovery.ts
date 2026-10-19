@@ -71,6 +71,8 @@ export function classifyTransactionError(error: unknown): TransactionErrorKind {
     "too many requests",
     "rate limit",
     "service unavailable",
+    "server busy",
+    "execution slots occupied",
     "bad gateway",
     "gateway timeout",
     "429",

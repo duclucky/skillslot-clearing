@@ -38,6 +38,7 @@ import {
 export const ONE_GEN_WEI = 10n ** 18n;
 const DEFAULT_OPEN_TIMEOUT_SECONDS = 3600n;
 const DEFAULT_CLEAR_TIMEOUT_SECONDS = 7200n;
+const MAX_CONCURRENT_CANONICAL_READS = 3;
 
 export interface GenLayerClientLike {
   readContract(args: {
@@ -198,6 +199,8 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
     maxReadAttempts = 7,
   } = options;
   const transactionListeners = new Set<(progress: TransactionProgress) => void>();
+  let activeReads = 0;
+  const waitingReads: Array<() => void> = [];
   if (options.onTransaction) transactionListeners.add(options.onTransaction);
 
   function emitTransaction(progress: TransactionProgress) {
@@ -207,7 +210,17 @@ export function createGenLayerAdapter(options: AdapterOptions): ContractAdapter 
   async function read<T>(client: GenLayerClientLike, functionName: string, args: unknown[] = []) {
     for (let attempt = 0; attempt < maxReadAttempts; attempt += 1) {
       try {
-        return await readOnce<T>(client, contractAddress, functionName, args);
+        if (activeReads >= MAX_CONCURRENT_CANONICAL_READS) {
+          await new Promise<void>(resolve => waitingReads.push(resolve));
+        } else activeReads += 1;
+        try {
+          return await readOnce<T>(client, contractAddress, functionName, args);
+        } finally {
+          // Transfer the released slot directly to the oldest waiting read.
+          const next = waitingReads.shift();
+          if (next) next();
+          else activeReads -= 1;
+        }
       } catch (error) {
         if (!isTransientReadError(error) || attempt === maxReadAttempts - 1) throw error;
         await pause(Math.min(readRetryDelayMs * (2 ** attempt), 8_000));

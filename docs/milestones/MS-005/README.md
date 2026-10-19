@@ -162,3 +162,20 @@ explicit TypeScript checking of all six serverless endpoints. The new fee-quote 
 execution quantities to at least the current network execution floor; a regression proves the
 live floor cannot be replaced with stale consumed-cost data. Unmeasured paths remain labeled
 network defaults. Only the measured withdrawal path has an emitted-message profile.
+
+### Production browser findings (supporting corrections, not a new Milestone claim)
+
+- Vercel's NodeNext API build requires a JSON import attribute. The fee profile import now declares
+  `with { type: "json" }`; the mandatory API check uses NodeNext rather than only Vite/Bundler rules.
+  Corrected live endpoints return a measured-profile quote on chain 61997 and FINALIZED/SUCCESS for
+  the deployed contract transaction. The first rollout with a build diagnostic is superseded, not
+  presented as final verified production.
+- Fresh Chrome browsing hit `Server busy: all 8 execution slots occupied`. The adapter previously
+  launched every round read concurrently and did not recognize this explicit transient failure.
+  Two RED -> GREEN regressions now prove at most three canonical reads in flight and bounded retry
+  for that exact busy error, with no write submitted/replayed. This mitigates this app's burst; it
+  does not claim to increase shared network capacity. Final live UI recheck remains pending.
+
+Post-correction `npm run check`: **326 checks passed** (14 static/linter, 96 direct,
+5 receipt parser, 26 deployment/fee tooling, 185 frontend/API), plus production build and NodeNext
+API type checking. These local checks do not replace the pending Chrome policy-signing gate.

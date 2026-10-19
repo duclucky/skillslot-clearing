@@ -98,6 +98,32 @@ function clients() {
 }
 
 describe("GenLayer contract adapter", () => {
+  it("bounds concurrent canonical reads below Studio Dev's execution-slot limit", async () => {
+    const { readClient, writeClient } = clients();
+    const original = vi.mocked(readClient.readContract).getMockImplementation()!;
+    let active = 0;
+    let maximum = 0;
+    vi.mocked(readClient.readContract).mockImplementation(async input => {
+      active += 1; maximum = Math.max(maximum, active);
+      await new Promise(resolve => setTimeout(resolve, 1));
+      try {
+        if (active > 3) throw new Error("Server busy: all 8 execution slots occupied, retry later");
+        if (input.functionName === "get_round_ids") return Array.from({ length: 12 }, (_, index) => `round-${index}`);
+        return original(input);
+      } finally { active -= 1; }
+    });
+    const adapter = createGenLayerAdapter({ contractAddress: address, clients: () => ({ readClient, writeClient, account: null }), maxReadAttempts: 1 });
+    await expect(adapter.loadWorkspace()).resolves.toEqual(expect.objectContaining({ rounds: expect.arrayContaining([expect.objectContaining({ title: "Research access" })]) }));
+    expect(maximum).toBeLessThanOrEqual(3);
+  });
+  it("retries a busy execution slot without retrying or submitting a write", async () => {
+    const { readClient, writeClient } = clients();
+    const original = vi.mocked(readClient.readContract).getMockImplementation()!;
+    vi.mocked(readClient.readContract).mockRejectedValueOnce(new Error("Version of JSON-RPC protocol is not supported. Details: Server busy: all 8 execution slots occupied, retry later")).mockImplementation(original);
+    const adapter = createGenLayerAdapter({ contractAddress: address, clients: () => ({ readClient, writeClient, account: null }), readRetryDelayMs: 0 });
+    await expect(adapter.loadWorkspace()).resolves.toEqual(expect.objectContaining({ availability: "ready" }));
+    expect(writeClient.writeContract).not.toHaveBeenCalled();
+  });
   it("loads policy exclusions from the canonical pair view, not client score arithmetic", async () => {
     const { readClient, writeClient } = clients();
     const original = vi.mocked(readClient.readContract).getMockImplementation()!;
