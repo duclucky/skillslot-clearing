@@ -45,3 +45,17 @@ export function executionOutcome(transaction) {
     execution: String(typeof raw === "string" ? raw : raw?.result ?? raw?.status ?? transaction.txExecutionResultName ?? "UNKNOWN").toUpperCase(),
   };
 }
+
+export function projectClearingDecision(decoded) {
+  const get = (value, key) => value instanceof Map ? value.get(key) : value?.[key];
+  const pairs = get(decoded, "pairs");
+  const verdict = get(decoded, "verdict");
+  if (!["CLEARABLE", "UNVERIFIABLE"].includes(verdict) || !Array.isArray(pairs) || pairs.length > 16) throw new Error("Invalid clearing return");
+  return { verdict, pairs: pairs.map(pair => {
+    const decision = get(pair, "decision");
+    const offerId = get(pair, "offer_id");
+    const requestId = get(pair, "request_id");
+    if (!["MATCH", "NO_MATCH"].includes(decision) || !/^[A-Za-z0-9._-]{3,80}$/.test(offerId ?? "") || !/^[A-Za-z0-9._-]{3,80}$/.test(requestId ?? "")) throw new Error("Invalid clearing pair");
+    return { offerId, requestId, decision };
+  }) };
+}

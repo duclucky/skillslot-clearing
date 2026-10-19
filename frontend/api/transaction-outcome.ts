@@ -1,5 +1,6 @@
 import { createClient } from "genlayer-js";
 import { studioDevnet } from "genlayer-js/chains";
+import type { Hash } from "genlayer-js/types";
 import { projectTransactionOutcome } from "../src/transactionOutcome.js";
 
 type Request = { method?: string; query: { hash?: unknown } };
@@ -13,7 +14,7 @@ export default async function handler(request: Request, response: Response) {
   }
   try {
     const client = createClient({ chain: { ...studioDevnet } });
-    const transaction = await client.getTransaction({ hash: request.query.hash as `0x${string}` });
+    const transaction = await client.getTransaction({ hash: request.query.hash as Hash });
     response.status(200).json(projectTransactionOutcome(transaction as unknown as Record<string, unknown>));
   } catch {
     response.status(502).json({ error: "Execution verification temporarily unavailable; do not resubmit" });

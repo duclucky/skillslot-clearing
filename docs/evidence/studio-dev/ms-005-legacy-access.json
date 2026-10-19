@@ -1,0 +1,18 @@
+{
+  "purpose": "Preserve access to previous-network positions and withdrawal; not migrated MS-005 state",
+  "ownerAuthorization": "Owner approved a public alias for MS-004 on 2026-10-19",
+  "url": "https://skillslot-ms004.vercel.app/?ms=004-legacy-public",
+  "deploymentId": "dpl_EYdYHXBgpBb2LCh5gE2cFkLgdjoR",
+  "network": "studionet",
+  "chainId": 61999,
+  "contractAddress": "0x1C282781D79Def68E4eea7895e2F427C2dA18F35",
+  "accessChange": "alias-protection-override for skillslot-ms004.vercel.app only",
+  "projectWideProtectionChanged": false,
+  "checks": {
+    "publicHttp200AtActualAliasWithoutLoginRedirect": true,
+    "reactRootAndSkillSlotTitle": true,
+    "chromeRoundBrowserLoadedCanonicalStudionetRounds": true,
+    "chromeDisplayedOriginalFiveOpenReviewerRounds": true
+  },
+  "evidenceBoundary": "Read-only legacy UI verification. No new legacy withdrawal transaction or external adoption claimed."
+}

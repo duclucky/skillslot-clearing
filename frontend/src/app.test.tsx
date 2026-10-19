@@ -81,6 +81,29 @@ const ready: WorkspaceSnapshot = {
 };
 
 describe("SkillSlot Clearing marketplace", () => {
+  it("shows the canonical reputation exclusion without claiming semantic eligibility", async () => {
+    const adapter = adapterFor({ ...ready, positions: [{ id: "request-policy", requestId: "request-policy", roundId: "round-1", kind: "request", status: "UNMATCHED", summary: "Protected booking", minimumReviewCount: "1", minimumAverageMilli: "4000", bookingEligibility: [{ offerId: "offer-novice", eligible: false, reason: "INSUFFICIENT_REVIEWS", reviewCount: "0", snapshotTaken: true }] }] });
+    render(<App adapter={adapter} />);
+    await navigateToRounds();
+    fireEvent.click(screen.getByRole("button", { name: "My activity" }));
+    expect(await screen.findByText(/At least 1 finalized reviews, average 4.000/)).toBeVisible();
+    expect(screen.getByLabelText("Canonical reputation eligibility")).toHaveTextContent("Below minimum review count (0 finalized reviews at lock)");
+    expect(screen.getByLabelText("Canonical reputation eligibility")).toHaveTextContent("semantic fit and capacity are checked separately");
+  });
+  it("rejects an invalid reputation minimum before calling the wallet adapter", async () => {
+    const adapter = adapterFor(ready);
+    render(<App adapter={adapter} />);
+    await navigateToRounds();
+    fireEvent.click(screen.getByText("Request access"));
+    fireEvent.change(screen.getByLabelText("Request ID"), { target: { value: "request-invalid-policy" } });
+    fireEvent.change(screen.getByLabelText("Request label"), { target: { value: "Protected booking" } });
+    fireEvent.change(screen.getByLabelText("Access need"), { target: { value: "Book a flight" } });
+    fireEvent.click(screen.getByText("Reputation requirements (optional)"));
+    fireEvent.change(screen.getByLabelText("Minimum average score (0–5)"), { target: { value: "4" } });
+    fireEvent.click(screen.getByRole("button", { name: "Submit request for 1 GEN" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(/review/i);
+    expect(adapter.submitRequest).not.toHaveBeenCalled();
+  });
   it("opens with a mechanism-focused overview without unsourced proof metrics", async () => {
     render(<App adapter={adapterFor(ready)} />);
 

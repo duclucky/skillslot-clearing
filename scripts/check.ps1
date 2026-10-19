@@ -46,4 +46,6 @@ if ($Only -eq "") {
   Assert-LastExitCode "Frontend tests"
   npm --prefix frontend run build
   Assert-LastExitCode "Frontend production build"
+  npm --prefix frontend run check:api
+  Assert-LastExitCode "Serverless API type check"
 }

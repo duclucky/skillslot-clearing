@@ -116,8 +116,8 @@ BL-009 search, signed origin cards and adoption remain deferred.
 - Healthy primary target: official Studio Dev chain 61997, canonical RPC `https://studio-dev.genlayer.com/api`. `studio-next` is not treated as a separate SDK chain. Selected `py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng` / GenVM v0.6.0-rc5 / SDK 2.0.0-rc.1; no untested latest-runner substitution.
 - Diagnostic zero-application-value constructor probe finalized SUCCESS at `0x70EE5C71d57C2DF50fB7Fa8D32BF443b3F5508E3`, transaction `0x1f19d96337877f8c7585cc65229a9fba8d1d60976284dded88104b6a265fb4a8`; canonical revision `5`. This is a compatibility probe, **not** the SkillSlot deployment or a policy lifecycle claim.
 - Optional form controls, exact milli-point parsing, atomic request encoding, canonical policy/exclusion display, selected-network wallet/A2A binding, live fee budget quoting and fail-closed execution verification implemented. Focused regression checks are passing; final full suite remains to be rerun after integration.
-- New network/deployment evidence is separate from accepted Studionet records. The pinned legacy deployment currently redirects to Vercel login (HTTP 200 is a login page, not a working app). Owner approval was requested for a public legacy alias; **do not cut production over until legacy position/withdrawal access is actually verified**. No state/reputation import.
-- SkillSlot source-pinned deployment, live value lifecycle, browser signed policy write/reload, public CI and Portal submission remain pending. Production has not yet been switched to this revision.
+- New network/deployment evidence is separate from accepted Studionet records. Owner approved a public alias for the retained MS-004 deployment. `https://skillslot-ms004.vercel.app/?ms=004-legacy-public` serves the actual React app, and Chrome loads its original canonical Studionet rounds without Vercel login. A scoped `alias-protection-override` affects only this alias; project-wide protections remain unchanged. No state/reputation import.
+- Source-pinned deployment and live script-signed value lifecycle are now verified below. Browser signed policy write/reload, final production QA and Portal submission remain pending. Production has not yet been switched to this revision.
 
 ### 2026-10-19 local integration gate
 
@@ -134,3 +134,31 @@ RPC. A direct Origin-header probe returned chain `0xf22d` and `Access-Control-Al
 actual browser CORS and signing remain a separate gate. Measured receipt profiles use 25% headroom
 and per-method component maxima; unmeasured methods are explicitly `network-default`, not measured
 claims. Withdrawal quoting fails closed until its emitted-message path has a real measurement.
+
+### 2026-10-19 Studio Dev lifecycle gate
+
+- Source commit: `11be3f21f09c8b7a51d2880779076043bdbef1da`; source SHA-256 `b243a3625ec80241cb4ef4ef9a0453ba999f80fd38b4e4bfe019b760bffbfac2`.
+- Contract: `0x3835fDE18eF5FF14c5Bdc87fE7a24043A231746d`; deployment hash `0xe3f8602128318f29700aa17199697ee02353114a8cd790d0bfd904bac314d9e6`, FINALIZED/SUCCESS.
+- [Public source CI](https://github.com/duclucky/skillslot-clearing/actions/runs/39207602466): success. Later supporting changes require their own final check/CI.
+- 25 finalized successful transactions, two pre-existing authorized EOAs; no faucet/new wallet/funding transfer. [Safe proof](../../evidence/studio-dev/ms-005-booking-policy.json), [measured profile](../../../frontend/fee-profile.json).
+- `ms005-excluded`: semantic consensus returns MATCH, but snapshot count 0 fails count 1 / average 4000; no match/grant, fee and unused bond become refund credit.
+- `ms005-unrestricted`: same bounded semantic need, default 0/0, MATCH grants access; accepted delivery enables a review challenged by provider and upheld by validators. Canonical provider aggregate becomes count 1, total 4, average 4000.
+- `ms005-eligible`: count 1 / average 4000 boundary is eligible at lock; MATCH creates grant and delivery escrow; requester accepts delivery. The first excluded round remains ineligible after this later review (frozen count 0).
+- Each actor withdraws exactly 1 GEN, canonical credit decreases by 1 GEN, and native balance increases by `0.999873694749999177 GEN` after network fees. No claim that fee deposit equals consumed cost.
+- Final accounting: received 6 GEN, locked 0, credited 4 (provider), withdrawn 2; invariant true. Credits are intentionally retained for later wallet UI withdrawal testing, not falsely described as withdrawn.
+- Read-only `node frontend/scripts/verify-ms005-proof.mjs` decodes only the clearing return bytes and projects verdict/pairs; all three recorded graphs contain MATCH. No raw receipt, validator configuration, stdout or stderr is persisted.
+- Controlled developer QA only; identities deduplicated by chain + contract + round + request. This is not external adoption or a second browser-wallet lifecycle.
+
+Six additional `ms005-explore-1` through `ms005-explore-6` OPEN rounds were seeded with 1 GEN fee/bond
+terms and a seven-day joining window. These are zero-deposit developer-created inventory, not six
+users or six independent policy proofs. Their six transaction receipts are separate keys in the same
+evidence record. The 25-transaction policy lifecycle count above excludes this inventory maintenance.
+The [legacy access record](../../evidence/studio-dev/ms-005-legacy-access.json) documents the scoped
+public alias, not an upgrade or migration of the accepted contract.
+
+Final pre-rollout local gate: `npm run check` passed **324 checks** (14 static/linter,
+96 direct, 5 receipt parser, 26 deployment/fee tooling, 183 frontend/API), production build, and
+explicit TypeScript checking of all six serverless endpoints. The new fee-quote API raises measured
+execution quantities to at least the current network execution floor; a regression proves the
+live floor cannot be replaced with stale consumed-cost data. Unmeasured paths remain labeled
+network defaults. Only the measured withdrawal path has an emitted-message profile.

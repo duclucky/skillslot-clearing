@@ -1,0 +1,980 @@
+{
+  "milestone": "MS-005",
+  "network": "studio-dev",
+  "chainId": 61997,
+  "sourceCommit": "11be3f21f09c8b7a51d2880779076043bdbef1da",
+  "contractSha256": "b243a3625ec80241cb4ef4ef9a0453ba999f80fd38b4e4bfe019b760bffbfac2",
+  "runner": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng",
+  "actors": {
+    "provider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+    "requester": "0x45aD397c438397A702B53a7499a78D08961D39Db"
+  },
+  "status": "FINALIZED_POLICY_PROOF",
+  "transactions": {
+    "deployment": {
+      "method": "__init__",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T06:01:48.017Z",
+      "argsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "50000000000005176",
+      "status": "FINALIZED",
+      "hash": "0xe3f8602128318f29700aa17199697ee02353114a8cd790d0bfd904bac314d9e6",
+      "submittedAt": "2026-10-19T06:02:34.962Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:03:15.386Z",
+      "fees": {
+        "feeDepositWei": "50000000000005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "79249500000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "excluded-open": {
+      "method": "open_round",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T06:03:41.981Z",
+      "argsSha256": "cb2a2940b1d8e75a3e60a0dab8cd66b8315eb1a39a7a6ffe987cdb308af676d8",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "189257400005176",
+      "status": "FINALIZED",
+      "hash": "0xe3ea5378d66d5adbb1ed9770b614b2637be1378004240c44eac8e172369de06b",
+      "submittedAt": "2026-10-19T06:03:43.802Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:04:26.914Z",
+      "fees": {
+        "feeDepositWei": "189257400005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "78633250000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "excluded-offer": {
+      "method": "submit_offer",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T06:07:02.391Z",
+      "argsSha256": "2263abc3e28ca267e3236ad62bc3d962f6d2790c44145fa2976105faebd8869c",
+      "applicationValueWei": "1000000000000000000",
+      "quotedFeeBudgetWei": "192022800005176",
+      "status": "FINALIZED",
+      "hash": "0x402be6d35bd756202363e235f3440bc616fb1477941e26ac70797f5f956b3724",
+      "submittedAt": "2026-10-19T06:07:04.743Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:07:41.208Z",
+      "fees": {
+        "feeDepositWei": "192022800005176",
+        "applicationValueWei": "1000000000000000000",
+        "executionConsumedWei": "79785500000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "excluded-request": {
+      "method": "submit_request",
+      "sender": "0x45aD397c438397A702B53a7499a78D08961D39Db",
+      "intentAt": "2026-10-19T06:07:43.916Z",
+      "argsSha256": "3ff8c560c40585fd3306a46359bf14002b2f59bb6a24f0163cb70200bbbd2cde",
+      "applicationValueWei": "1000000000000000000",
+      "quotedFeeBudgetWei": "189264600005176",
+      "status": "FINALIZED",
+      "hash": "0x70515415b35ae477a96811fbd7f0ff7e202eb8f29443ec4457601a794ecd79fe",
+      "submittedAt": "2026-10-19T06:07:46.651Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:08:25.140Z",
+      "fees": {
+        "feeDepositWei": "189264600005176",
+        "applicationValueWei": "1000000000000000000",
+        "executionConsumedWei": "78636250000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "excluded-lock": {
+      "method": "lock_round",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T06:08:27.575Z",
+      "argsSha256": "3c5290b805b9bc6d81d858e2486f3a1518a251a39c1d462396c36fc134f0cc37",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "189247800005176",
+      "status": "FINALIZED",
+      "hash": "0x3078288daf320eea4cf18c8ae12b9e0445b9f357edf20102ca213714b2988fc1",
+      "submittedAt": "2026-10-19T06:08:31.650Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:09:09.474Z",
+      "fees": {
+        "feeDepositWei": "189247800005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "78629250000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "excluded-clear": {
+      "method": "clear_round",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T06:09:16.473Z",
+      "argsSha256": "3c5290b805b9bc6d81d858e2486f3a1518a251a39c1d462396c36fc134f0cc37",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "192795600005176",
+      "status": "FINALIZED",
+      "hash": "0xfab4f8542258f64afc2d43aeea80a670f9211e8abb7dd4b6c7e50fe544f51548",
+      "submittedAt": "2026-10-19T06:09:19.676Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:10:11.171Z",
+      "fees": {
+        "feeDepositWei": "192795600005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "159843500000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "unrestricted-open": {
+      "method": "open_round",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T06:10:21.662Z",
+      "argsSha256": "6a4124290d339ac083304cacaa42a687b0ec4f09d453b9d38022d59da7705251",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "189258000005176",
+      "status": "FINALIZED",
+      "hash": "0x3a7ef8cec42ec2b5aacd1c931a1973b4ccc371fb466135f279f1b1fe2ebbb989",
+      "submittedAt": "2026-10-19T06:10:23.985Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:10:59.609Z",
+      "fees": {
+        "feeDepositWei": "189258000005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "78633500000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "unrestricted-offer": {
+      "method": "submit_offer",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T06:11:04.708Z",
+      "argsSha256": "eefec0f9e361ad78eae9931bbd011daba607a5b2ef6755fb1011618ebb167414",
+      "applicationValueWei": "1000000000000000000",
+      "quotedFeeBudgetWei": "192023400005176",
+      "status": "FINALIZED",
+      "hash": "0xa7457c388e8fa1a64a42e8a9c7b54c4fe3827e8288b515d1c6e547eddac5fa8a",
+      "submittedAt": "2026-10-19T06:11:08.631Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:11:48.962Z",
+      "fees": {
+        "feeDepositWei": "192023400005176",
+        "applicationValueWei": "1000000000000000000",
+        "executionConsumedWei": "79785750000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "unrestricted-request": {
+      "method": "submit_request",
+      "sender": "0x45aD397c438397A702B53a7499a78D08961D39Db",
+      "intentAt": "2026-10-19T06:11:51.674Z",
+      "argsSha256": "3747c4b64f00c74c7484debf6d7e335e3f287f530787f3b398d69e6a9c295618",
+      "applicationValueWei": "1000000000000000000",
+      "quotedFeeBudgetWei": "189265200005176",
+      "status": "FINALIZED",
+      "hash": "0x8201f8f41107faec808eb1d16e64995a24c95beb6711106043b21e527180a1a8",
+      "submittedAt": "2026-10-19T06:11:55.120Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:12:36.995Z",
+      "fees": {
+        "feeDepositWei": "189265200005176",
+        "applicationValueWei": "1000000000000000000",
+        "executionConsumedWei": "78636500000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "unrestricted-lock": {
+      "method": "lock_round",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T06:12:39.524Z",
+      "argsSha256": "2b0e2e934327973178c3956d69c1a48c4118960964d62abf98453177ef09aca2",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "189247800005176",
+      "status": "FINALIZED",
+      "hash": "0x1559589b91aa293ffe79971aa15d53db02c769fa2dcede5fb7b73275b6be38fa",
+      "submittedAt": "2026-10-19T06:12:41.308Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:13:22.416Z",
+      "fees": {
+        "feeDepositWei": "189247800005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "78629250000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "unrestricted-clear": {
+      "method": "clear_round",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T06:13:28.940Z",
+      "argsSha256": "2b0e2e934327973178c3956d69c1a48c4118960964d62abf98453177ef09aca2",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "193938000005176",
+      "status": "FINALIZED",
+      "hash": "0x6e576a5a3c72d9231332319abe902d9329aaa2d5a98d9b9c84e3b135b424b640",
+      "submittedAt": "2026-10-19T06:13:31.454Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:14:34.917Z",
+      "fees": {
+        "feeDepositWei": "193938000005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "160639500000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "unrestricted-deliver": {
+      "method": "submit_delivery",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T06:14:43.305Z",
+      "argsSha256": "bc8f83f5b8231644431869c3b3f1e3ec4ab88195976b12e2800c69c0aed0e436",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "189249600005176",
+      "status": "FINALIZED",
+      "hash": "0x0db98b62c3ba950b6e2f2bd2669c232e24cfd65f27d4cad3fd1d5461bb136f39",
+      "submittedAt": "2026-10-19T06:14:45.806Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:15:20.805Z",
+      "fees": {
+        "feeDepositWei": "189249600005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "78630000000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "unrestricted-accept": {
+      "method": "accept_delivery",
+      "sender": "0x45aD397c438397A702B53a7499a78D08961D39Db",
+      "intentAt": "2026-10-19T06:15:23.199Z",
+      "argsSha256": "60904a3206084567c20c6ffc66a6db4aa6dd16853b4000b6a6a68dbe983bb126",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "189250800005176",
+      "status": "FINALIZED",
+      "hash": "0xe692252e217de4052a39d8a2181077c70b680b6f2e9eb8ca9cf703c1c5d9cee3",
+      "submittedAt": "2026-10-19T06:15:25.674Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:16:07.525Z",
+      "fees": {
+        "feeDepositWei": "189250800005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "78630500000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "review-submit": {
+      "method": "submit_reputation",
+      "sender": "0x45aD397c438397A702B53a7499a78D08961D39Db",
+      "intentAt": "2026-10-19T06:16:10.283Z",
+      "argsSha256": "1fdc457fc87a351a2b2b33537d439315e3960d6f24ed8c2865bfbd9e12551de9",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "189253800005176",
+      "status": "FINALIZED",
+      "hash": "0xd9ee2d7ce5e5fdb22c9cde2ad1758c6a3e4302f7d5b762421cac5ac0d6203a4e",
+      "submittedAt": "2026-10-19T06:16:13.706Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:16:47.686Z",
+      "fees": {
+        "feeDepositWei": "189253800005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "78631750000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "review-challenge": {
+      "method": "challenge_reputation",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T06:16:50.246Z",
+      "argsSha256": "a34a7e302d790f8a18b291a966e209943f8e3e59ae9d6692cf966f1726c80970",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "189250800005176",
+      "status": "FINALIZED",
+      "hash": "0xa88188a1c3713669939ceb0c137118a0c784e781fc3731d41500c5d882853096",
+      "submittedAt": "2026-10-19T06:16:53.387Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:17:29.572Z",
+      "fees": {
+        "feeDepositWei": "189250800005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "78630500000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "review-resolve": {
+      "method": "resolve_reputation",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T06:17:35.760Z",
+      "argsSha256": "60904a3206084567c20c6ffc66a6db4aa6dd16853b4000b6a6a68dbe983bb126",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "191234400005176",
+      "status": "FINALIZED",
+      "hash": "0x557a4742751e9a0901d5859c390ee6540c72ac4493b3ca2e4f227e97720f511f",
+      "submittedAt": "2026-10-19T06:17:37.977Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:18:25.122Z",
+      "fees": {
+        "feeDepositWei": "191234400005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "79449000000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "eligible-open": {
+      "method": "open_round",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T06:18:29.117Z",
+      "argsSha256": "40be074dcacd1935e0f46ebc31972a2974b08aa3822249e3ae13af60c5b54d41",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "189258600005176",
+      "status": "FINALIZED",
+      "hash": "0x40836dc74d55b0da9a3a05f3bf89ded10bd48fdaa4ae441bebfb947047cbafbb",
+      "submittedAt": "2026-10-19T06:18:31.262Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:19:08.960Z",
+      "fees": {
+        "feeDepositWei": "189258600005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "78633750000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "eligible-offer": {
+      "method": "submit_offer",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T06:19:12.499Z",
+      "argsSha256": "2f17484e3e53839ee3aa97986d4d6447abad295cd2243ed2062dbbd1c638fc34",
+      "applicationValueWei": "1000000000000000000",
+      "quotedFeeBudgetWei": "192024000005176",
+      "status": "FINALIZED",
+      "hash": "0x02027098e0edb94afb56346d7a0a31b90ab3cfa070ad558d34cb1ec3a808b211",
+      "submittedAt": "2026-10-19T06:19:15.075Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:19:50.228Z",
+      "fees": {
+        "feeDepositWei": "192024000005176",
+        "applicationValueWei": "1000000000000000000",
+        "executionConsumedWei": "79786000000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "eligible-request": {
+      "method": "submit_request",
+      "sender": "0x45aD397c438397A702B53a7499a78D08961D39Db",
+      "intentAt": "2026-10-19T06:19:56.029Z",
+      "argsSha256": "b30660f6c33da39f7d76aabeae1a7b9308ded508a445d12b346c7058a950e8fa",
+      "applicationValueWei": "1000000000000000000",
+      "quotedFeeBudgetWei": "189265800005176",
+      "status": "FINALIZED",
+      "hash": "0x64adce0508251e52b4d97a408d4e0de164eede896cd829c07df15e84e1fe26c2",
+      "submittedAt": "2026-10-19T06:20:04.570Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:20:39.961Z",
+      "fees": {
+        "feeDepositWei": "189265800005176",
+        "applicationValueWei": "1000000000000000000",
+        "executionConsumedWei": "78636750000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "eligible-lock": {
+      "method": "lock_round",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T06:20:48.520Z",
+      "argsSha256": "04f55ccf02b3ee48f08a4f047f87137d0c10d07cce3fbbd17791cd86f6ea6878",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "189247800005176",
+      "status": "FINALIZED",
+      "hash": "0x1dc69108408cf42088ebf0c84b93e91f6dc44ec23f7cd45070c423e7d1329781",
+      "submittedAt": "2026-10-19T06:20:52.586Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:21:27.160Z",
+      "fees": {
+        "feeDepositWei": "189247800005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "78629250000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "eligible-clear": {
+      "method": "clear_round",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T06:21:43.349Z",
+      "argsSha256": "04f55ccf02b3ee48f08a4f047f87137d0c10d07cce3fbbd17791cd86f6ea6878",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "193630800005176",
+      "status": "FINALIZED",
+      "hash": "0x4e576fb6c8178150453d5e25a0562b1bd8a95b391eaee2313629330ccaec75e3",
+      "submittedAt": "2026-10-19T06:21:46.221Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:22:42.219Z",
+      "fees": {
+        "feeDepositWei": "193630800005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "160131500000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "eligible-deliver": {
+      "method": "submit_delivery",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T06:22:51.919Z",
+      "argsSha256": "472b0482d572ae2563dace448c0f7f197f8c6816983273f18384dd8172574766",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "189249600005176",
+      "status": "FINALIZED",
+      "hash": "0x20bb71f91322037847c6176014aeff17570c05f3cbbb02c6496a2f74db21e495",
+      "submittedAt": "2026-10-19T06:22:54.598Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:23:35.235Z",
+      "fees": {
+        "feeDepositWei": "189249600005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "78630000000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "eligible-accept": {
+      "method": "accept_delivery",
+      "sender": "0x45aD397c438397A702B53a7499a78D08961D39Db",
+      "intentAt": "2026-10-19T06:23:37.493Z",
+      "argsSha256": "104887d7266e75b9ec75d9ae037d37f36ccf7850643a9e681646e81b46c87c51",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "189250800005176",
+      "status": "FINALIZED",
+      "hash": "0x3e5744363b9afc72584135fb18d4e9690c8d36b2b388b3928e9a050916435cf0",
+      "submittedAt": "2026-10-19T06:23:41.270Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:24:18.992Z",
+      "fees": {
+        "feeDepositWei": "189250800005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "78630500000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "withdraw-provider": {
+      "method": "withdraw_credit",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T06:24:23.452Z",
+      "argsSha256": "dad019d5a76fbcb576e331f4077d7c6bf34cd61f1372cc304028929eaca88127",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "454899000005176",
+      "status": "FINALIZED",
+      "hash": "0x06f8c560bd08d6538ff6692f3a85ff18c2141e3e8cf5ae2bf7f170cbaf1365be",
+      "submittedAt": "2026-10-19T06:24:26.021Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:25:04.378Z",
+      "fees": {
+        "feeDepositWei": "454899000005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "126305250000000",
+        "messageFeesConsumedWei": "125000000000000"
+      }
+    },
+    "withdraw-requester": {
+      "method": "withdraw_credit",
+      "sender": "0x45aD397c438397A702B53a7499a78D08961D39Db",
+      "intentAt": "2026-10-19T06:25:09.192Z",
+      "argsSha256": "dad019d5a76fbcb576e331f4077d7c6bf34cd61f1372cc304028929eaca88127",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "454899000005176",
+      "status": "FINALIZED",
+      "hash": "0x3b316dc6dd60f70a1e06a75235c0e42f9b066a2a0f0c137045a188c1d857c03e",
+      "submittedAt": "2026-10-19T06:25:11.410Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T06:25:49.031Z",
+      "fees": {
+        "feeDepositWei": "454899000005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "126305250000000",
+        "messageFeesConsumedWei": "125000000000000"
+      }
+    },
+    "seed-1": {
+      "method": "open_round",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T07:03:26.489Z",
+      "argsSha256": "3c8e828aebd2d4ec6dde389cb2e35c65bf9868c05dd03cadf157e059e3672c6f",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "189259200005176",
+      "status": "FINALIZED",
+      "hash": "0x981a077e16ac5a89da8ea514e1531f6932258e89454b38f37ab0c7acf9fd2caa",
+      "submittedAt": "2026-10-19T07:03:28.538Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T07:04:06.651Z",
+      "fees": {
+        "feeDepositWei": "189259200005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "78634000000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "seed-2": {
+      "method": "open_round",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T07:04:09.289Z",
+      "argsSha256": "59efb4f536ed4dfa5b5e05e4058618414b35b537643fc263ca0a1625db83b113",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "189259800005176",
+      "status": "FINALIZED",
+      "hash": "0xcdea9f0aa3dc2cff447198e0df672bcd8932b8044262e14cd7a111cb7bba0ccb",
+      "submittedAt": "2026-10-19T07:04:11.804Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T07:04:51.353Z",
+      "fees": {
+        "feeDepositWei": "189259800005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "78634250000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "seed-3": {
+      "method": "open_round",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T07:04:53.702Z",
+      "argsSha256": "2f64105108b5aa2608325e62f786aac3979c700240a2ad3825a3214f19ca1346",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "189260400005176",
+      "status": "FINALIZED",
+      "hash": "0xe62db7be02b4fddabf8ac37bcfd1a3c3a234ccd43e29c19060a3f201cb0020e2",
+      "submittedAt": "2026-10-19T07:04:57.142Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T07:05:35.330Z",
+      "fees": {
+        "feeDepositWei": "189260400005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "78634500000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "seed-4": {
+      "method": "open_round",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T07:05:38.122Z",
+      "argsSha256": "27763edd4dc49655832bb426e7e4734ed45afa75bc31577eec22ed9c0bbebc55",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "189259200005176",
+      "status": "FINALIZED",
+      "hash": "0x3a07581e85bac6976db95e710b655d8a2450aafa0febbd99747f8248e8c6a409",
+      "submittedAt": "2026-10-19T07:05:39.910Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T07:06:14.193Z",
+      "fees": {
+        "feeDepositWei": "189259200005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "78634000000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "seed-5": {
+      "method": "open_round",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T07:06:16.505Z",
+      "argsSha256": "400883acedd4f1928b870d6822516fe4768342b12a11aedae73029165928beed",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "189259200005176",
+      "status": "FINALIZED",
+      "hash": "0xf05de65d0ab835d93f8f431c7b3b366150dba4a75e3fcd57231504322c738903",
+      "submittedAt": "2026-10-19T07:06:18.587Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T07:06:53.023Z",
+      "fees": {
+        "feeDepositWei": "189259200005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "78634000000000",
+        "messageFeesConsumedWei": "0"
+      }
+    },
+    "seed-6": {
+      "method": "open_round",
+      "sender": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "intentAt": "2026-10-19T07:06:55.148Z",
+      "argsSha256": "fccf5b2a8c9cfaebb968786a12b5fa6b9b3733e13e064bfe42e5cf48a12d9804",
+      "applicationValueWei": "0",
+      "quotedFeeBudgetWei": "189259200005176",
+      "status": "FINALIZED",
+      "hash": "0x3fa186d98918e21d06c5c77ef98feb216121196857c1255afef124398418a4bf",
+      "submittedAt": "2026-10-19T07:06:56.844Z",
+      "execution": "SUCCESS",
+      "verifiedAt": "2026-10-19T07:07:31.879Z",
+      "fees": {
+        "feeDepositWei": "189259200005176",
+        "applicationValueWei": "0",
+        "executionConsumedWei": "78634000000000",
+        "messageFeesConsumedWei": "0"
+      }
+    }
+  },
+  "canonical": {
+    "excluded": {
+      "round": {
+        "attempt_count": "1",
+        "booking_fee_wei": "1000000000000000000",
+        "clear_deadline": "1792562623",
+        "creator": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+        "expired": false,
+        "locked_liability_wei": "0",
+        "match_count": "0",
+        "offer_count": "1",
+        "offer_ids_csv": "offer-flight",
+        "open_deadline": "1792476223",
+        "phase": "CLEARED",
+        "provider_bond_wei": "1000000000000000000",
+        "request_count": "1",
+        "request_ids_csv": "request-flight",
+        "round_id": "ms005-excluded",
+        "title": "MS-005 excluded reputation policy proof"
+      },
+      "request": {
+        "deposit_wei": "1000000000000000000",
+        "excluded_ids_csv": "HOTEL.BOOK",
+        "label": "Flight and calendar booking",
+        "matched_offer_id": "",
+        "minimum_average_milli": "4000",
+        "minimum_review_count": "1",
+        "need_text": "Book flight GL-203 departing at 09:30 and add the confirmed itinerary to my calendar.",
+        "outcome": "UNMATCHED",
+        "request_id": "request-flight",
+        "requester": "0x45aD397c438397A702B53a7499a78D08961D39Db",
+        "required_ids_csv": "CALENDAR.WRITE,FLIGHT.BOOK",
+        "round_id": "ms005-excluded"
+      },
+      "offer": {
+        "active": false,
+        "agent_id": "studionet-flight-agent",
+        "capability_ids_csv": "FLIGHT.BOOK,CALENDAR.WRITE",
+        "deposit_wei": "1000000000000000000",
+        "label": "Authenticated flight and calendar agent",
+        "matched_request_id": "",
+        "metadata_authenticated": true,
+        "metadata_expires_at": "1800000000",
+        "metadata_hash": "71f4c22ded677ae9079fdfb5a2b994d823bf607da877da949c05bb46c5d0ba71",
+        "metadata_issuer": "SkillSlotAgentRegistry",
+        "metadata_uri": "https://skillslot-clearing.vercel.app/agents/studionet-flight-agent.json",
+        "offer_id": "offer-flight",
+        "promise_text": "Books flights and writes the confirmed itinerary to the requester calendar.",
+        "provider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+        "reputation_review_count": "0",
+        "reputation_score_total": "0",
+        "reputation_snapshot_taken": true,
+        "round_id": "ms005-excluded"
+      },
+      "eligibility": {
+        "eligible": false,
+        "minimum_average_milli": "4000",
+        "minimum_review_count": "1",
+        "offer_id": "offer-flight",
+        "provider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+        "reason": "INSUFFICIENT_REVIEWS",
+        "request_id": "request-flight",
+        "review_count": "0",
+        "round_id": "ms005-excluded",
+        "score_total": "0",
+        "snapshot_taken": true
+      },
+      "match": {},
+      "accounting": {
+        "invariant_holds": true,
+        "total_credited_wei": "2000000000000000000",
+        "total_locked_wei": "0",
+        "total_received_wei": "2000000000000000000",
+        "total_withdrawn_wei": "0"
+      },
+      "semanticConsensus": {
+        "transactionHash": "0xfab4f8542258f64afc2d43aeea80a670f9211e8abb7dd4b6c7e50fe544f51548",
+        "verdict": "CLEARABLE",
+        "pairs": [
+          {
+            "offerId": "offer-flight",
+            "requestId": "request-flight",
+            "decision": "MATCH"
+          }
+        ]
+      }
+    },
+    "unrestricted": {
+      "round": {
+        "attempt_count": "1",
+        "booking_fee_wei": "1000000000000000000",
+        "clear_deadline": "1792563023",
+        "creator": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+        "expired": false,
+        "locked_liability_wei": "2000000000000000000",
+        "match_count": "1",
+        "offer_count": "1",
+        "offer_ids_csv": "offer-flight",
+        "open_deadline": "1792476623",
+        "phase": "CLEARED",
+        "provider_bond_wei": "1000000000000000000",
+        "request_count": "1",
+        "request_ids_csv": "request-flight",
+        "round_id": "ms005-unrestricted",
+        "title": "MS-005 unrestricted reputation policy proof"
+      },
+      "request": {
+        "deposit_wei": "1000000000000000000",
+        "excluded_ids_csv": "HOTEL.BOOK",
+        "label": "Flight and calendar booking",
+        "matched_offer_id": "offer-flight",
+        "minimum_average_milli": "0",
+        "minimum_review_count": "0",
+        "need_text": "Book flight GL-203 departing at 09:30 and add the confirmed itinerary to my calendar.",
+        "outcome": "MATCHED",
+        "request_id": "request-flight",
+        "requester": "0x45aD397c438397A702B53a7499a78D08961D39Db",
+        "required_ids_csv": "CALENDAR.WRITE,FLIGHT.BOOK",
+        "round_id": "ms005-unrestricted"
+      },
+      "offer": {
+        "active": false,
+        "agent_id": "studionet-flight-agent",
+        "capability_ids_csv": "FLIGHT.BOOK,CALENDAR.WRITE",
+        "deposit_wei": "1000000000000000000",
+        "label": "Authenticated flight and calendar agent",
+        "matched_request_id": "request-flight",
+        "metadata_authenticated": true,
+        "metadata_expires_at": "1800000000",
+        "metadata_hash": "71f4c22ded677ae9079fdfb5a2b994d823bf607da877da949c05bb46c5d0ba71",
+        "metadata_issuer": "SkillSlotAgentRegistry",
+        "metadata_uri": "https://skillslot-clearing.vercel.app/agents/studionet-flight-agent.json",
+        "offer_id": "offer-flight",
+        "promise_text": "Books flights and writes the confirmed itinerary to the requester calendar.",
+        "provider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+        "reputation_review_count": "0",
+        "reputation_score_total": "0",
+        "reputation_snapshot_taken": true,
+        "round_id": "ms005-unrestricted"
+      },
+      "eligibility": {
+        "eligible": true,
+        "minimum_average_milli": "0",
+        "minimum_review_count": "0",
+        "offer_id": "offer-flight",
+        "provider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+        "reason": "ELIGIBLE",
+        "request_id": "request-flight",
+        "review_count": "0",
+        "round_id": "ms005-unrestricted",
+        "score_total": "0",
+        "snapshot_taken": true
+      },
+      "match": {
+        "delivery_artifact": "",
+        "delivery_attempt_count": "0",
+        "delivery_deadline": "1792995210",
+        "delivery_digest": "",
+        "delivery_reason": "",
+        "delivery_recovery_at": "1793600010",
+        "delivery_status": "AWAITING_DELIVERY",
+        "dispatch_digest": "",
+        "dispatch_status": "NONE",
+        "executor": "",
+        "executor_epoch": "0",
+        "executor_expires_at": "0",
+        "executor_status": "NONE",
+        "grant_status": "ACTIVE",
+        "offer_id": "offer-flight",
+        "provider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+        "reputation_attempt_count": "0",
+        "reputation_challenge_deadline": "0",
+        "reputation_evidence": "",
+        "reputation_evidence_digest": "",
+        "reputation_reason": "",
+        "reputation_recovery_at": "0",
+        "reputation_response": "",
+        "reputation_response_digest": "",
+        "reputation_score": "0",
+        "reputation_status": "NONE",
+        "request_id": "request-flight",
+        "requester": "0x45aD397c438397A702B53a7499a78D08961D39Db",
+        "round_id": "ms005-unrestricted"
+      },
+      "accounting": {
+        "invariant_holds": true,
+        "total_credited_wei": "2000000000000000000",
+        "total_locked_wei": "2000000000000000000",
+        "total_received_wei": "4000000000000000000",
+        "total_withdrawn_wei": "0"
+      },
+      "semanticConsensus": {
+        "transactionHash": "0x6e576a5a3c72d9231332319abe902d9329aaa2d5a98d9b9c84e3b135b424b640",
+        "verdict": "CLEARABLE",
+        "pairs": [
+          {
+            "offerId": "offer-flight",
+            "requestId": "request-flight",
+            "decision": "MATCH"
+          }
+        ]
+      }
+    },
+    "reputation": {
+      "average_milli": "4000",
+      "overturned_count": "0",
+      "provider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "review_count": "1",
+      "score_total": "4"
+    },
+    "eligible": {
+      "round": {
+        "attempt_count": "1",
+        "booking_fee_wei": "1000000000000000000",
+        "clear_deadline": "1792563510",
+        "creator": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+        "expired": false,
+        "locked_liability_wei": "2000000000000000000",
+        "match_count": "1",
+        "offer_count": "1",
+        "offer_ids_csv": "offer-flight",
+        "open_deadline": "1792477110",
+        "phase": "CLEARED",
+        "provider_bond_wei": "1000000000000000000",
+        "request_count": "1",
+        "request_ids_csv": "request-flight",
+        "round_id": "ms005-eligible",
+        "title": "MS-005 eligible reputation policy proof"
+      },
+      "request": {
+        "deposit_wei": "1000000000000000000",
+        "excluded_ids_csv": "HOTEL.BOOK",
+        "label": "Flight and calendar booking",
+        "matched_offer_id": "offer-flight",
+        "minimum_average_milli": "4000",
+        "minimum_review_count": "1",
+        "need_text": "Book flight GL-203 departing at 09:30 and add the confirmed itinerary to my calendar.",
+        "outcome": "MATCHED",
+        "request_id": "request-flight",
+        "requester": "0x45aD397c438397A702B53a7499a78D08961D39Db",
+        "required_ids_csv": "CALENDAR.WRITE,FLIGHT.BOOK",
+        "round_id": "ms005-eligible"
+      },
+      "offer": {
+        "active": false,
+        "agent_id": "studionet-flight-agent",
+        "capability_ids_csv": "FLIGHT.BOOK,CALENDAR.WRITE",
+        "deposit_wei": "1000000000000000000",
+        "label": "Authenticated flight and calendar agent",
+        "matched_request_id": "request-flight",
+        "metadata_authenticated": true,
+        "metadata_expires_at": "1800000000",
+        "metadata_hash": "71f4c22ded677ae9079fdfb5a2b994d823bf607da877da949c05bb46c5d0ba71",
+        "metadata_issuer": "SkillSlotAgentRegistry",
+        "metadata_uri": "https://skillslot-clearing.vercel.app/agents/studionet-flight-agent.json",
+        "offer_id": "offer-flight",
+        "promise_text": "Books flights and writes the confirmed itinerary to the requester calendar.",
+        "provider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+        "reputation_review_count": "1",
+        "reputation_score_total": "4",
+        "reputation_snapshot_taken": true,
+        "round_id": "ms005-eligible"
+      },
+      "eligibility": {
+        "eligible": true,
+        "minimum_average_milli": "4000",
+        "minimum_review_count": "1",
+        "offer_id": "offer-flight",
+        "provider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+        "reason": "ELIGIBLE",
+        "request_id": "request-flight",
+        "review_count": "1",
+        "round_id": "ms005-eligible",
+        "score_total": "4",
+        "snapshot_taken": true
+      },
+      "match": {
+        "delivery_artifact": "",
+        "delivery_attempt_count": "0",
+        "delivery_deadline": "1792995705",
+        "delivery_digest": "",
+        "delivery_reason": "",
+        "delivery_recovery_at": "1793600505",
+        "delivery_status": "AWAITING_DELIVERY",
+        "dispatch_digest": "",
+        "dispatch_status": "NONE",
+        "executor": "",
+        "executor_epoch": "0",
+        "executor_expires_at": "0",
+        "executor_status": "NONE",
+        "grant_status": "ACTIVE",
+        "offer_id": "offer-flight",
+        "provider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+        "reputation_attempt_count": "0",
+        "reputation_challenge_deadline": "0",
+        "reputation_evidence": "",
+        "reputation_evidence_digest": "",
+        "reputation_reason": "",
+        "reputation_recovery_at": "0",
+        "reputation_response": "",
+        "reputation_response_digest": "",
+        "reputation_score": "0",
+        "reputation_status": "NONE",
+        "request_id": "request-flight",
+        "requester": "0x45aD397c438397A702B53a7499a78D08961D39Db",
+        "round_id": "ms005-eligible"
+      },
+      "accounting": {
+        "invariant_holds": true,
+        "total_credited_wei": "4000000000000000000",
+        "total_locked_wei": "2000000000000000000",
+        "total_received_wei": "6000000000000000000",
+        "total_withdrawn_wei": "0"
+      },
+      "semanticConsensus": {
+        "transactionHash": "0x4e576fb6c8178150453d5e25a0562b1bd8a95b391eaee2313629330ccaec75e3",
+        "verdict": "CLEARABLE",
+        "pairs": [
+          {
+            "offerId": "offer-flight",
+            "requestId": "request-flight",
+            "decision": "MATCH"
+          }
+        ]
+      }
+    },
+    "frozenExcludedAfterReview": {
+      "eligible": false,
+      "minimum_average_milli": "4000",
+      "minimum_review_count": "1",
+      "offer_id": "offer-flight",
+      "provider": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+      "reason": "INSUFFICIENT_REVIEWS",
+      "request_id": "request-flight",
+      "review_count": "0",
+      "round_id": "ms005-excluded",
+      "score_total": "0",
+      "snapshot_taken": true
+    },
+    "accounting": {
+      "invariant_holds": true,
+      "total_credited_wei": "4000000000000000000",
+      "total_locked_wei": "0",
+      "total_received_wei": "6000000000000000000",
+      "total_withdrawn_wei": "2000000000000000000"
+    }
+  },
+  "contractAddress": "0x3835fDE18eF5FF14c5Bdc87fE7a24043A231746d",
+  "withdrawals": {
+    "provider": {
+      "creditBeforeWei": "5000000000000000000",
+      "balanceBeforeWei": "32278334865832796398",
+      "amountWei": "1000000000000000000",
+      "creditAfterWei": "4000000000000000000",
+      "balanceAfterWei": "33278208560582795575",
+      "nativeNetDeltaWei": "999873694749999177"
+    },
+    "requester": {
+      "creditBeforeWei": "1000000000000000000",
+      "balanceBeforeWei": "26654436969916600383",
+      "amountWei": "1000000000000000000",
+      "creditAfterWei": "0",
+      "balanceAfterWei": "27654310664666599560",
+      "nativeNetDeltaWei": "999873694749999177"
+    }
+  },
+  "verifiedAt": "2026-10-19T06:25:51.832Z",
+  "semanticPolicyContrastVerifiedAt": "2026-10-19T07:09:05.826Z",
+  "seededRoundIds": [
+    "ms005-explore-1",
+    "ms005-explore-2",
+    "ms005-explore-3",
+    "ms005-explore-4",
+    "ms005-explore-5",
+    "ms005-explore-6"
+  ]
+}

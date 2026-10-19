@@ -13,7 +13,22 @@
 - Portal award: `320 points`
 - Ledger initialized: `2026-08-29`
 
-## Current accepted baseline
+## Current accepted baseline — MS-004 (owner-confirmed 2026-10-19)
+
+| Field | Accepted value |
+| --- | --- |
+| Authority | Owner reported MS-004 accepted; no Portal recheck requested or performed |
+| Public Portal reference | `PENDING_REAL_EVIDENCE`; do not substitute the older MS-001 contribution |
+| Accepted product head | `be794338f9a00a00e72baab466d229cd03467e2b` |
+| Finalized lifecycle evidence head | `8af4e497b99538da0cee4ec997d4b6a37384a602` |
+| Deployment source commit | `f603a50014365e5f47491ab125f1ce3db71e2f54` |
+| Contract | `0x1C282781D79Def68E4eea7895e2F427C2dA18F35`, Studionet 61999 |
+| Source SHA-256 | `76e7570c9eb3ee874ebde629cf4c1a2652f7cce0bd5494461650981002488acd` |
+| Runner | `py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6` |
+| Accepted CI evidence | https://github.com/duclucky/skillslot-clearing/actions/runs/37248571205 |
+| Next phase | MS-005, separate Studio Dev deployment; no imported funds/reputation |
+
+## Historical accepted baseline — MS-001 (preserved)
 
 | Field | Verified value |
 | --- | --- |
@@ -199,7 +214,7 @@ Exact accepted-baseline delta: `741cf12ebd1c16329f7b4c74bade83b61374063a..8af4e4
 Subsequent packet-only changes pin those references without introducing another capability.
 
 - Active Milestone: `MS-005 — Reputation-Bound Booking Policies`
-- Program state: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 ACCEPTED / MS-005 SELECTED`
+- Program state: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 ACCEPTED / MS-005 BUILDING`
 - Last Portal reconciliation: `2026-10-19`, owner-confirmed; no Portal recheck requested or performed.
 - Next allowed action: implement and verify MS-005 against the accepted MS-004 baseline. Final Portal
   submission remains a separate authorization boundary.

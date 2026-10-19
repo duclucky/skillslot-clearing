@@ -22,11 +22,13 @@ export default async function handler(request: Request, response: Response) {
       return;
     }
     const client = createClient({ chain: { ...studioDevnet } });
+    const policy = await client.getCurrentFeePolicy();
+    const measuredBudget = BigInt(entry?.executionBudgetPerRound ?? "0");
     const estimate = await client.estimateTransactionFees({
       ...(entry ? {
         leaderTimeunitsAllocation: BigInt(entry.leaderTimeunitsAllocation),
         validatorTimeunitsAllocation: BigInt(entry.validatorTimeunitsAllocation),
-        executionBudgetPerRound: BigInt(entry.executionBudgetPerRound),
+        executionBudgetPerRound: measuredBudget > policy.executionBudgetFloor ? measuredBudget : policy.executionBudgetFloor,
         totalMessageFees: BigInt(entry.totalMessageFees),
       } : {}),
       appealRounds: 1n,

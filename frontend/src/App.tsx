@@ -67,6 +67,10 @@ const mechanismSteps = [
     body: "GenLayer validators compare the authenticated offer with the requester need, exclusions, and objective capability fields.",
   },
   {
+    title: "Booking policies enforce finalized reputation",
+    body: "Requesters may require a minimum review count and average. Provider reputation is frozen at round lock; an offer below that policy cannot receive a grant even if it is semantically compatible.",
+  },
+  {
     title: "Delivery settlement releases value deterministically",
     body: "Matched fee and bond stay escrowed until delivery is accepted, validator-settled, or recovered after timeout.",
   },
@@ -412,7 +416,7 @@ export function App({ adapter: suppliedAdapter }: AppProps) {
         {!loading && destination === "create" ? <CreateRound snapshot={snapshot} adapter={adapter} busy={busy} runWrite={runWrite} onCreated={showCreated} /> : null}
         {!loading && destination === "activity" ? <Activity snapshot={snapshot} adapter={adapter} busy={busy} runWrite={runWrite} onOpenRound={(roundId) => { setSelectedRoundId(roundId); setDestination("rounds"); }} /> : null}
       </main>
-      <footer className="legacy-access section-note"><a href="https://skillslot-clearing-firjxrjxr-duckys-projects-bc83c6a0.vercel.app" target="_blank" rel="noreferrer">Previous Studionet deployment — view positions and withdraw legacy credit</a><p>Studio Dev uses separate balances and reputation. No previous funds or reviews were migrated.</p></footer>
+      <footer className="legacy-access section-note"><a href="https://skillslot-ms004.vercel.app/?ms=004-legacy-public" target="_blank" rel="noreferrer">Previous Studionet deployment — view positions and withdraw legacy credit</a><p>Studio Dev uses separate balances and reputation. No previous funds or reviews were migrated.</p></footer>
     </div>
   );
 }
@@ -510,7 +514,7 @@ function Overview({
             <span className="mechanism-index" aria-hidden="true">02</span>
             <div>
               <strong>Offer or request access</strong>
-              <p>Providers publish an authenticated offer; requesters escrow an exact capability need.</p>
+              <p>Providers publish an authenticated offer; requesters escrow an exact capability need and may set optional minimum finalized reviews and average score.</p>
             </div>
           </li>
           <li className="usage-step">

@@ -117,6 +117,10 @@ async function main() {
     return;
   }
   assert(proof.contractAddress && proof.transactions.deployment?.execution === "SUCCESS", "Deploy and verify first");
+  if (command === "proof" && proof.status === "FINALIZED_POLICY_PROOF") {
+    console.log(json({ status: proof.status, contractAddress: proof.contractAddress, action: "Already complete; use verify-ms005-proof.mjs for read-only re-verification" }));
+    return;
+  }
   if (command === "seed") {
     for (let index = 1; index <= 6; index++) await step(`seed-${index}`, primary, "open_round", [`ms005-explore-${index}`, `Explore reputation-bound agent access ${index}`, one, one, 604800n, 1209600n]);
     proof.seededRoundIds = (await read("get_round_ids")).filter(id => id.startsWith("ms005-explore-")); save(); return;
@@ -126,8 +130,10 @@ async function main() {
     await step(`${tag}-open`, primary, "open_round", [round, `MS-005 ${tag} reputation policy proof`, one, one, 86400n, 172800n]);
     const metadataPath = path.join(root, "frontend/public/agents/studionet-flight-agent.json");
     const body = readFileSync(metadataPath, "utf8");
+    const metadata = JSON.parse(body);
+    assert(metadata.provider.toLowerCase() === primary.address.toLowerCase(), "Static metadata provider does not match the authorized actor");
     const hash = sha(body);
-    await step(`${tag}-offer`, primary, "submit_offer", [round, "offer-flight", "Authenticated flight and calendar agent", "Books flights and writes the confirmed itinerary to the requester calendar.", "CALENDAR.WRITE,FLIGHT.BOOK", "studionet-flight-agent", "https://skillslot-clearing.vercel.app/agents/studionet-flight-agent.json", hash, "SkillSlotAgentRegistry", `SkillSlotAgentRegistry:v1:${hash}`, 1800000000n], one);
+    await step(`${tag}-offer`, primary, "submit_offer", [round, "offer-flight", "Authenticated flight and calendar agent", "Books flights and writes the confirmed itinerary to the requester calendar.", metadata.capability_ids_csv, metadata.agent_id, "https://skillslot-clearing.vercel.app/agents/studionet-flight-agent.json", hash, metadata.issuer, `${metadata.issuer}:v1:${hash}`, BigInt(metadata.expires_at)], one);
     await step(`${tag}-request`, requester, "submit_request", [round, "request-flight", "Flight and calendar booking", "Book flight GL-203 departing at 09:30 and add the confirmed itinerary to my calendar.", "CALENDAR.WRITE,FLIGHT.BOOK", "HOTEL.BOOK", BigInt(minimumCount), BigInt(average)], one);
     await step(`${tag}-lock`, primary, "lock_round", [round]);
     await step(`${tag}-clear`, primary, "clear_round", [round]);

@@ -2,5 +2,95 @@
   "version": 1,
   "network": "studio-dev",
   "chainId": 61997,
-  "methods": {}
+  "methods": {
+    "open_round": {
+      "leaderTimeunitsAllocation": "125",
+      "validatorTimeunitsAllocation": "250",
+      "executionBudgetPerRound": "98293125000000",
+      "totalMessageFees": "0",
+      "rotationsPerRound": "1"
+    },
+    "submit_offer": {
+      "leaderTimeunitsAllocation": "125",
+      "validatorTimeunitsAllocation": "250",
+      "executionBudgetPerRound": "99732500000000",
+      "totalMessageFees": "0",
+      "rotationsPerRound": "1"
+    },
+    "submit_request": {
+      "leaderTimeunitsAllocation": "125",
+      "validatorTimeunitsAllocation": "250",
+      "executionBudgetPerRound": "98295937500000",
+      "totalMessageFees": "0",
+      "rotationsPerRound": "1"
+    },
+    "lock_round": {
+      "leaderTimeunitsAllocation": "125",
+      "validatorTimeunitsAllocation": "250",
+      "executionBudgetPerRound": "98286562500000",
+      "totalMessageFees": "0",
+      "rotationsPerRound": "1"
+    },
+    "clear_round": {
+      "leaderTimeunitsAllocation": "125",
+      "validatorTimeunitsAllocation": "250",
+      "executionBudgetPerRound": "200799375000000",
+      "totalMessageFees": "0",
+      "rotationsPerRound": "1"
+    },
+    "submit_delivery": {
+      "leaderTimeunitsAllocation": "125",
+      "validatorTimeunitsAllocation": "250",
+      "executionBudgetPerRound": "98287500000000",
+      "totalMessageFees": "0",
+      "rotationsPerRound": "1"
+    },
+    "accept_delivery": {
+      "leaderTimeunitsAllocation": "125",
+      "validatorTimeunitsAllocation": "250",
+      "executionBudgetPerRound": "98288125000000",
+      "totalMessageFees": "0",
+      "rotationsPerRound": "1"
+    },
+    "submit_reputation": {
+      "leaderTimeunitsAllocation": "125",
+      "validatorTimeunitsAllocation": "250",
+      "executionBudgetPerRound": "98289687500000",
+      "totalMessageFees": "0",
+      "rotationsPerRound": "1"
+    },
+    "challenge_reputation": {
+      "leaderTimeunitsAllocation": "125",
+      "validatorTimeunitsAllocation": "250",
+      "executionBudgetPerRound": "98288125000000",
+      "totalMessageFees": "0",
+      "rotationsPerRound": "1"
+    },
+    "resolve_reputation": {
+      "leaderTimeunitsAllocation": "125",
+      "validatorTimeunitsAllocation": "250",
+      "executionBudgetPerRound": "99311250000000",
+      "totalMessageFees": "0",
+      "rotationsPerRound": "1"
+    },
+    "withdraw_credit": {
+      "leaderTimeunitsAllocation": "125",
+      "validatorTimeunitsAllocation": "250",
+      "executionBudgetPerRound": "157881562500000",
+      "totalMessageFees": "156250000000000",
+      "rotationsPerRound": "1"
+    }
+  },
+  "measuredAt": "2026-10-19T07:07:31.879Z",
+  "contractSha256": "b243a3625ec80241cb4ef4ef9a0453ba999f80fd38b4e4bfe019b760bffbfac2",
+  "headroom": "1.25",
+  "source": "Finalized successful Studio Dev receipts; per-component maxima; no raw receipts",
+  "deploy": {
+    "leaderTimeunitsAllocation": "125",
+    "validatorTimeunitsAllocation": "250",
+    "executionBudgetPerRound": "99061875000000",
+    "totalMessageFees": "0",
+    "rotationsPerRound": "1"
+  },
+  "contractAddress": "0x3835fDE18eF5FF14c5Bdc87fE7a24043A231746d"
 }

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { measuredProfileEntry, mergeProfileEntries, safeFeeSettlement, executionOutcome } from "../frontend/scripts/fee-evidence.mjs";
+import { measuredProfileEntry, mergeProfileEntries, safeFeeSettlement, executionOutcome, projectClearingDecision } from "../frontend/scripts/fee-evidence.mjs";
 
 test("profile uses actual consumption, 25% headroom, and worst observed components", () => {
   const fees = { deposit: "100", userValue: "1000000000000000000", distribution: { leaderTimeunitsAllocation: "100", validatorTimeunitsAllocation: "200", rotations: ["1", "2"] }, consumed: { executionConsumed: "11", messageFeesConsumed: "5" }, node_config: { secret: "not projected" } };
@@ -15,4 +15,9 @@ test("missing/negative observations cannot become a fabricated zero-cost profile
 });
 test("finality is not substituted for execution", () => {
   assert.deepEqual(executionOutcome({ statusName: "FINALIZED", txExecutionResultName: "ERROR" }), { status: "FINALIZED", execution: "ERROR" });
+});
+test("clearing evidence projects the actual contract return, not inferred settlement", () => {
+  const decision = projectClearingDecision(new Map([["verdict", "CLEARABLE"], ["pairs", [new Map([["offer_id", "offer-flight"], ["request_id", "request-flight"], ["decision", "MATCH"], ["untrusted_extra", "not persisted"]])]]]));
+  assert.deepEqual(decision, { verdict: "CLEARABLE", pairs: [{ offerId: "offer-flight", requestId: "request-flight", decision: "MATCH" }] });
+  assert.throws(() => projectClearingDecision({ verdict: "SUCCESS", pairs: [] }));
 });

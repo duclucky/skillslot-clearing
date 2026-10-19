@@ -16,13 +16,22 @@ reputation is frozen at round lock; deterministic allocation excludes ineligible
 semantic consensus says MATCH. Defaults remain unrestricted. See the [phase dossier](docs/milestones/MS-005/README.md).
 The source has 21 writes and 13 views and targets Studio Dev (61997), Python contract API v0.3 (GenVM v0.6.0-rc5), pinned runner
 `5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng`, and frontend SDK 2.0.0-rc.1.
-The primary-network compatibility probe succeeded; full new-contract lifecycle, browser proof and
-production rollout are still pending. The deployment/CI records below describe accepted history,
-not proof of MS-005. Previous Studionet funds/reputation are not migrated.
+The new contract is [`0x3835fDE18eF5FF14c5Bdc87fE7a24043A231746d`](https://explorer-studio-dev.genlayer.com/address/0x3835fDE18eF5FF14c5Bdc87fE7a24043A231746d).
+Its 25-transaction two-wallet policy lifecycle finalized successfully: three semantically compatible
+MATCH results with distinct policy consequences, one finalized review, preserved earlier snapshots,
+and two 1 GEN withdrawals with native balance increases. Final accounting: 6 GEN received,
+0 locked, 4 credited, 2 withdrawn, invariant true. See [safe policy proof](docs/evidence/studio-dev/ms-005-booking-policy.json).
+The source CI [39207602466](https://github.com/duclucky/skillslot-clearing/actions/runs/39207602466) passed.
+Browser-signed policy proof and production rollout remain pending. The older deployment/CI records
+below describe accepted history, not MS-005 proof. Previous Studionet funds/reputation are not migrated.
+
+[Previous MS-004 app and credit withdrawal](https://skillslot-ms004.vercel.app/?ms=004-legacy-public)
+remains on the original Studionet contract. Only this alias was made public with owner approval;
+project-wide deployment protection was not disabled.
 
 - Track: GenLayer **Projects**
-- Contract: one `SkillSlotClearing` Intelligent Contract with 21 writes and 12 views in the locally verified `MS-004` source
-- Network: Studionet (`61999`)
+- Accepted MS-004 contract surface: one `SkillSlotClearing` Intelligent Contract with 21 writes and 12 views
+- Accepted historical network: Studionet (`61999`); MS-005 target: Studio Dev (`61997`)
 - Accepted Project deployment: `0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`
 - Milestone `MS-001` deployment: `0x0c43822abD25a0247d0814E7dD501fA19b1C8958`; accepted as Portal contribution `185631`
 - Milestone `MS-002` deployment: `0x7eDbD2E1EAc2189ef0Cd4F4f808f179f02138E4b`; accepted on Portal (owner-confirmed; public contribution reference pending capture)
@@ -60,7 +69,7 @@ not proof of MS-005. Previous Studionet funds/reputation are not migrated.
 - Accepted Project address: [`0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834`](https://explorer-studio.genlayer.com/address/0x90555BCDbC68a6833Fb98aC215b1Cbb1919C8834)
 - Accepted production browser-wallet evidence: [`docs/evidence/studionet/browser-lifecycle.json`](docs/evidence/studionet/browser-lifecycle.json)
 
-## Live app
+## Live app — accepted MS-004 history (MS-005 rollout pending)
 
 [`https://skillslot-clearing.vercel.app`](https://skillslot-clearing.vercel.app) is the verified production deployment. It returned HTTP 200, contained the project title and React root, and loaded the canonical `CLEARED` Studionet round on desktop and mobile browser QA. Production OKX Wallet testing finalized `consume_grant` and `withdraw_credit` through the webapp. The UI retained one transaction hash per action, recovered transient status reads without resubmission, and reloaded canonical grant `CONSUMED`, credit `0 GEN`, and accounting invariant true.
 
