@@ -1,6 +1,6 @@
 # SkillSlot Clearing product and contract brief
 
-## Current delta: MS-005 (VERIFIED; evidence publication in progress)
+## Current delta: MS-005 (SUBMISSION_READY; not submitted)
 
 The requester may commit a minimum finalized review count and average (integer milli-points) with
 the exact booking fee. At round lock, canonical provider aggregates are frozen per offer. Allocation
@@ -16,6 +16,8 @@ Current local checks: 326, production build and NodeNext API type checking passe
 [browser record](evidence/studio-dev/ms-005-browser-lifecycle.json),
 [native transfer record](evidence/studio-dev/ms-005-native-withdrawal.json) and
 [production record](evidence/studio-dev/ms-005-production.json).
+Final evidence CI [39217570408](https://github.com/duclucky/skillslot-clearing/actions/runs/39217570408)
+passed. [Portal copy](MILESTONE-SUBMISSION-MS-005.md) is ready; no final Submit action was taken.
 
 ## MS-001 protocol handoff delta
 
@@ -44,7 +46,7 @@ are intentionally outside `MS-001`. The phase dossier and claim-to-code matrix l
 - Project name: SkillSlot Clearing
 - Project slug: `skillslot-clearing`
 - Category: Projects
-- Status: accepted Project, MS-004 accepted (owner-confirmed); MS-005 `VERIFIED`, not submitted
+- Status: accepted Project, MS-004 accepted (owner-confirmed); MS-005 `SUBMISSION_READY`, not submitted
 - Repository: `https://github.com/duclucky/skillslot-clearing`
 - Live app: `https://skillslot-clearing.vercel.app`
 - Active phase target: `studio-dev` (61997); accepted history: `studionet` (61999)

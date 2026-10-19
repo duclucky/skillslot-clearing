@@ -2,7 +2,7 @@
 
 ## Phase record
 
-- Status: `VERIFIED`; execution evidence `LOCAL / STUDIO_DEV_LIFECYCLE / BROWSER / NATIVE_TRANSFER / PRODUCTION_VERIFIED`; evidence publication in progress; Portal `NOT_SUBMITTED`.
+- Status: `SUBMISSION_READY`; execution evidence `LOCAL / STUDIO_DEV_LIFECYCLE / BROWSER / NATIVE_TRANSFER / PRODUCTION / PUBLIC_CI_VERIFIED`; Portal `NOT_SUBMITTED`.
 - Selected: 2026-10-19. Track: Milestones on the accepted SkillSlot Project.
 - Accepted MS-004: owner-confirmed 2026-10-19, no Portal recheck; public reference pending capture.
 - Accepted product head: `be794338f9a00a00e72baab466d229cd03467e2b`.
@@ -240,3 +240,22 @@ MS-001 to MS-004 remain accepted infrastructure, not re-submitted capability cla
 fee handling, read throttling and layout checks support this vertical slice; they are not separate
 Milestones. BL-008, BL-009, BL-001B and independent adoption remain unlocked backlog. No MS-006 may be
 selected before MS-005 has a recorded Portal outcome. Final Portal Submit is not authorized.
+
+## Submission-ready checkpoint — 2026-10-19
+
+Finalized implementation/evidence head: `8ff8f52e90297244054ba10341fcc96b165e3cd2`.
+Its [public CI](https://github.com/duclucky/skillslot-clearing/actions/runs/39217570408) completed
+successfully; Windows verification step finished at `2026-10-19T07:48:03Z`. Local 326 checks, build,
+browser policy write/reload/cancel, Studio Dev semantic contrast and exact native-debit proof all pass.
+Admission gates 12 and 13 now have executed evidence, not only a design-level PASS. Every new claim
+has a source, current test, canonical consequence and safe evidence record. All fourteen gates remain
+satisfied within the stated scope; no deferred feature or external adoption is implied.
+
+Exact complete delta:
+https://github.com/duclucky/skillslot-clearing/compare/be794338f9a00a00e72baab466d229cd03467e2b...8ff8f52e90297244054ba10341fcc96b165e3cd2.
+
+The [copy-ready packet](../../MILESTONE-SUBMISSION-MS-005.md) has a **922-character** Changes &
+Improvements field (limit 1000), title, verified evidence links and reviewer steps. Public links were
+checked for HTTP 200. Later packet/log-only commits do not change the deployed code or pin a new
+product delta. The accepted baseline stays MS-004. Portal reference: `NOT_SUBMITTED`; no award,
+acceptance or MS-006 selection is claimed. Await explicit action-time authorization before Submit.

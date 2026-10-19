@@ -7,8 +7,8 @@
 - Repository: `https://github.com/duclucky/skillslot-clearing`
 - Live app: `https://skillslot-clearing.vercel.app`
 - Original Project contribution: `https://portal.genlayer.foundation/contribution/131883`
-- Latest accepted Milestone: `https://portal.genlayer.foundation/contribution/185631`
-- Portal status: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 ACCEPTED (owner-confirmed 2026-10-19; public reference pending) / MS-005 VERIFIED, NOT_SUBMITTED`
+- Latest captured public Milestone link (MS-001, historical): `https://portal.genlayer.foundation/contribution/185631`; newer MS-004 acceptance is owner-confirmed below
+- Portal status: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 ACCEPTED (owner-confirmed 2026-10-19; public reference pending) / MS-005 SUBMISSION_READY, NOT_SUBMITTED`
 - Portal contribution date: `2026-08-12`
 - Portal award: `320 points`
 - Ledger initialized: `2026-08-29`
@@ -214,10 +214,10 @@ Exact accepted-baseline delta: `741cf12ebd1c16329f7b4c74bade83b61374063a..8af4e4
 Subsequent packet-only changes pin those references without introducing another capability.
 
 - Active Milestone: `MS-005 — Reputation-Bound Booking Policies`
-- Program state: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 ACCEPTED / MS-005 VERIFIED`
+- Program state: `MS-001 ACCEPTED / MS-002 ACCEPTED / MS-003 ACCEPTED / MS-004 ACCEPTED / MS-005 SUBMISSION_READY`
 - Last Portal reconciliation: `2026-10-19`, owner-confirmed; no Portal recheck requested or performed.
-- Next allowed action: publish final MS-005 evidence and package one submission against MS-004.
-  Final Portal submission remains a separate authorization boundary.
+- Next allowed action: use the prepared MS-005 packet; final Portal submission requires explicit
+  action-time authorization. No MS-006 before the MS-005 outcome is logged.
 
 ### MS-004 submission event — 2026-10-05
 
@@ -276,3 +276,17 @@ script withdrawal of exactly 1 GEN; the whole-credit web control was not used. N
 balance decreased 5 -> 4 GEN and the recipient increased by 0.999873694749999177 GEN after fees.
 The historical 6 / 0 / 4 / 2 GEN script snapshot is not rewritten as today's global accounting.
 No final Portal action, reviewer acceptance or award is claimed.
+
+### MS-005 submission-ready amendment — 2026-10-19
+
+The preceding verified/publication checkpoint is preserved. Current status is `SUBMISSION_READY`.
+Exact accepted-baseline delta:
+`be794338f9a00a00e72baab466d229cd03467e2b..8ff8f52e90297244054ba10341fcc96b165e3cd2`.
+Final evidence CI `39217570408` completed `success`; all 326 local checks, production build, browser
+policy lifecycle and exact 1 GEN native-transfer gate are verified. The English Portal packet is
+`docs/MILESTONE-SUBMISSION-MS-005.md` (922/1000 characters); its public links were checked.
+Deployed contract/frontend identities remain those in the verified phase row; later packet/log-only
+commits do not introduce another product capability. Latest balances remain 0 locked, 4 GEN credit;
+five developer-seeded rounds were open at the final read, not five adopted users.
+Portal reference `NOT_SUBMITTED`, outcome date none, accepted baseline still MS-004. No Submit action
+was taken and no MS-006 was selected. Wait for explicit action-time authorization or owner submission.

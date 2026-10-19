@@ -10,7 +10,7 @@ The product reserves access and adjudicates a bounded provider-submitted artifac
 
 ## Verified status
 
-**Current work: MS-005 — Reputation-Bound Booking Policies (`VERIFIED`, final evidence publication in progress; not submitted).**
+**Current work: MS-005 — Reputation-Bound Booking Policies (`SUBMISSION_READY`, not submitted).**
 Requesters can atomically attach minimum finalized review count/average to a booking. Provider
 reputation is frozen at round lock; deterministic allocation excludes ineligible pairs even when
 semantic consensus says MATCH. Defaults remain unrestricted. See the [phase dossier](docs/milestones/MS-005/README.md).
@@ -31,6 +31,9 @@ See [browser proof](docs/evidence/studio-dev/ms-005-browser-lifecycle.json),
 [production QA](docs/evidence/studio-dev/ms-005-production.json).
 All **326 checks**, production build and NodeNext API checking pass; the
 [deployed code CI](https://github.com/duclucky/skillslot-clearing/actions/runs/39214981065) passed.
+The [final evidence CI](https://github.com/duclucky/skillslot-clearing/actions/runs/39217570408)
+also passed. [Copy-ready Portal fields](docs/MILESTONE-SUBMISSION-MS-005.md) contain 922/1000 characters
+and the exact accepted-baseline comparison. Final Submit still requires owner authorization.
 These are controlled developer tests, not independent adoption. The older records below describe
 accepted history, not MS-005 proof. Previous Studionet funds/reputation are not migrated.
 
